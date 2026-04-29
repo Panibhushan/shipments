@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html>
+<style>
+.href-styling {
+	display: inline-block;
+	font-weight: bold;
+	padding: 10px 20px;
+	text-decoration: none;
+	border-radius: 6px;
+}
+
+.active-a-tag {
+	background-color: #4CAF50;
+	color: white;
+	pointer-events: none;
+	border: 2px solid green;
+}
+
+form {
+	border-radius: 5px;
+	background-color: #f2f2f2;
+	padding: 20px;
+}
+
+label {
+	display: block;
+}
+
+input[type=text] {
+	width: 50%;
+	padding: 12px;
+	margin: 10px 0;
+	box-sizing: border-box;
+}
+
+ul {
+	list-style-type: none;
+	margin: 0;
+	padding: 0;
+	overflow: hidden;
+	background-color: #006f5b;
+}
+
+ul li {
+	float: left;
+}
+
+ul li a {
+	display: block;
+	color: white;
+	text-align: center;
+	padding: 14px 16px;
+	text-decoration: none;
+}
+
+ul li a:hover {
+	background-color: #111111;
+}
+</style>
+
+<body>
+
+	<ul>
+		<li><a href="/"> Home </a>
+		<li><a href="/shipments/goToCreateShipmentPage">Create New
+				Shipment</a></li>
+		<li><a href="/shipments/">Show ALL Shipments</a></li>
+		<li><a href="/customers/goToCreateCustomerPage"
+			class="active-a-tag">Create New Customer</a></li>
+		<li><a href="/customers/">Show ALL Customers</a></li>
+	</ul>
+
+	<!-- 	<div>
+		<a href="/"
+			style="background-color: #c98b1c; color: #f5f0e9; margin-right: 3px"
+			class="href-styling"> Home </a><a
+			href="/shipments/goToCreateShipmentPage"
+			style="background-color: #d5e6be; color: #24360c;"
+			class="href-styling">Create New Shipment</a> <a href="/shipments/"
+			style="background-color: #47eddf; color:#592a51;"
+			class="href-styling" >Show
+			ALL Shipments</a> <a href="/customers/goToCreateCustomerPage"
+			class="href-styling active-a-tag">Create New Customer</a> <a
+			href="/customers/" style="background-color: #e8d399; color: #66635b;"
+			class="href-styling">Show ALL Customers</a>
+	</div> -->
+
+	<h2>Add Customer</h2>
+
+	<p th:if="${msg}" id="msgBox"
+		th:style="'background:' + ${bgColor} + '; color:' + ${textColor} + '; padding:10px; border-radius:6px; position:relative; font-weight:bold;'">
+		<span th:text="${msg}"></span>&nbsp;&nbsp;&nbsp;&nbsp;<a href="/customers/" th:style="|color:${textColor}|">Show ALL Customers</a>
+		<!-- ❌ Close button -->
+		<span onclick="this.parentElement.style.display='none'"
+			style="position: absolute; margin: auto; right: 14px; cursor: pointer; font-weight: bold;">
+			X </span>
+
+	</p>
+
+	<form action="/customers/createCustomer" method="post"
+		id="customerForm">
+
+		<label for="fname">Customer ID</label> <input type="text"
+			name="customerId" id="customerId" placeholder="enter customer id"
+			required> <label for="lname">Customer Name</label> <input
+			type="text" name="customerName" id="customerName" required
+			placeholder="enter customer name"> <br /> <br />
+		<button type="submit"
+			style="display: inline-block; background-color: #4CAF50; color: #fcfaf5; font-weight: bold; padding: 10px 20px; text-decoration: none; border-radius: 6px; border-color: white; cursor: pointer;">
+			Create Customer</button>
+	</form>
+	<br />
+	<br />
+	<script>
+		document
+				.getElementById("customerForm")
+				.addEventListener(
+						"submit",
+						function(event) {
+
+							let customerId = document
+									.getElementById("customerId").value;
+							let customerName = document
+									.getElementById("customerName").value;
+							
+							let errorMessage='';
+							let isError=false;
+							
+							if (customerId.length < 3) {
+								isError=true;
+								errorMessage="Customer ID must be atleast 3 characters long !!\n";
+							}
+
+							if (customerId.length > 5) {
+								isError=true;
+								errorMessage = errorMessage + "Customer ID must be maximum 5 characters only !!\n";
+							}
+
+							if (customerName.length < 5) {								
+								isError=true;
+								errorMessage = errorMessage + "Customer Name must be atleast 5 characters long !!\n"; 
+							}
+
+							if (customerName.length > 30) {
+								isError=true;
+								errorMessage = errorMessage +"Customer Name must be maximum 30 characters only !!";
+							}
+							
+							if (isError){
+								alert(errorMessage);
+								event.preventDefault(); // 🚫 stop form submission
+							}
+
+						});
+
+		window.addEventListener("load", function() {
+			var msg = document.getElementById("msgBox");
+			if (msg) {
+				setTimeout(function() {
+					msg.style.display = "none";
+				}, 10000);
+			}
+		});
+	</script>
+
+
+</body>
+</html>

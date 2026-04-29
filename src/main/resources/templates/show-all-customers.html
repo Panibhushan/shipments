@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+<style>
+table {
+	width: 80%;
+	border-collapse: separate;
+	border-spacing: 0 6px;
+	font-family: Arial, sans-serif;
+	border: none;
+	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+}
+
+thead th {
+	text-align: center;
+	padding: 6px;
+	color: #374151;
+	background: #ededb9;
+	border: 1px #e6e65c;
+}
+
+tbody tr {
+	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+	margin: auto auto;
+}
+
+td {
+	padding: 8px;
+	margin: auto auto;
+}
+
+/* tbody tr td:first-child {
+	border-top-left-radius: 8px;
+	border-bottom-left-radius: 8px;
+}
+
+tbody tr td:last-child {
+	border-top-right-radius: 8px;
+	border-bottom-right-radius: 8px;
+} */
+tbody tr:hover {
+	transform: scale(1.01);
+	transition: 0.2s;
+	background: #c8f7f7;
+}
+
+button {
+	margin: 3px 3px;
+	padding: 10px 10px;
+	cursor: pointer;
+}
+
+button:hover {
+	transform: scale(1.01);
+	transition: 0.2s;
+}
+
+#viewShipmentDetails {
+	background-color: #b4dcef;
+	color: #5015b9;
+	font-weight: bold;
+	text-decoration: none;
+	margin: 3px 3px;
+	padding: 10px 10px;
+	cursor: pointer;
+}
+
+.href-styling {
+	display: inline-block;
+	font-weight: bold;
+	padding: 10px 20px;
+	text-decoration: none;
+	border-radius: 6px;
+}
+
+.active-a-tag {
+	background-color: #4CAF50;
+	color: white;
+	pointer-events: none;
+	border: 2px solid green;
+}
+
+ul {
+	list-style-type: none;
+	margin: 0;
+	padding: 0;
+	overflow: hidden;
+	background-color: #006f5b;
+}
+
+ul li {
+	float: left;
+}
+
+ul li a {
+	display: block;
+	color: white;
+	text-align: center;
+	padding: 14px 16px;
+	text-decoration: none;
+}
+
+ul li a:hover {
+	background-color: #111111;
+}
+</style>
+<body>
+
+	<ul>
+		<li><a href="/"> Home </a>
+		<li><a href="/shipments/goToCreateShipmentPage">Create New
+				Shipment</a></li>
+		<li><a href="/shipments/">Show ALL Shipments</a></li>
+		<li><a href="/customers/goToCreateCustomerPage">Create New
+				Customer</a></li>
+		<li><a href="/customers/" class="active-a-tag">Show ALL
+				Customers</a></li>
+	</ul>
+
+	<h2>All Customers</h2>
+
+	<a href="/customers/goToCreateCustomerPage"
+		style="display: inline-block; background-color: #d5e6be; color: #24360c; font-weight: bold; padding: 10px 20px; text-decoration: none; border-radius: 6px;">Create
+		New Customer</a>
+	<br />
+	<table border="1">
+		<thead>
+			<tr>
+				<th>Customer Id</th>
+				<th>Customer Name</th>
+				<th>Created At</th>
+			</tr>
+		</thead>
+		<tr th:each="c : ${customers}">
+			<td th:text="${c.customerId}"></td>
+			<td th:text="${c.customerName}"></td>
+			<td th:text="${c.createdAt}"></td>
+		</tr>
+	</table>
+
+	<br />
+	<br />
+
+
+
+</body>
+</html>
