@@ -43,6 +43,7 @@ button:hover {
 #viewShipmentAuditDetailsButton {
 	cursor: pointer;
 	text-align: center;
+	font-family: Arial, sans-serif;
 	padding: 6px;
 	color: #374151;
 	background: #ededb9;
@@ -130,7 +131,7 @@ ul li a:hover {
 					th:text="|${shipment.shipStatus} - Unknown Status|"></span></span></td>
 
 
-			<td>
+			<td th:if="${!(shipment.shipStatus == 1400 || shipment.shipStatus == 9000)}">
 				<form
 					th:action="@{/shipments/updateShipmentStatusFromInsideShipmentDetailsPage}"
 					method="post">
@@ -162,16 +163,20 @@ ul li a:hover {
 			</td>
 		</tr>
  		<tr style="display:hidden"></tr><tr style="display:hidden"></tr>
-		<tr>
+	<!-- 	<tr>
 			<td><a id="viewShipmentAuditDetailsButton"
 				th:href="@{'/shipments/showShipmentAuditDetails/' + ${shipment.shipmentId}}" style="text-decoration:none;">
 					View Shipment Audit </a></td>
-		</tr>
+		</tr> -->
 
 	</table>
-
+	
 	<br />
-	<br />
+	
+	<a id="viewShipmentAuditDetailsButton"
+				th:href="@{'/shipments/showShipmentAuditDetails/' + ${shipment.shipmentId}}" style="text-decoration:none;">
+					View Shipment Audit </a> 
+ 
 
 	<script>
 			function confirmSubmit(event, eventType) {

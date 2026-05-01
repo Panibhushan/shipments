@@ -2,34 +2,34 @@
 <html>
 
 <style>
-table {
-	width: 80%;
-	border-collapse: separate;
-	border-spacing: 0 6px;
-	font-family: Arial, sans-serif;
-	border: none;
-	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
-}
+	table {
+		width: 80%;
+		border-collapse: separate;
+		border-spacing: 0 6px;
+		font-family: Arial, sans-serif;
+		border: none;
+		box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+	}
 
-thead th {
-	text-align: center;
-	padding: 6px;
-	color: #374151;
-	background: #ededb9;
-	border: 1px #e6e65c;
-}
+	thead th {
+		text-align: center;
+		padding: 6px;
+		color: #374151;
+		background: #ededb9;
+		border: 1px #e6e65c;
+	}
 
-tbody tr {
-	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
-	margin: auto auto;
-}
+	tbody tr {
+		box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+		margin: auto auto;
+	}
 
-td {
-	padding: 8px;
-	margin: auto auto;
-}
+	td {
+		padding: 8px;
+		margin: auto auto;
+	}
 
-/* tbody tr td:first-child {
+	/* tbody tr td:first-child {
 	border-top-left-radius: 8px;
 	border-bottom-left-radius: 8px;
 }
@@ -38,81 +38,100 @@ tbody tr td:last-child {
 	border-top-right-radius: 8px;
 	border-bottom-right-radius: 8px;
 } */
-tbody tr:hover {
-	transform: scale(1.01);
-	transition: 0.2s;
-	background: #c8f7f7;
-}
+	tbody tr:hover {
+		transform: scale(1.01);
+		transition: 0.2s;
+		background: #c8f7f7;
+	}
 
-button {
-	margin: 3px 3px;
-	padding: 10px 10px;
-	cursor: pointer;
-}
+	button {
+		margin: 3px 3px;
+		padding: 10px 10px;
+		cursor: pointer;
+	}
 
-button:hover {
-	transform: scale(1.01);
-	transition: 0.2s;
-}
+	button:hover {
+		transform: scale(1.01);
+		transition: 0.2s;
+	}
 
-#viewShipmentDetails {
-	background-color: #b4dcef;
-	color: #5015b9;
-	font-weight: bold;
-	text-decoration: none;
-	margin: 3px 3px;
-	padding: 10px 10px;
-	cursor: pointer;
-}
+	/* 	#viewShipmentDetails {
+		background-color: #b4dcef;
+		color: #5015b9;
+		font-weight: bold;
+		text-decoration: none;
+		margin: 3px 3px;
+		padding: 10px 10px;
+		cursor: pointer;
+	} */
+	 
+	#viewShipmentDetails {
+		display: inline-block;
+		/* IMPORTANT */
+		min-width: 140px;
+		/* keeps width consistent */
+		text-align: center;
+		background-color: #b4dcef;
+		color: #5015b9;
+		font-weight: bold;
+		text-decoration: none;
+		padding: 10px 16px;
+		border-radius: 6px;
+		margin: 3px;
+	}
 
-.href-styling {
-	display: inline-block;
-	font-weight: bold;
-	padding: 10px 20px;
-	text-decoration: none;
-	border-radius: 6px;
-}
+	.href-styling {
+		display: inline-block;
+		font-weight: bold;
+		padding: 10px 20px;
+		text-decoration: none;
+		border-radius: 6px;
+	}
 
-.active-a-tag {
-	background-color: #4CAF50;
-	color: white;
-	pointer-events: none;
-	border: 2px solid green;
-}
+	.active-a-tag {
+		background-color: #4CAF50;
+		color: white;
+		pointer-events: none;
+		border: 2px solid green;
+	}
 
-ul {
-  list-style-type: none;
-  margin: 0;
-  padding: 0;
-  overflow: hidden;
-  background-color: #006f5b;
-}
+	ul {
+		list-style-type: none;
+		margin: 0;
+		padding: 0;
+		overflow: hidden;
+		background-color: #006f5b;
+	}
 
-ul li {
-  float: left;
-}
+	ul li {
+		float: left;
+	}
 
-ul li a {
-  display: block;
-  color: white;
-  text-align: center;
-  padding: 14px 16px;
-  text-decoration: none;
-}
+	ul li a {
+		display: block;
+		color: white;
+		text-align: center;
+		padding: 14px 16px;
+		text-decoration: none;
+	}
 
-ul li a:hover {
-  background-color: #111111;
-}
+	ul li a:hover {
+		background-color: #111111;
+	}
 </style>
+
 <body>
 
 	<ul>
-<li><a href="/"> Home </a>
-<li><a href="/shipments/goToCreateShipmentPage" >Create New Shipment</a></li>
-<li><a href="/shipments/" class="active-a-tag">Show ALL Shipments</a></li>
-<li><a href="/customers/goToCreateCustomerPage" >Create New Customer</a></li>
-<li><a href="/customers/" >Show ALL Customers</a></li>
-</ul>
+		<li><a href="/"> Home </a>
+		<li><a href="/shipments/goToCreateShipmentPage">Create New
+				Shipment</a></li>
+		<li><a href="/shipments/" class="active-a-tag">Show ALL
+				Shipments</a></li>
+		<li><a href="/customers/goToCreateCustomerPage">Create New
+				Customer</a></li>
+		<li><a href="/customers/">Show ALL Customers</a></li>
+	</ul>
 
 	<p th:if="${msg}" id="msgBox"
 		style="background: #d95f6c; color: #ffffff; padding: 10px; border-radius: 6px; position: relative;; font-weight: bold;">
@@ -142,34 +161,33 @@ ul li a:hover {
 			</tr>
 		</thead>
 		<tr th:each="s : ${shipments}">
-			<td><a
-				th:href="@{'/shipments/showShipmentDetails/' + ${s.shipmentId}}"
-				style="color: blue; font-weight: bold; text-decoration: none;">
+			<td><a th:href="@{'/shipments/showShipmentDetails/' + ${s.shipmentId}}"
+					style="color: blue; font-weight: bold; text-decoration: none;">
 					<span th:text="${s.shipmentId}"></span>
-			</a></td>
+				</a></td>
 
 			<td th:text="${s.customerName}"></td>
 			<!-- 	<td th:text="${s.shipStatus}"></td> -->
 
 			<td th:switch="${s.shipStatus}"><span th:case="1100">1100
-					- Created</span> <span th:case="1200">1200 - Picked</span> <span
-				th:case="1300">1300 - Packed</span> <span th:case="1400">1400
-					- Shipped</span> <span th:case="9000">9000 - Cancelled</span> <span
-				th:case="*"> <span
-					th:text="|${s.shipStatus} - Unknown Status|"></span></span></td>
+					- Created</span> <span th:case="1200">1200 - Picked</span> <span th:case="1300">1300 - Packed</span>
+				<span th:case="1400">1400
+					- Shipped</span> <span th:case="9000">9000 - Cancelled</span> <span th:case="*"> <span
+						th:text="|${s.shipStatus} - Unknown Status|"></span></span></td>
 
-			<td><a
-				th:href="@{'/shipments/showShipmentDetails/' + ${s.shipmentId}}"
-				id="viewShipmentDetails"> View Details </a></td>
+			<td style="text-align: center; vertical-align: middle;"><a
+					th:href="@{'/shipments/showShipmentDetails/' + ${s.shipmentId}}" id="viewShipmentDetails"> View
+					Details </a></td>
 
-			<td>
+			<!-- show Cancel button only if the shipment status is below 1400, i.e., not shipped / cancelled -->
+			<td th:if="${(s.shipStatus < 1400)}" style="text-align: center; vertical-align: middle;">
 				<form th:action="@{/shipments/updateShipmentStatus}" method="post">
 
 					<input type="hidden" name="shipmentId" th:value="${s.shipmentId}" />
 					<input type="hidden" name="shipStatus" th:value="${s.shipStatus}" />
 
-					<button th:if="${!(s.shipStatus == 1400 || s.shipStatus == 9000)}"
-						type="submit" name="action" value="CANCEL"
+					<!-- show Cancel button only if the shipment status is below 1400, i.e., not shipped / cancelled -->
+					<button th:if="${(s.shipStatus < 1400)}" type="submit" name="action" value="CANCEL"
 						style="background-color: #ed4758; color: #ffffff; border: none; font-weight: bold;"
 						onclick="return confirmSubmit(event, 'CANCEL')">CANCEL
 						the Shipment</button>
@@ -201,16 +219,15 @@ ul li a:hover {
 						style="background-color: #ed4758; color: #ffffff; border: none; font-weight: bold;"
 						onclick="return confirmSubmit(event, 'CANCEL')">CANCEL
 						the Shipment</button>
-				</form> -->
-			</td>
+				</form> 
+			</td> -->
 		</tr>
 	</table>
-
 
 	<script>
 		function confirmSubmit(event, eventType) {
 			const confirmed = confirm("Are you sure you want to " + eventType
-					+ " this shipment ?");
+				+ " this shipment ?");
 
 			if (!confirmed) {
 				event.preventDefault(); // stop form submission
@@ -221,7 +238,6 @@ ul li a:hover {
 		}
 	</script>
 
-
-
 </body>
+
 </html>

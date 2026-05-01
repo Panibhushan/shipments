@@ -1,72 +1,78 @@
 package dev.shipping.shipments.model;
- 
+
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 
+import dev.shipping.shipments.config.AppProperties;
+
 @Entity
 public class Shipments {
 
-    @Id
-    @Column(name = "shipment_id")
-    private String shipmentId;
+	@Id
+	@Column(name = "shipment_id")
+	private String shipmentId;
 
-    @Column(name = "customer_name")
-    private String customerName;
+	@Column(name = "customer_name")
+	private String customerName;
 
-    @Column(name = "ship_status")
-    private int shipStatus = 1100;
+	@Column(name = "ship_status")
+	private int shipStatus = 1100;
 
-    @Column(name = "created_at")
-    private String createdAt;
+	@Column(name = "created_at")
+	private String createdAt;
 
-    @PrePersist
-    public void generateFields() {
+	@PrePersist
+	public void generateFields() {
 
-        // 1. Generate shipment_id: SHIP + YYYYMMDDHHMMSS + millis (for uniqueness)
-        DateTimeFormatter idFormat =
-                DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS");
+		// Generate shipment_id: SHIP + YYYYMMDDHHMMSS + millis (for uniqueness)
+		DateTimeFormatter idFormat = DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS");
 
-        this.shipmentId = customerName+"_SHIPMENT_" + LocalDateTime.now().format(idFormat);
+		// Get profile name from application.properties file and set it to Local or Cloud based on the profile being used
+		String profile = AppProperties.activeProfile; // "devLocal", "devCloud", "dev", "prod" etc.
 
-        // 2. Format created_at: DD-MON-YYYY HH:MM:SS
-        DateTimeFormatter createdFormat =
-                DateTimeFormatter.ofPattern("dd-MMM-yyyy HH:mm:ss");
+		if (profile.equals("devLocal")) {
+			this.shipmentId = customerName + "_LOCAL_SHIPMENT_" + LocalDateTime.now().format(idFormat);
+		} else {
+			this.shipmentId = customerName + "_CLOUD_SHIPMENT_" + LocalDateTime.now().format(idFormat);
+		}
+		
+		// Format created_at: DD-MON-YYYY HH:MM:SS
+		DateTimeFormatter createdFormat = DateTimeFormatter.ofPattern("dd-MMM-yyyy HH:mm:ss");
 
-        this.createdAt = LocalDateTime.now().format(createdFormat);
-    }
+		this.createdAt = LocalDateTime.now().format(createdFormat);
+	}
 
-    // Getters and Setters
+	// Getters and Setters
 
-    public String getShipmentId() {
-        return shipmentId;
-    }
+	public String getShipmentId() {
+		return shipmentId;
+	}
 
-    public String getCustomerName() {
-        return customerName;
-    }
+	public String getCustomerName() {
+		return customerName;
+	}
 
-    public void setCustomerName(String customerName) {
-        this.customerName = customerName;
-    }
+	public void setCustomerName(String customerName) {
+		this.customerName = customerName;
+	}
 
-    public int getShipStatus() {
-        return shipStatus;
-    }
+	public int getShipStatus() {
+		return shipStatus;
+	}
 
-    public void setShipStatus(int shipStatus) {
-        this.shipStatus = shipStatus;
-    }
+	public void setShipStatus(int shipStatus) {
+		this.shipStatus = shipStatus;
+	}
 
-    public String getCreatedAt() {
-        return createdAt;
-    }
+	public String getCreatedAt() {
+		return createdAt;
+	}
 
 	@Override
 	public String toString() {
 		return "Shipments [shipmentId=" + shipmentId + ", customerName=" + customerName + ", shipStatus=" + shipStatus
 				+ ", createdAt=" + createdAt + "]";
 	}
-        
-    
+
 }
