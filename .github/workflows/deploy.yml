@@ -79,8 +79,8 @@ jobs:
           SuccessExitStatus=143
           Restart=on-failure
           RestartSec=10
-          StandardOutput=journal
-          StandardError=journal
+          StandardOutput=append:/opt/myapp/app.log
+          StandardError=append:/opt/myapp/app.log
 
           [Install]
           WantedBy=multi-user.target
