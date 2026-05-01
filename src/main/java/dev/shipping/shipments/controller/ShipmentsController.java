@@ -73,7 +73,7 @@ public class ShipmentsController {
 
 		Customers customer = customersRepo.findById(customerId)
 				.orElseThrow(() -> new RuntimeException("Customer not found"));
-		shipment.setCustomerName(customerId);
+		shipment.setCustomerId(customerId);
 		Shipments savedShipment = shipmentsRepo.save(shipment);
 		snsService.publishShipmentStatus(savedShipment.getShipmentId(), "1100 - Created");
 

@@ -13,8 +13,8 @@ public class Shipments {
 	@Column(name = "shipment_id")
 	private String shipmentId;
 
-	@Column(name = "customer_name")
-	private String customerName;
+	@Column(name = "customer_id")
+	private String customerId;
 
 	@Column(name = "ship_status")
 	private int shipStatus = 1100;
@@ -32,9 +32,9 @@ public class Shipments {
 		String profile = AppProperties.activeProfile; // "devLocal", "devCloud", "dev", "prod" etc.
 
 		if (profile.equals("devLocal")) {
-			this.shipmentId = customerName + "_LOCAL_SHIPMENT_" + LocalDateTime.now().format(idFormat);
+			this.shipmentId = customerId + "_LOCAL_SHIPMENT_" + LocalDateTime.now().format(idFormat);
 		} else {
-			this.shipmentId = customerName + "_CLOUD_SHIPMENT_" + LocalDateTime.now().format(idFormat);
+			this.shipmentId = customerId + "_CLOUD_SHIPMENT_" + LocalDateTime.now().format(idFormat);
 		}
 		
 		// Format created_at: DD-MON-YYYY HH:MM:SS
@@ -48,13 +48,14 @@ public class Shipments {
 	public String getShipmentId() {
 		return shipmentId;
 	}
+ 
 
-	public String getCustomerName() {
-		return customerName;
+	public String getCustomerId() {
+		return customerId;
 	}
 
-	public void setCustomerName(String customerName) {
-		this.customerName = customerName;
+	public void setCustomerId(String customerId) {
+		this.customerId = customerId;
 	}
 
 	public int getShipStatus() {
@@ -71,7 +72,7 @@ public class Shipments {
 
 	@Override
 	public String toString() {
-		return "Shipments [shipmentId=" + shipmentId + ", customerName=" + customerName + ", shipStatus=" + shipStatus
+		return "Shipments [shipmentId=" + shipmentId + ", customerId=" + customerId + ", shipStatus=" + shipStatus
 				+ ", createdAt=" + createdAt + "]";
 	}
 

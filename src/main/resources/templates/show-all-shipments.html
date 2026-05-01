@@ -27,6 +27,7 @@
 	td {
 		padding: 8px;
 		margin: auto auto;
+		text-align: center;
 	}
 
 	/* tbody tr td:first-child {
@@ -41,11 +42,13 @@ tbody tr td:last-child {
 	tbody tr:hover {
 		transform: scale(1.01);
 		transition: 0.2s;
-		background: #c8f7f7;
+		/* background: #f4f4d9;   */
+		background: #efefef;
 	}
 
 	button {
 		margin: 3px 3px;
+
 		padding: 10px 10px;
 		cursor: pointer;
 	}
@@ -64,19 +67,16 @@ tbody tr td:last-child {
 		padding: 10px 10px;
 		cursor: pointer;
 	} */
-	 
+
 	#viewShipmentDetails {
 		display: inline-block;
-		/* IMPORTANT */
 		min-width: 140px;
-		/* keeps width consistent */
 		text-align: center;
 		background-color: #b4dcef;
 		color: #5015b9;
 		font-weight: bold;
 		text-decoration: none;
 		padding: 10px 16px;
-		border-radius: 6px;
 		margin: 3px;
 	}
 
@@ -147,7 +147,7 @@ tbody tr td:last-child {
 	<h2>Shipments List</h2>
 
 	<a href="/shipments/goToCreateShipmentPage"
-		style="display: inline-block; background-color: #d5e6be; color: #24360c; font-weight: bold; padding: 10px 20px; text-decoration: none; border-radius: 6px;">Create
+		style="display: inline-block; background-color:  #4CAF50; color: #fcfaf5; font-weight: bold; padding: 10px 20px; text-decoration: none; border-radius: 6px;">Create
 		New Shipment</a>
 
 	<table border="1">
@@ -155,7 +155,7 @@ tbody tr td:last-child {
 		<thead>
 			<tr>
 				<th>Shipment ID</th>
-				<th>Customer Name</th>
+				<th>Customer</th>
 				<th>Shipment Status</th>
 				<th colspan="2">Actions</th>
 			</tr>
@@ -166,14 +166,15 @@ tbody tr td:last-child {
 					<span th:text="${s.shipmentId}"></span>
 				</a></td>
 
-			<td th:text="${s.customerName}"></td>
+			<td th:text="${s.customerId}"></td>
 			<!-- 	<td th:text="${s.shipStatus}"></td> -->
 
 			<td th:switch="${s.shipStatus}"><span th:case="1100">1100
 					- Created</span> <span th:case="1200">1200 - Picked</span> <span th:case="1300">1300 - Packed</span>
 				<span th:case="1400">1400
 					- Shipped</span> <span th:case="9000">9000 - Cancelled</span> <span th:case="*"> <span
-						th:text="|${s.shipStatus} - Unknown Status|"></span></span></td>
+						th:text="|${s.shipStatus} - Unknown Status|"></span></span>
+			</td>
 
 			<td style="text-align: center; vertical-align: middle;"><a
 					th:href="@{'/shipments/showShipmentDetails/' + ${s.shipmentId}}" id="viewShipmentDetails"> View
@@ -224,6 +225,8 @@ tbody tr td:last-child {
 		</tr>
 	</table>
 
+	<!-- 	<div style="background: #d7d7bd; width:100px; height:100px;"></div>
+ -->
 	<script>
 		function confirmSubmit(event, eventType) {
 			const confirmed = confirm("Are you sure you want to " + eventType

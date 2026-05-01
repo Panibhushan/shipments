@@ -27,6 +27,7 @@ tbody tr {
 td {
 	padding: 8px;
 	margin: auto auto;
+		text-align: center;
 }
 
 button {
@@ -112,6 +113,7 @@ ul li a:hover {
 	font-family: Arial, sans-serif;
 	background-color: #ededb9;
 	color:  #374151;
+	font-size: 14px;
 }
 </style>
 
@@ -142,7 +144,7 @@ ul li a:hover {
 		<tr>
 			<td th:text="${shipment.shipmentId}"></td>
 
-			<td th:text="${shipment.customerName}"></td>
+			<td th:text="${shipment.customerId}"></td>
 			<!-- 			<td th:text="${shipment.shipStatus}"></td>
  -->
 			<td th:switch="${shipment.shipStatus}"><span th:case="1100">1100
