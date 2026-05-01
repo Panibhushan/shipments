@@ -18,8 +18,8 @@ jobs:
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
-          java-version: '21'
-          distribution: 'corretto'   # Amazon Corretto — matches EC2 runtime
+          java-version: "21"
+          distribution: "corretto"
 
       # 3. Cache Maven dependencies
       - name: Cache Maven Packages
@@ -33,7 +33,6 @@ jobs:
       # 4. Build JAR
       - name: Build with Maven
         run: mvn clean package -DskipTests
-        # For Gradle: ./gradlew clean build -x test
 
       # 5. Setup SSH Key
       - name: Setup SSH Key
@@ -41,36 +40,44 @@ jobs:
           mkdir -p ~/.ssh
           echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/deploy_key.pem
           chmod 600 ~/.ssh/deploy_key.pem
-          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
+          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts 2>/dev/null
+          echo "SSH setup done"
 
-      # 6. Copy JAR to EC2
+      # 6. Create App Directory on EC2   ← NEW STEP ADDED
+      - name: Create App Directory on EC2
+        run: |
+          ssh -i ~/.ssh/deploy_key.pem \
+            -o StrictHostKeyChecking=no \
+            ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} \
+            "sudo mkdir -p /opt/myapp && sudo chown ec2-user:ec2-user /opt/myapp"
+
+      # 7. Copy JAR to EC2
       - name: Copy JAR to EC2
         run: |
           scp -i ~/.ssh/deploy_key.pem \
+            -o StrictHostKeyChecking=no \
             target/*.jar \
             ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/opt/myapp/app.jar
 
-      # 7. Restart App on EC2
+      # 8. Restart App on EC2
       - name: Restart Application
         run: |
           ssh -i ~/.ssh/deploy_key.pem \
+            -o StrictHostKeyChecking=no \
             ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
               echo ">>> Stopping existing app..."
               sudo systemctl stop myapp || true
               sleep 3
-
               echo ">>> Starting new version..."
               sudo systemctl start myapp
               sleep 5
-
               echo ">>> Checking status..."
               sudo systemctl status myapp --no-pager
-
               echo ">>> Recent logs..."
               sudo journalctl -u myapp -n 20 --no-pager
           EOF
 
-      # 8. Cleanup SSH key
+      # 9. Cleanup SSH key
       - name: Cleanup
         if: always()
         run: rm -f ~/.ssh/deploy_key.pem
