@@ -65,14 +65,44 @@ jobs:
           ssh -i ~/.ssh/deploy_key.pem \
             -o StrictHostKeyChecking=no \
             ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
+
+              echo ">>> Creating systemd service..."
+              sudo tee /etc/systemd/system/myapp.service > /dev/null << 'SERVICE'
+              [Unit]
+              Description=My Java Application
+              After=syslog.target network.target
+
+              [Service]
+              User=ec2-user
+              WorkingDirectory=/opt/myapp
+              ExecStart=/usr/bin/java -jar /opt/myapp/app.jar
+              SuccessExitStatus=143
+              Restart=on-failure
+              RestartSec=10
+              StandardOutput=journal
+              StandardError=journal
+
+              [Install]
+              WantedBy=multi-user.target
+              SERVICE
+
+              echo ">>> Reloading systemd..."
+              sudo systemctl daemon-reload
+
+              echo ">>> Enabling service..."
+              sudo systemctl enable myapp
+
               echo ">>> Stopping existing app..."
               sudo systemctl stop myapp || true
               sleep 3
+
               echo ">>> Starting new version..."
               sudo systemctl start myapp
               sleep 5
+
               echo ">>> Checking status..."
               sudo systemctl status myapp --no-pager
+
               echo ">>> Recent logs..."
               sudo journalctl -u myapp -n 20 --no-pager
           EOF
