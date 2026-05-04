@@ -27,7 +27,7 @@ tbody tr {
 td {
 	padding: 8px;
 	margin: auto auto;
-		text-align: center;
+	text-align: center;
 }
 
 button {
@@ -117,6 +117,8 @@ ul li a:hover {
 				<th>Shipment ID</th>
 				<th>Customer</th>
 				<th>Shipment Status</th>
+				<th>Created At</th>
+				<th>Modified At</th>
 			</tr>
 		</thead>
 
@@ -131,8 +133,14 @@ ul li a:hover {
 				th:case="*"> <span
 					th:text="|${shipment.shipStatus} - Unknown Status|"></span></span></td>
 
+			<td th:text="${shipment.createdAt}"></td>
+			<td th:text="${shipment.modifiedAt}"></td>
 
-			<td th:if="${!(shipment.shipStatus == 1400 || shipment.shipStatus == 9000)}">
+		</tr>
+		<tr style="text-align: left !important;">
+			<td
+				th:if="${!(shipment.shipStatus == 1400 || shipment.shipStatus == 9000)}"
+				style="text-align: left !important;">
 				<form
 					th:action="@{/shipments/updateShipmentStatusFromInsideShipmentDetailsPage}"
 					method="post">
@@ -163,34 +171,37 @@ ul li a:hover {
 				</form>
 			</td>
 		</tr>
- 		<tr style="display:hidden"></tr><tr style="display:hidden"></tr>
-	<!-- 	<tr>
+
+
+		<tr style="display: hidden"></tr>
+		<tr style="display: hidden"></tr>
+		<!-- 	<tr>
 			<td><a id="viewShipmentAuditDetailsButton"
 				th:href="@{'/shipments/showShipmentAuditDetails/' + ${shipment.shipmentId}}" style="text-decoration:none;">
 					View Shipment Audit </a></td>
 		</tr> -->
 
 	</table>
-	
-	<br />
-	
+
+	<br /> &nbsp;
 	<a id="viewShipmentAuditDetailsButton"
-				th:href="@{'/shipments/showShipmentAuditDetails/' + ${shipment.shipmentId}}" style="text-decoration:none;">
-					View Shipment Audit </a> 
- 
+		th:href="@{'/shipments/showShipmentAuditDetails/' + ${shipment.shipmentId}}"
+		style="text-decoration: none;"> View Shipment Audit </a>
+
 
 	<script>
-			function confirmSubmit(event, eventType) {
-				const confirmed = confirm("Are you sure you want to "
-						+ eventType + " this shipment ?");
+		function confirmSubmit(event, eventType) {
+			const confirmed = confirm("Are you sure you want to " + eventType
+					+ " this shipment ?");
 
-				if (!confirmed) {
-					event.preventDefault(); // stop form submission
-					return false;
-				}
-
-				return true;
+			if (!confirmed) {
+				event.preventDefault(); // stop form submission
+				return false;
 			}
-		</script>
+
+			return true;
+		}
+	</script>
 </body>
+
 </html>

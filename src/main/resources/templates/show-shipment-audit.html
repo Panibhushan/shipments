@@ -27,7 +27,7 @@ tbody tr {
 td {
 	padding: 8px;
 	margin: auto auto;
-		text-align: center;
+	text-align: center;
 }
 
 button {
@@ -112,7 +112,7 @@ ul li a:hover {
 	text-align: center;
 	font-family: Arial, sans-serif;
 	background-color: #ededb9;
-	color:  #374151;
+	color: #374151;
 	font-size: 14px;
 }
 </style>
@@ -137,6 +137,8 @@ ul li a:hover {
 				<th>Shipment ID</th>
 				<th>Customer</th>
 				<th>Shipment Status</th>
+				<th>Created At</th>
+				<th>Modified At</th>
 			</tr>
 		</thead>
 		<!-- 	<td th:text="${shipment}"> </td> -->
@@ -155,7 +157,15 @@ ul li a:hover {
 					th:text="|${shipment.shipStatus} - Unknown Status|"></span></span></td>
 
 
-			<td th:if="${!(shipment.shipStatus == 1400 || shipment.shipStatus == 9000)}">
+			<td th:text="${shipment.createdAt}"></td>
+			<td th:text="${shipment.modifiedAt}"></td>
+
+		</tr>
+		<tr style="text-align: left !important;">
+			<td
+				th:if="${!(shipment.shipStatus == 1400 || shipment.shipStatus == 9000)}"
+				style="text-align: left !important;">
+
 				<form
 					th:action="@{/shipments/updateShipmentStatusFromInsideShipmentAuditDetailsPage}"
 					method="post">
@@ -200,8 +210,7 @@ ul li a:hover {
 
 	</table>
 
-	<br />
-
+	<br /> &nbsp;
 	<a id="viewShipmentAuditDetailsButton"
 		onclick="loadShipmentAuditDetailsContent()"> <span
 		id="viewOrHideTextInSpanTag">Hide</span> Shipment Audit

@@ -22,6 +22,9 @@ public class Shipments {
 	@Column(name = "created_at")
 	private String createdAt;
 
+	@Column(name = "modified_at")
+	private String modifiedAt;
+
 	@PrePersist
 	public void generateFields() {
 
@@ -36,11 +39,21 @@ public class Shipments {
 		} else {
 			this.shipmentId = customerId + "_CLOUD_SHIPMENT_" + LocalDateTime.now().format(idFormat);
 		}
-		
+
 		// Format created_at: DD-MON-YYYY HH:MM:SS
 		DateTimeFormatter createdFormat = DateTimeFormatter.ofPattern("dd-MMM-yyyy HH:mm:ss");
 
+		
+		// set createdAt & modifiedAt date-time at the time of first record creation
 		this.createdAt = LocalDateTime.now().format(createdFormat);
+		this.modifiedAt = LocalDateTime.now().format(createdFormat);
+	}
+	
+	//Update modified date-time every time you make update to the table i.e., shipment status
+    @PreUpdate
+	public void setModifiedAt() {
+		DateTimeFormatter createdFormat = DateTimeFormatter.ofPattern("dd-MMM-yyyy HH:mm:ss");
+		this.modifiedAt = LocalDateTime.now().format(createdFormat);
 	}
 
 	// Getters and Setters
@@ -48,7 +61,6 @@ public class Shipments {
 	public String getShipmentId() {
 		return shipmentId;
 	}
- 
 
 	public String getCustomerId() {
 		return customerId;
@@ -70,10 +82,16 @@ public class Shipments {
 		return createdAt;
 	}
 
+	public String getModifiedAt() {
+		return modifiedAt;
+	}
+
+	
+
 	@Override
 	public String toString() {
 		return "Shipments [shipmentId=" + shipmentId + ", customerId=" + customerId + ", shipStatus=" + shipStatus
-				+ ", createdAt=" + createdAt + "]";
+				+ ", createdAt=" + createdAt + ", modifiedAt=" + modifiedAt + "]";
 	}
 
 }
