@@ -34,18 +34,19 @@ public class CustomersController {
 	@GetMapping("/customers/goToCreateCustomerPage")
 	public String addCustomersPage(Model model) {
 		model.addAttribute("customer", new Customers());
-		return "add-customer";
+		return "create-customer";
 	}
 
 	@PostMapping("/customers/createCustomer")
 	public String saveCustomers(@ModelAttribute Customers customer, RedirectAttributes redirectAttributes) {
 		System.out.println("hitting /customers/createCustomer - saveCustomers method: " + customer);
 		String customerId = customer.getCustomerId();
-		
-		System.out.println("customerId: "+customerId);
-		
-		System.out.println("customersRepo.findById(customerId).isPresent(): "+customersRepo.findById(customerId).isPresent());
-		
+
+		System.out.println("customer: " + customer);
+
+		System.out.println(
+				"customersRepo.findById(customerId).isPresent(): " + customersRepo.findById(customerId).isPresent());
+
 		Optional<Customers> c = customersRepo.findById(customerId);
 		if (c.isPresent()) {
 			System.out.println("inside IF block");
@@ -54,11 +55,46 @@ public class CustomersController {
 			redirectAttributes.addFlashAttribute("textColor", "#ffffff");
 		} else {
 			System.out.println("inside ELSE block");
-			customersRepo.save(customer);
-			redirectAttributes.addFlashAttribute("msg", "Created Customer " + customerId + "!!!");
-			redirectAttributes.addFlashAttribute("bgColor", "#d1fae5");
-			redirectAttributes.addFlashAttribute("textColor", "#191a1a"); 
+			String messageToDisplay = "", customerName = customer.getCustomerName();
+
+			boolean doesCustomerIdHasWhitespace = customerId.matches(".*\\s.*"), hasError = false;
+
+			if (doesCustomerIdHasWhitespace) {
+				hasError = true;
+				messageToDisplay = "Customer ID cannot contain any whitespaces (spaces, tabs, next-line characters)!!\n";
+			} else {
+
+				if (customerId.length() < 3) {
+					hasError = true;
+					messageToDisplay = "Customer ID must be atleast 3 characters long !!\n";
+				} else if (customerId.length() > 5) {
+					hasError = true;
+					messageToDisplay += "Customer ID must be maximum 5 characters only !!\n";
+				}
+			}
+
+			if (customerName.trim().length() < 5) {
+				hasError = true;
+				messageToDisplay += "Customer Name must be atleast 5 characters long !!\n";
+			} else if (customerName.trim().length() > 30) {
+				hasError = true;
+				messageToDisplay += "Customer Name must be maximum 30 characters only !!";
+			}
+
+			if (hasError) {
+				redirectAttributes.addFlashAttribute("msg", messageToDisplay);
+				redirectAttributes.addFlashAttribute("customerIdFromController", customerId);
+				redirectAttributes.addFlashAttribute("customerNameFromController", customerName);
+				redirectAttributes.addFlashAttribute("bgColor", "#f03a5b");
+				redirectAttributes.addFlashAttribute("textColor", "#f5f0f1");
+			} else {
+				customersRepo.save(customer);
+				redirectAttributes.addFlashAttribute("msg", "Created Customer " + customerId + "!!!");
+				redirectAttributes.addFlashAttribute("bgColor", "#d1fae5;");
+				redirectAttributes.addFlashAttribute("textColor", "#45484d");
+			}
 		}
+		
 		return "redirect:/customers/goToCreateCustomerPage";
 	}
 

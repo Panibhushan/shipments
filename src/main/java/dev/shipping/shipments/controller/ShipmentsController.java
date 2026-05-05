@@ -64,7 +64,7 @@ public class ShipmentsController {
 
 		model.addAttribute("shipment", new Shipments());
 		model.addAttribute("customers", customersRepo.findAll());
-		return "add-shipment";
+		return "create-shipment";
 	}
 
 	@PostMapping("/shipments/createShipment")
