@@ -112,27 +112,38 @@ ul li a:hover {
 		<button type="submit"
 			style="display: inline-block; background-color: #4CAF50; color: #fcfaf5; font-weight: bold; padding: 10px 20px; text-decoration: none; border-radius: 6px; border-color: white; cursor: pointer;">
 			Create Customer</button>
-	</form> 
+	</form>
 
 	<div
-		style="border: 1px solid #ccc; padding: 15px; border-radius: 8px; width: 500px; background: #f0f7f2; margin-top: 20px;">
+		style="border: 1px solid #ccc; padding: 5px; border-radius: 8px; width: 50%; background: #f0f7f2; margin-top: 5px;">
 
 		<h4 style="margin-top: 0;">📌 Conditions for creating customer</h4>
 
-		<ol style="line-height: 1.8; padding-left: 20px; background-color: #f0f7f2; width: 40%:">
-			<li>Customer ID must be in upper case!!</li>
+		<ol
+			style="line-height: 1.8; padding-left: 20px; background-color: #f0f7f2; width: 40%:">
+			<li>Customer ID must be in upper case.</li>
 			<li>Customer ID cannot contain any white spaces (spaces, tabs,
-				next-line characters)!!</li>
-			<li>Customer ID must be at least 3 characters long !!</li>
-			<li>Customer ID must be maximum 5 characters only !!</li>
-			<li>Customer Name must be at least 5 characters long !!</li>
-			<li>Customer Name must be maximum 30 characters only !!</li>
+				next-line characters).</li>
+			<li>Customer ID must be at least 3 characters long.</li>
+			<li>Customer ID must be maximum 5 characters only.</li>
+			<li>Customer Name must be at least 5 characters long.</li>
+			<li>Customer Name must be maximum 30 characters only.</li>
 		</ol>
 
 	</div>
 
 
 	<script>
+	
+	window.addEventListener("load", function() {
+		var msg = document.getElementById("msgBox");
+		if (msg) {
+			setTimeout(function() {
+				msg.style.display = "none";
+			}, 10000);
+		}
+	});
+	
 		document
 				.getElementById("customerForm")
 				.addEventListener(
@@ -149,7 +160,7 @@ ul li a:hover {
 							
 							if(/\s/.test(customerId)){
 								isError=true;
-								errorMessage= = "Customer ID cannot contain any whitespaces (spaces, tabs, next-line characters)!!\\n";
+								errorMessage="Customer ID cannot contain any whitespaces (spaces, tabs, next-line characters)!!\\n";
 							}else{								
 								if (customerId.length < 3) {
 									isError=true;
@@ -174,15 +185,7 @@ ul li a:hover {
 							}
 
 						});
-
-		window.addEventListener("load", function() {
-			var msg = document.getElementById("msgBox");
-			if (msg) {
-				setTimeout(function() {
-					msg.style.display = "none";
-				}, 10000);
-			}
-		});
+		
 	</script>
 
 

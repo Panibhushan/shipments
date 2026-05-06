@@ -89,7 +89,7 @@ public class CustomersController {
 				redirectAttributes.addFlashAttribute("textColor", "#f5f0f1");
 			} else {
 				customersRepo.save(customer);
-				redirectAttributes.addFlashAttribute("msg", "Created Customer " + customerId + "!!!");
+				redirectAttributes.addFlashAttribute("msg", "Created Customer: " + customerId + " !!!");
 				redirectAttributes.addFlashAttribute("bgColor", "#d1fae5;");
 				redirectAttributes.addFlashAttribute("textColor", "#45484d");
 			}
