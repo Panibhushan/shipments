@@ -95,7 +95,6 @@ public class ShipmentsController {
 			System.out.println("inside IF block");
 			System.out.println(" singleShipment: " + singleShipment.toString());
 			model.addAttribute("shipment", singleShipment.get());
-			model.addAttribute("shipment", singleShipment.get());
 			return "show-shipment-details";
 		} else {
 			redirectAttributes.addFlashAttribute("msg", "Shipment " + shipmentId + " doesnt exist !!!");

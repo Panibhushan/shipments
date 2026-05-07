@@ -85,7 +85,6 @@ public class Shipments {
 	public String getModifiedAt() {
 		return modifiedAt;
 	}
-
 	
 
 	@Override
