@@ -2,119 +2,120 @@
 <html>
 
 <style>
-#shipmentDetailsTable {
-	width: 80%;
-	border-collapse: separate;
-	border-spacing: 0 6px;
-	font-family: Arial, sans-serif;
-	border: none;
-	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
-}
+	#shipmentDetailsTable {
+		width: 80%;
+		border-collapse: separate;
+		border-spacing: 0 6px;
+		font-family: Arial, sans-serif;
+		border: none;
+		box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+	}
 
-thead th {
-	text-align: center;
-	padding: 6px;
-	color: #374151;
-	background: #ededb9;
-	border: 1px #e6e65c;
-}
+	thead th {
+		text-align: center;
+		padding: 6px;
+		color: #374151;
+		background: #ededb9;
+		border: 1px #e6e65c;
+	}
 
-tbody tr {
-	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
-	margin: auto auto;
-}
+	tbody tr {
+		box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+		margin: auto auto;
+	}
 
-td {
-	padding: 8px;
-	margin: auto auto;
-	text-align: center;
-}
+	td {
+		padding: 8px;
+		margin: auto auto;
+		text-align: center;
+	}
 
-button {
-	margin: 3px 3px;
-	padding: 10px 10px;
-	cursor: pointer;
-}
+	button {
+		margin: 3px 3px;
+		padding: 10px 10px;
+		cursor: pointer;
+	}
 
-button:hover {
-	transform: scale(1.01);
-	transition: 0.2s;
-}
+	button:hover {
+		transform: scale(1.01);
+		transition: 0.2s;
+	}
 
-#viewShipmentAuditDetailsButton {
-	cursor: pointer;
-	text-align: center;
-	font-family: Arial, sans-serif;
-	padding: 6px;
-	color: #374151;
-	background: #ededb9;
-	border: 1px #e6e65c;
-}
+	#viewShipmentAuditDetailsButton {
+		cursor: pointer;
+		text-align: center;
+		font-family: Arial, sans-serif;
+		padding: 6px;
+		color: #374151;
+		background: #ededb9;
+		border: 1px #e6e65c;
+	}
 
-#viewShipmentAuditDetailsButton:hover {
-	transform: scale(1.01);
-	transition: 0.2s;
-}
+	#viewShipmentAuditDetailsButton:hover {
+		transform: scale(1.01);
+		transition: 0.2s;
+	}
 
-.href-styling {
-	display: inline-block;
-	font-weight: bold;
-	padding: 10px 20px;
-	text-decoration: none;
-	border-radius: 6px;
-}
+	.href-styling {
+		display: inline-block;
+		font-weight: bold;
+		padding: 10px 20px;
+		text-decoration: none;
+		border-radius: 6px;
+	}
 
-.active-a-tag {
-	background-color: #4CAF50;
-	color: white;
-	pointer-events: none;
-	border: 2px solid green;
-}
+	.active-a-tag {
+		background-color: #4CAF50;
+		color: white;
+		pointer-events: none;
+		border: 2px solid green;
+	}
 
-ul {
-	list-style-type: none;
-	margin: 0;
-	padding: 0;
-	overflow: hidden;
-	background-color: #006f5b;
-}
+	ul {
+		list-style-type: none;
+		margin: 0;
+		padding: 0;
+		overflow: hidden;
+		background-color: #006f5b;
+	}
 
-ul li {
-	float: left;
-}
+	ul li {
+		float: left;
+	}
 
-ul li a {
-	display: block;
-	color: white;
-	text-align: center;
-	padding: 14px 16px;
-	text-decoration: none;
-}
+	ul li a {
+		display: block;
+		color: white;
+		text-align: center;
+		padding: 14px 16px;
+		text-decoration: none;
+	}
 
-ul li a:hover {
-	background-color: #111111;
-}
+	ul li a:hover {
+		background-color: #111111;
+	}
 
-#shipmentAuditTable table {
-	font-family: Arial, sans-serif;
-	border-collapse: collapse;
-	width: 100%;
-}
+	#shipmentAuditTable table {
+		font-family: Arial, sans-serif;
+		border-collapse: collapse;
+		width: 100%;
+	}
 
-#shipmentAuditTable td, th {
-	border: 1px solid #ddd;
-	padding: 8px;
-}
+	#shipmentAuditTable td,
+	th {
+		border: 1px solid #ddd;
+		padding: 8px;
+	}
 
-#shipmentAuditTable th {
-	padding-top: 12px;
-	padding-bottom: 12px;
-	text-align: center;
-	font-family: Arial, sans-serif;
-	background-color: #ededb9;
-	color: #374151;
-	font-size: 14px;
-}
+	#shipmentAuditTable th {
+		padding-top: 12px;
+		padding-bottom: 12px;
+		text-align: center;
+		font-family: Arial, sans-serif;
+		background-color: #ededb9;
+		color: #374151;
+		font-size: 14px;
+	}
 </style>
 
 <body>
@@ -127,7 +128,12 @@ ul li a:hover {
 				Customer</a></li>
 		<li><a href="/customers/">Show ALL Customers</a></li>
 	</ul>
-
+	<p th:if="${msg}" id="msgBox"
+		th:style="'background:' + ${bgColor} + '; color:' + ${textColor} + '; padding:10px; border-radius:6px; position:relative; font-weight:bold;'">
+		<span th:text="${msg}"></span>
+		<span onclick="this.parentElement.style.display='none'"
+			style="position: absolute; margin: auto; right: 14px; cursor: pointer; font-weight: bold;">X</span>
+	</p>
 	<h2>Shipment Details</h2>
 
 	<table border="1" id="shipmentDetailsTable">
@@ -150,11 +156,10 @@ ul li a:hover {
 			<!-- 			<td th:text="${shipment.shipStatus}"></td>
  -->
 			<td th:switch="${shipment.shipStatus}"><span th:case="1100">1100
-					- Created</span> <span th:case="1200">1200 - Picked</span> <span
-				th:case="1300">1300 - Packed</span> <span th:case="1400">1400
-					- Shipped</span> <span th:case="9000">9000 - Cancelled</span> <span
-				th:case="*"> <span
-					th:text="|${shipment.shipStatus} - Unknown Status|"></span></span></td>
+					- Created</span> <span th:case="1200">1200 - Picked</span> <span th:case="1300">1300 - Packed</span>
+				<span th:case="1400">1400
+					- Shipped</span> <span th:case="9000">9000 - Cancelled</span> <span th:case="*"> <span
+						th:text="|${shipment.shipStatus} - Unknown Status|"></span></span></td>
 
 
 			<td th:text="${shipment.createdAt}"></td>
@@ -162,43 +167,41 @@ ul li a:hover {
 
 		</tr>
 		<tr style="text-align: left !important;">
-			<td
-				th:if="${!(shipment.shipStatus == 1400 || shipment.shipStatus == 9000)}"
+			<td th:if="${!(shipment.shipStatus == 1400 || shipment.shipStatus == 9000)}"
 				style="text-align: left !important;">
 
-				<form
-					th:action="@{/shipments/updateShipmentStatusFromInsideShipmentAuditDetailsPage}"
-					method="post">
+				<form th:action="@{/shipments/updateShipmentStatusFromInsideShipmentAuditDetailsPage}" method="post">
 
-					<input type="hidden" name="shipmentId"
-						th:value="${shipment.shipmentId}" /> <input type="hidden"
-						name="shipStatus" th:value="${shipment.shipStatus}" />
+					<input type="hidden" name="shipmentId" th:value="${shipment.shipmentId}" />
+					<input type="hidden" name="shipStatus" th:value="${shipment.shipStatus}" />
+					<input type="hidden" name="customerId" th:value="${shipment.customerId}" />
 
-					<button type="submit" name="action" value="PICK"
-						th:if="${shipment.shipStatus == 1100}"
+					<button type="submit" name="action" value="PICK" th:if="${shipment.shipStatus == 1100}"
 						style="background-color: #b4dcef; color: #5015b9; border: none; font-weight: bold;">Start
 						Picking</button>
-					<button type="submit" name="action" value="PACK"
-						th:if="${shipment.shipStatus == 1200}"
+					<button type="submit" name="action" value="PACK" th:if="${shipment.shipStatus == 1200}"
 						style="background-color: #ebe2a2; color: #422006; border: none; font-weight: bold;">Pack
 						the Shipment</button>
-					<button type="submit" name="action" value="SHIP"
-						th:if="${shipment.shipStatus == 1300}"
+					<button type="submit" name="action" value="SHIP" th:if="${shipment.shipStatus == 1300}"
 						style="background-color: #a5e38f; color: #14532d; border: none; font-weight: bold;"
 						onclick="return confirmSubmit(event, 'SHIP')">Ship the
 						Shipment</button>
-					<button
-						th:if="${!(shipment.shipStatus == 1400 || shipment.shipStatus == 9000)}"
-						type="submit" name="action" value="CANCEL"
+					<button th:if="${!(shipment.shipStatus == 1400 || shipment.shipStatus == 9000)}" type="submit"
+						name="action" value="CANCEL"
 						style="background-color: #ed4758; color: #ffffff; border: none; font-weight: bold;"
-						onclick="return confirmSubmit(event, 'CANCEL')">CANCEL
-						the Shipment</button>
+						onclick="return confirmSubmit(event, 'CANCEL')">
+						CANCEL the Shipment</button>
+
+					<input type="hidden" id="disableButtonActions" th:value="${disableButtonActions}" />
+
 				</form>
 			</td>
 		</tr>
 		<tr style="display: hidden"></tr>
 		<tr style="display: hidden"></tr>
-		<!-- <tr>
+		<!-- Add this temporarily to see if the value is coming through -->
+		<!-- <p th:text="${disableButtonActions}">value here</p>
+ --> <!-- <tr>
 			<td><a id="viewShipmentAuditDetailsButton"
 				onclick="loadShipmentAuditDetailsContent()"> <span
 					id="viewOrHideTextInSpanTag">Hide</span> Shipment Audit
@@ -211,9 +214,8 @@ ul li a:hover {
 	</table>
 
 	<br /> &nbsp;
-	<a id="viewShipmentAuditDetailsButton"
-		onclick="loadShipmentAuditDetailsContent()"> <span
-		id="viewOrHideTextInSpanTag">Hide</span> Shipment Audit
+	<a id="viewShipmentAuditDetailsButton" onclick="loadShipmentAuditDetailsContent()"> <span
+			id="viewOrHideTextInSpanTag">Hide</span> Shipment Audit
 	</a>
 
 	<br />
@@ -237,7 +239,7 @@ ul li a:hover {
 	<script>
 		function confirmSubmit(event, eventType) {
 			const confirmed = confirm("Are you sure you want to " + eventType
-					+ " this shipment ?");
+				+ " this shipment ?");
 
 			if (!confirmed) {
 				event.preventDefault(); // stop form submission
@@ -258,8 +260,22 @@ ul li a:hover {
 				table.style.display = "none";
 			}
 		}
+
+		//disbale buttons if customer is not found or contacrt has expired
+		document.addEventListener("DOMContentLoaded", function () {
+			var disableButtonActions = document.getElementById("disableButtonActions").value;
+
+			if (disableButtonActions === "true") {
+				document.querySelectorAll("button").forEach(function (btn) {
+					btn.disabled = true;
+					btn.style.opacity = "0.5";
+					btn.style.cursor = "not-allowed";
+				});
+			}
+		});
 	</script>
 
 
 </body>
+
 </html>

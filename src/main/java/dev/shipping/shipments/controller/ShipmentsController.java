@@ -9,7 +9,11 @@ import dev.shipping.shipments.service.SnsPublisherService;
 import dev.shipping.shipments.service.SqsSenderService;
 import software.amazon.awssdk.services.dynamodb.model.*;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -29,7 +33,6 @@ public class ShipmentsController {
 	private SnsPublisherService snsService;
 	private DynamoDbService dynamoDbService;
 	private SqsSenderService sqsService;
-	
 
 	public ShipmentsController(ShipmentsRepository shipmentsRepo, CustomersRepository customersRepo,
 			DynamoDbService dynamoDbService, SnsPublisherService snsService, SqsSenderService sqsService) {
@@ -102,38 +105,62 @@ public class ShipmentsController {
 		}
 	}
 
-	@PostMapping("/shipments/updateShipmentStatus")
-	public String updateShipmentStatus(@RequestParam String shipmentId, @RequestParam Integer shipStatus,
-			@RequestParam String action) {
+	@PostMapping("/shipments/cancelShipmentFromAllShipmentsPage")
+	public String cancelShipmentFromAllShipmentsPage(@RequestParam String shipmentId, @RequestParam Integer shipStatus,
+			@RequestParam String action, @RequestParam String customerId,
+			RedirectAttributes redirectAttributes) {
 
-		helperFunctionToUpdateShipmentStatus(shipmentId, shipStatus, action);
-
+		String response = helperFunctionToUpdateShipmentStatus(shipmentId, shipStatus, action, customerId);
+		if(!response.equals("SHIPMENT_STATUS_UPDATED_SUCCESSFULLY")) {
+			redirectAttributes.addFlashAttribute("msg", response);
+			redirectAttributes.addFlashAttribute("bgColor", "#d95f6c");
+			redirectAttributes.addFlashAttribute("textColor", "#ffffff");
+		}
 		return "redirect:/shipments/";
 	}
 
 	@PostMapping("/shipments/updateShipmentStatusFromInsideShipmentDetailsPage")
-	public String updateShipmentStatusFromInsideShipmentDetailsPage(@RequestParam String shipmentId, @RequestParam Integer shipStatus, @RequestParam String action) {
+	public String updateShipmentStatusFromInsideShipmentDetailsPage(@RequestParam String shipmentId,
+			@RequestParam Integer shipStatus, @RequestParam String action, @RequestParam String customerId,
+			RedirectAttributes redirectAttributes) {
 
 		System.out.println("inside /shipments/updateShipmentStatusFromInsideShipmentDetailsPage: " + shipmentId + " - "
 				+ shipStatus + " - " + action);
 
-		helperFunctionToUpdateShipmentStatus(shipmentId, shipStatus, action);
+		String response = helperFunctionToUpdateShipmentStatus(shipmentId, shipStatus, action, customerId);
+		if(!response.equals("SHIPMENT_STATUS_UPDATED_SUCCESSFULLY")) {
+			redirectAttributes.addFlashAttribute("msg", response);
+			redirectAttributes.addFlashAttribute("disableButtonActions", true);
+			redirectAttributes.addFlashAttribute("bgColor", "#d95f6c");
+			redirectAttributes.addFlashAttribute("textColor", "#ffffff");
+		}		
 
 		return "redirect:/shipments/showShipmentDetails/" + shipmentId;
 	}
-	
+
 	@PostMapping("/shipments/updateShipmentStatusFromInsideShipmentAuditDetailsPage")
-	public String updateShipmentStatusFromInsideShipmentAuditDetailsPage(@RequestParam String shipmentId, @RequestParam Integer shipStatus, @RequestParam String action) {
+	public String updateShipmentStatusFromInsideShipmentAuditDetailsPage(@RequestParam String shipmentId,
+			@RequestParam Integer shipStatus, @RequestParam String action, @RequestParam String customerId,
+			RedirectAttributes redirectAttributes) {
 
 		System.out.println("inside /shipments/updateShipmentStatusFromInsideShipmentDetailsPage: " + shipmentId + " - "
 				+ shipStatus + " - " + action);
 
-		helperFunctionToUpdateShipmentStatus(shipmentId, shipStatus, action);
+		helperFunctionToUpdateShipmentStatus(shipmentId, shipStatus, action, customerId);
 
+		String response = helperFunctionToUpdateShipmentStatus(shipmentId, shipStatus, action, customerId);
+		if(!response.equals("SHIPMENT_STATUS_UPDATED_SUCCESSFULLY")) {
+			redirectAttributes.addFlashAttribute("msg", response);
+			redirectAttributes.addFlashAttribute("disableButtonActions", true);
+			redirectAttributes.addFlashAttribute("bgColor", "#d95f6c");
+			redirectAttributes.addFlashAttribute("textColor", "#ffffff");
+		}
+		
 		return "redirect:/shipments/showShipmentAuditDetails/" + shipmentId;
 	}
 
-	public void helperFunctionToUpdateShipmentStatus(String shipmentId, Integer shipStatus, String action) {
+	public String helperFunctionToUpdateShipmentStatus(String shipmentId, Integer shipStatus, String action,
+			String customerId) {
 
 		Shipments shipment = shipmentsRepo.findById(shipmentId)
 				.orElseThrow(() -> new RuntimeException("Shipment not found"));
@@ -143,36 +170,64 @@ public class ShipmentsController {
 
 		String shipmentStatusAndDesc = "THIS IS shipmentStatusAndDesc";
 
-		switch (action) {
+		/*
+		 * Customers singleCustomer = customersRepo.findById(customerId) .orElseThrow(()
+		 * -> new RuntimeException("Customer not found"));
+		 */
+		Optional<Customers> singleCustomer = customersRepo.findById(customerId);
 
-		case "PICK":
-			shipment.setShipStatus(1200);
-			shipmentStatusAndDesc = "1200 - Picked";
-			break;
+		System.out.println("helperFunctionToUpdateShipmentStatus:: singleCustomer: " + singleCustomer);
 
-		case "PACK":
-			shipment.setShipStatus(1300);
-			shipmentStatusAndDesc = "1300 - Packed";
-			break;
-		case "SHIP":
-			shipment.setShipStatus(1400);
-			shipmentStatusAndDesc = "1400 - Shipped";
-			break;
-		case "CANCEL":
-			shipment.setShipStatus(9000);
-			shipmentStatusAndDesc = "9000 - Cancelled";
-			break;
+		if (singleCustomer.isEmpty()) {
+			System.out.println("Customer not found");
+			return "Shipment# "+shipmentId+ " cannot be processed because the Customer: "+customerId+" is not found";
+		} else {
+			// Parse the date
+			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MMM-yyyy HH:mm:ss");
+			LocalDateTime validUptoDateTime = LocalDateTime.parse(singleCustomer.get().getValidUpto(), formatter);
 
-		default:
-			throw new RuntimeException("Invalid action");
+			// Start of today
+			LocalDateTime startOfToday = LocalDate.now().atStartOfDay();
+
+			// Check if date falls within today or before end of today
+			if (!validUptoDateTime.isAfter(startOfToday)) {
+				System.out.println("Contract has expired!!");
+				return "Shipment# "+shipmentId+ " cannot be processed because the Customer: "+customerId+" contract has expired!! Please extend it";
+			} else {
+				System.out.println("Contract is valid");
+
+				switch (action) {
+
+				case "PICK":
+					shipment.setShipStatus(1200);
+					shipmentStatusAndDesc = "1200 - Picked";
+					break;
+
+				case "PACK":
+					shipment.setShipStatus(1300);
+					shipmentStatusAndDesc = "1300 - Packed";
+					break;
+				case "SHIP":
+					shipment.setShipStatus(1400);
+					shipmentStatusAndDesc = "1400 - Shipped";
+					break;
+				case "CANCEL":
+					shipment.setShipStatus(9000);
+					shipmentStatusAndDesc = "9000 - Cancelled";
+					break;
+
+				default:
+					throw new RuntimeException("Invalid action");
+				}
+
+				// snsService.publishShipmentStatus(shipmentId, shipmentStatusAndDesc);
+
+				sqsService.sendShipmentStatus(shipmentId, shipmentStatusAndDesc);
+
+				shipmentsRepo.save(shipment);
+				return "SHIPMENT_STATUS_UPDATED_SUCCESSFULLY";
+			}
 		}
-
-		// snsService.publishShipmentStatus(shipmentId, shipmentStatusAndDesc);
-
-		sqsService.sendShipmentStatus(shipmentId, shipmentStatusAndDesc);
-		
-		shipmentsRepo.save(shipment);
-
 	}
 
 	@GetMapping("/shipments/showShipmentAuditDetails/{shipmentId}")

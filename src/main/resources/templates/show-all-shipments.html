@@ -48,7 +48,6 @@ tbody tr td:last-child {
 
 	button {
 		margin: 3px 3px;
-
 		padding: 10px 10px;
 		cursor: pointer;
 	}
@@ -67,7 +66,6 @@ tbody tr td:last-child {
 		padding: 10px 10px;
 		cursor: pointer;
 	} */
-
 	#viewShipmentDetails {
 		display: inline-block;
 		min-width: 140px;
@@ -133,21 +131,28 @@ tbody tr td:last-child {
 		<li><a href="/customers/">Show ALL Customers</a></li>
 	</ul>
 
+
 	<p th:if="${msg}" id="msgBox"
+		th:style="'background:' + ${bgColor} + '; color:' + ${textColor} + '; padding:10px; border-radius:6px; position:relative; font-weight:bold;'">
+		<span th:text="${msg}"></span> <span onclick="this.parentElement.style.display='none'"
+			style="position: absolute; margin: auto; right: 14px; cursor: pointer; font-weight: bold;">X</span>
+	</p>
+
+	<!-- <p th:if="${msg}" id="msgBox"
 		style="background: #d95f6c; color: #ffffff; padding: 10px; border-radius: 6px; position: relative;; font-weight: bold;">
 
 		<span th:text="${msg}"></span>
 
-		<!-- ❌ Close button -->
+		❌ Close button
 		<span onclick="this.parentElement.style.display='none'"
 			style="position: absolute; margin: auto; right: 10px; cursor: pointer; font-weight: bold;">
 			X </span>
 
-	</p>
+	</p> -->
 	<h2>Shipments List</h2>
 
 	<a href="/shipments/goToCreateShipmentPage"
-		style="display: inline-block; background-color:  #4CAF50; color: #fcfaf5; font-weight: bold; padding: 10px 20px; text-decoration: none; border-radius: 6px;">Create
+		style="display: inline-block; background-color: #4CAF50; color: #fcfaf5; font-weight: bold; padding: 10px 20px; text-decoration: none; border-radius: 6px;">Create
 		New Shipment</a>
 
 	<table border="1">
@@ -173,8 +178,7 @@ tbody tr td:last-child {
 					- Created</span> <span th:case="1200">1200 - Picked</span> <span th:case="1300">1300 - Packed</span>
 				<span th:case="1400">1400
 					- Shipped</span> <span th:case="9000">9000 - Cancelled</span> <span th:case="*"> <span
-						th:text="|${s.shipStatus} - Unknown Status|"></span></span>
-			</td>
+						th:text="|${s.shipStatus} - Unknown Status|"></span></span></td>
 
 			<td style="text-align: center; vertical-align: middle;"><a
 					th:href="@{'/shipments/showShipmentDetails/' + ${s.shipmentId}}" id="viewShipmentDetails"> View
@@ -182,16 +186,20 @@ tbody tr td:last-child {
 
 			<!-- show Cancel button only if the shipment status is below 1400, i.e., not shipped / cancelled -->
 			<td th:if="${(s.shipStatus < 1400)}" style="text-align: center; vertical-align: middle;">
-				<form th:action="@{/shipments/updateShipmentStatus}" method="post">
+				<form th:action="@{/shipments/cancelShipmentFromAllShipmentsPage}" method="post">
 
 					<input type="hidden" name="shipmentId" th:value="${s.shipmentId}" />
 					<input type="hidden" name="shipStatus" th:value="${s.shipStatus}" />
+					<input type="hidden" name="customerId" th:value="${s.customerId}" />
+
 
 					<!-- show Cancel button only if the shipment status is below 1400, i.e., not shipped / cancelled -->
 					<button th:if="${(s.shipStatus < 1400)}" type="submit" name="action" value="CANCEL"
 						style="background-color: #ed4758; color: #ffffff; border: none; font-weight: bold;"
-						onclick="return confirmSubmit(event, 'CANCEL')">CANCEL
-						the Shipment</button>
+						onclick="return confirmSubmit(event, 'CANCEL')" th:id="|button${s.shipmentId}|">CANCEL the
+						Shipment</button>
+
+
 				</form>
 
 			</td>
@@ -228,6 +236,15 @@ tbody tr td:last-child {
 	<!-- 	<div style="background: #d7d7bd; width:100px; height:100px;"></div>
  -->
 	<script>
+		window.addEventListener("load", function () {
+			var msg = document.getElementById("msgBox");
+			if (msg) {
+				setTimeout(function () {
+					msg.style.display = "none";
+				}, 10000);
+			}
+		});
+
 		function confirmSubmit(event, eventType) {
 			const confirmed = confirm("Are you sure you want to " + eventType
 				+ " this shipment ?");
@@ -239,6 +256,8 @@ tbody tr td:last-child {
 
 			return true;
 		}
+
+
 	</script>
 
 </body>

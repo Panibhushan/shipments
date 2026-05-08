@@ -42,12 +42,12 @@ public class CustomersController {
 		return "create-customer";
 	}
 
-	@GetMapping("/customers/goToEditCustomerPage/{customerId}")
+	@GetMapping("/customers/editCustomer/{customerId}")
 	public String editCustomersPage(@PathVariable String customerId, Model model,
 			RedirectAttributes redirectAttributes) {
 		model.addAttribute("customer", new Customers());
 		System.out.println(
-				"hitting /customers/goToEditCustomerPage - editCustomersPage method:-- customerId: " + customerId);
+				"hitting /customers/editCustomer - editCustomersPage method:-- customerId: " + customerId);
 
 		Optional<Customers> singleCustomer = customersRepo.findById(customerId);
 
@@ -142,7 +142,7 @@ System.out.println("tomorrow : "+ tomorrow);
 			}
 		}
 
-		return "redirect:/customers/goToEditCustomerPage/"+customerId;
+		return "redirect:/customers/editCustomer/"+customerId;
 	}
 
 	@PostMapping("/customers/createCustomer")
