@@ -66,7 +66,18 @@ public class ShipmentsController {
 		System.out.println("customers: " + customers.toString());
 
 		model.addAttribute("shipment", new Shipments());
-		model.addAttribute("customers", customersRepo.findAll());
+		
+		LocalDateTime today = LocalDate.now().atStartOfDay();
+		
+		LocalDateTime time = LocalDateTime.now();
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+		String formattedDateTime = time.format(formatter)+"00:00:00.000000";
+		
+		System.out.println("/shipments/goToCreateShipmentPage : today:: "+today+" -- formattedDateTime: "+formattedDateTime);
+		
+		List<Customers> activeAndValidCustomers = customersRepo.findByCustomerStatusAndValidUpto("Active",today);
+		
+		model.addAttribute("customers", activeAndValidCustomers);
 		return "create-shipment";
 	}
 
@@ -112,7 +123,8 @@ public class ShipmentsController {
 
 		String response = helperFunctionToUpdateShipmentStatus(shipmentId, shipStatus, action, customerId);
 		if(!response.equals("SHIPMENT_STATUS_UPDATED_SUCCESSFULLY")) {
-			redirectAttributes.addFlashAttribute("msg", response);
+			redirectAttributes.addFlashAttribute("msg", response);			
+			redirectAttributes.addFlashAttribute("customerId", customerId);
 			redirectAttributes.addFlashAttribute("bgColor", "#d95f6c");
 			redirectAttributes.addFlashAttribute("textColor", "#ffffff");
 		}
@@ -130,6 +142,7 @@ public class ShipmentsController {
 		String response = helperFunctionToUpdateShipmentStatus(shipmentId, shipStatus, action, customerId);
 		if(!response.equals("SHIPMENT_STATUS_UPDATED_SUCCESSFULLY")) {
 			redirectAttributes.addFlashAttribute("msg", response);
+			redirectAttributes.addFlashAttribute("customerId", customerId);
 			redirectAttributes.addFlashAttribute("disableButtonActions", true);
 			redirectAttributes.addFlashAttribute("bgColor", "#d95f6c");
 			redirectAttributes.addFlashAttribute("textColor", "#ffffff");
@@ -151,6 +164,7 @@ public class ShipmentsController {
 		String response = helperFunctionToUpdateShipmentStatus(shipmentId, shipStatus, action, customerId);
 		if(!response.equals("SHIPMENT_STATUS_UPDATED_SUCCESSFULLY")) {
 			redirectAttributes.addFlashAttribute("msg", response);
+			redirectAttributes.addFlashAttribute("customerId", customerId);
 			redirectAttributes.addFlashAttribute("disableButtonActions", true);
 			redirectAttributes.addFlashAttribute("bgColor", "#d95f6c");
 			redirectAttributes.addFlashAttribute("textColor", "#ffffff");
@@ -188,11 +202,13 @@ public class ShipmentsController {
 
 			// Start of today
 			LocalDateTime startOfToday = LocalDate.now().atStartOfDay();
+			
+			String customerStatus = singleCustomer.get().getCustomerStatus();
 
 			// Check if date falls within today or before end of today
-			if (!validUptoDateTime.isAfter(startOfToday)) {
+			if (!validUptoDateTime.isAfter(startOfToday) || customerStatus.equals("Disabled")) {
 				System.out.println("Contract has expired!!");
-				return "Shipment# "+shipmentId+ " cannot be processed because the Customer: "+customerId+" contract has expired!! Please extend it";
+				return "Shipment# "+shipmentId+ " cannot be processed because either \nthe Customer: "+customerId+" is Disabled or the contract has expired!! \nPlease check and update it >>> ";
 			} else {
 				System.out.println("Contract is valid");
 

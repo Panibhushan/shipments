@@ -69,6 +69,16 @@
 		outline: none;
 		transition: border-color 0.3s, box-shadow 0.3s;
 	}
+	
+	select {
+		width: 50%;
+		padding: 12px;
+		margin: 8px 0;
+		display: inline-block;
+		border: 1px solid #ccc;
+		border-radius: 4px;
+		box-sizing: border-box;
+	}
 </style>
 
 <body>
@@ -119,6 +129,15 @@
 			th:value="${customerNameFromController != null} ? ${customerNameFromController} : ''" required> <label
 			for="valid upto date">Valid upto</label> <input type="date" name="validUpto" id="validUpto" min=""
 			placeholder="select valid upto date" required><br /> <br />
+		<label for="customer id">Customer Status</label>	 
+			<select name="customerStatus" required>
+			<option value="">-- Select Customer Status --</option>
+			<option th:value="Active"
+				th:text="Active"></option>
+				<option th:value="Disabled"
+				th:text="Disabled"></option>
+		</select> <br />
+			
 		<button type="submit"
 			style="display: inline-block; background-color: #4CAF50; color: #fcfaf5; font-weight: bold; padding: 10px 20px; text-decoration: none; border-radius: 6px; border-color: white; cursor: pointer;">
 			Create Customer</button>

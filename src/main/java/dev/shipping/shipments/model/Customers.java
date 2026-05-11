@@ -30,6 +30,9 @@ public class Customers {
 	@Column(name = "modified_at")
 	private String modifiedAt;
 
+	@Column(name = "customer_status")
+	private String customerStatus;
+
 	// This field stays for DB mapping
 	@Column(name = "valid_upto")
 	private LocalDateTime validUpto;
@@ -92,6 +95,14 @@ public class Customers {
 		return modifiedAt;
 	}
 
+	public String getCustomerStatus() {
+		return customerStatus;
+	}
+
+	public void setCustomerStatus(String customerStatus) {
+		this.customerStatus = customerStatus;
+	}
+	
 	// Setter — accepts yyyy-MM-dd from HTML
 	@JsonProperty("validUpto")
 	public void setValidUpto(String dateStr) {
@@ -111,7 +122,9 @@ public class Customers {
 	@Override
 	public String toString() {
 		return "Customers [customerId=" + customerId + ", customerName=" + customerName + ", createdAt=" + createdAt
-				+ ", modifiedAt=" + modifiedAt + ", validUpto=" + validUpto + "]";
+				+ ", modifiedAt=" + modifiedAt + ", customerStatus=" + customerStatus + ", validUpto=" + validUpto
+				+ "]";
 	}
+ 
 
 }

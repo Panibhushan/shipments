@@ -109,9 +109,12 @@
 	</ul>
 	<p th:if="${msg}" id="msgBox"
 		th:style="'background:' + ${bgColor} + '; color:' + ${textColor} + '; padding:10px; border-radius:6px; position:relative; font-weight:bold;'">
-		<span th:text="${msg}"></span>
+		<span th:text="${msg}" style="white-space: pre-wrap;"></span>
+		&nbsp;&nbsp;<a th:href="@{'/customers/showCustomerDetails/' + ${customerId}}" 
+		style="cursor: pointer; font-weight: bold; color: white"
+		>View Customer: <span th:text="${customerId}"></span></a>
 		<span onclick="this.parentElement.style.display='none'"
-			style="position: absolute; margin: auto; right: 14px; cursor: pointer; font-weight: bold;">X</span>
+			style="position: absolute; margin: auto; top: 40%; right: 14px; cursor: pointer; font-weight: bold;">X</span>
 	</p>
 
 	<h2>Shipment Details</h2>

@@ -142,6 +142,7 @@ tbody tr td:last-child {
 				<th>Created At</th>
 				<th>Modified At</th>
 				<th>Valid Up to</th>
+				<th>Customer Status</th>
 				<th colspan="2">Actions</th>
 			</tr>
 		</thead>
@@ -150,9 +151,10 @@ tbody tr td:last-child {
 			<td th:text="${c.customerName}"></td>
 			<td th:text="${c.createdAt}"></td>
 			<td th:text="${c.modifiedAt}"></td>
-			<td th:text="${c.validUpto}"></td>
-			<td><a th:href="@{'/customers/editCustomer/' + ${c.customerId}}"
-					style="display: inline-block; background-color: #6a73b2; color: #fcfaf5;  font-weight: bold; padding: 10px 20px; font-size: 13px; text-decoration: none; border-radius: 6px; border-color:white; cursor: pointer;">View/Edit
+			<td th:text="${c.validUpto}"></td>			
+			<td th:text="${c.customerStatus}"></td>
+						<td><a th:href="@{'/customers/editCustomer/' + ${c.customerId}}"
+					style="display: inline-block; background-color: #6a73b2; color: #fcfaf5;  font-weight: bold; padding: 10px 20px; font-size: 13px; text-decoration: none; border-radius: 6px; border-color:white; cursor: pointer;">View / Edit
 					Customer</a></td>
 			<td>
 				<form th:action="@{'/customers/deleteCustomer/' + ${c.customerId}}" method="post">

@@ -1,129 +1,141 @@
 <!DOCTYPE html>
 <html>
 <style>
-	#mainTable {
-		width: 100%;
-		/* 	border: 2px solid green;
+#mainTable {
+	width: 100%;
+	/* 	border: 2px solid green;
  */
-		table-layout: fixed;
-	}
+	table-layout: fixed;
+}
 
-	#mainTable>tbody>tr>td:first-child {
-		width: 65%;
-		vertical-align: top;
-		padding: 16px;
-	}
+#mainTable>tbody>tr>td:first-child {
+	width: 65%;
+	vertical-align: top;
+	padding: 16px;
+}
 
-	#mainTable>tbody>tr>td:last-child {
-		width: 35%;
-		vertical-align: top;
-		padding: 16px;
-	}
+#mainTable>tbody>tr>td:last-child {
+	width: 35%;
+	vertical-align: top;
+	padding: 16px;
+}
 
-	.href-styling {
-		display: inline-block;
-		font-weight: bold;
-		padding: 10px 20px;
-		text-decoration: none;
-		border-radius: 6px;
-	}
+.href-styling {
+	display: inline-block;
+	font-weight: bold;
+	padding: 10px 20px;
+	text-decoration: none;
+	border-radius: 6px;
+}
 
-	.active-a-tag {
-		background-color: #4CAF50;
-		color: white;
-		pointer-events: none;
-		border: 2px solid green;
-	}
+.active-a-tag {
+	background-color: #4CAF50;
+	color: white;
+	pointer-events: none;
+	border: 2px solid green;
+}
 
-	form {
-		border-radius: 5px;
-		background-color: #f2f2f2;
-		padding: 20px;
-	}
+form {
+	border-radius: 5px;
+	background-color: #f2f2f2;
+	padding: 20px;
+}
 
-	label {
-		display: block;
-	}
+label {
+	display: block;
+}
 
-	input[type=text] {
-		width: 50%;
-		padding: 12px;
-		margin: 10px 0;
-		box-sizing: border-box;
-	}
+input[type=text] {
+	width: 50%;
+	padding: 12px;
+	margin: 10px 0;
+	box-sizing: border-box;
+}
 
-	ul {
-		list-style-type: none;
-		margin: 0;
-		padding: 0;
-		overflow: hidden;
-		background-color: #006f5b;
-	}
+ul {
+	list-style-type: none;
+	margin: 0;
+	padding: 0;
+	overflow: hidden;
+	background-color: #006f5b;
+}
 
-	ul li {
-		float: left;
-	}
+ul li {
+	float: left;
+}
 
-	ul li a {
-		display: block;
-		color: white;
-		text-align: center;
-		padding: 14px 16px;
-		text-decoration: none;
-	}
+ul li a {
+	display: block;
+	color: white;
+	text-align: center;
+	padding: 14px 16px;
+	text-decoration: none;
+}
 
-	ul li a:hover {
-		background-color: #111111;
-	}
+ul li a:hover {
+	background-color: #111111;
+}
 
-	/* Base styling for the date input */
-	input[type="date"] {
-		font-family: Arial, sans-serif;
-		font-size: 16px;
-		padding: 8px 12px;
-		border: 1px solid;
-		border-radius: 6px;
-		background-color: #f9f9f9;
-		color: #333;
-		outline: none;
-		transition: border-color 0.3s, box-shadow 0.3s;
-	}
+/* Base styling for the date input */
+input[type="date"] {
+	font-family: Arial, sans-serif;
+	font-size: 16px;
+	padding: 8px 12px;
+	border: 1px solid;
+	border-radius: 6px;
+	background-color: #f9f9f9;
+	color: #333;
+	outline: none;
+	transition: border-color 0.3s, box-shadow 0.3s;
+}
 
-	/* Conditions box — fills the full height of the right cell */
-	.conditions-box {
-		border: 1px solid #ccc;
-		padding: 16px;
-		border-radius: 8px;
-		background: #f0f7f2;
-		height: 100%;
-		box-sizing: border-box;
-	}
+/* Conditions box — fills the full height of the right cell */
+.conditions-box {
+	border: 1px solid #ccc;
+	padding: 16px;
+	border-radius: 8px;
+	background: #f0f7f2;
+	height: 100%;
+	box-sizing: border-box;
+}
 
-	.conditions-box h4 {
-		margin-top: 0;
-	}
+.conditions-box h4 {
+	margin-top: 0;
+}
 
-	.conditions-box ol {
-		line-height: 1.8;
-		padding-left: 20px;
-	}
+.conditions-box ol {
+	line-height: 1.8;
+	padding-left: 20px;
+}
+
+select {
+	width: 50%;
+	padding: 12px;
+	margin: 8px 0;
+	display: inline-block;
+	border: 1px solid #ccc;
+	border-radius: 4px;
+	box-sizing: border-box;
+}
 </style>
 
 <body>
 
 	<ul>
 		<li><a href="/"> Home </a>
-		<li><a href="/shipments/goToCreateShipmentPage">Create New Shipment</a></li>
+		<li><a href="/shipments/goToCreateShipmentPage">Create New
+				Shipment</a></li>
 		<li><a href="/shipments/">Show ALL Shipments</a></li>
-		<li><a href="/customers/goToCreateCustomerPage" class="active-a-tag">Create New Customer</a></li>
+		<li><a href="/customers/goToCreateCustomerPage"
+			>Create New Customer</a></li>
 		<li><a href="/customers/">Show ALL Customers</a></li>
 	</ul>
 
 	<p th:if="${msg}" id="msgBox"
 		th:style="'background:' + ${bgColor} + '; color:' + ${textColor} + '; padding:10px; border-radius:6px; position:relative; font-weight:bold;'">
-		<span th:text="${msg}"></span>&nbsp;&nbsp;&nbsp;&nbsp;<a href="/customers/" th:style="|color:${textColor}|">Show
-			ALL Customers</a>
-		<span onclick="this.parentElement.style.display='none'"
+		<span th:text="${msg}"></span>&nbsp;&nbsp;&nbsp;&nbsp;<a
+			href="/customers/" th:style="|color:${textColor}|">Show ALL
+			Customers</a> <span onclick="this.parentElement.style.display='none'"
 			style="position: absolute; margin: auto; right: 14px; cursor: pointer; font-weight: bold;">X</span>
 	</p>
 
@@ -131,61 +143,75 @@
 		<tr>
 			<!-- ===== LEFT CELL — 65% — Update Form ===== -->
 			<td>
-				<form action="/customers/updateCustomer" method="post" name="updateCustomemDetails"
-					id="updateCustomemDetails">
+				<form action="/customers/updateCustomer" method="post"
+					name="updateCustomemDetails" id="updateCustomemDetails">
 
-					<input type="hidden" name="customerId" th:value="${customer.customerId}" />
-
-					Customer Id:
+					<input type="hidden" name="customerId"
+						th:value="${customer.customerId}" /> Customer Id:
 					<h3 th:text="${customer.customerId}"></h3>
 					Created At:
 					<h4 th:text="${customer.createdAt}"></h4>
 					Modified At:
 					<h4 th:text="${customer.modifiedAt}"></h4>
 
-					<label for="customerName">Customer Name</label>
-					<input type="text" name="customerName" id="customerName" placeholder="enter customer name"
-						th:value="${customer.customerName != null} ? ${customer.customerName} : ''" required>
-
-					<label for="validUpto">Valid upto</label>
-					<input type="date" name="validUpto" id="validUpto" min=""
+					<label for="customerName">Customer Name</label> <input type="text"
+						name="customerName" id="customerName"
+						placeholder="enter customer name"
+						th:value="${customer.customerName != null} ? ${customer.customerName} : ''"
+						required> <label for="validUpto">Valid upto</label> <input
+						type="date" name="validUpto" id="validUpto" min=""
 						th:value="${validUptoJustDate != null} ? ${validUptoJustDate} : ''"
-						placeholder="select valid upto date" required>
-					<br /><br />
+						placeholder="select valid upto date" required> <br /><label
+						for="customer status">Customer Status</label> <select name="customerStatus" required>
+						<option th:each="opt : ${options}" th:value="${opt}"
+							th:text="${opt}" th:selected="${opt == selectedStatus}">
+						</option>
+					</select>
 
+					<!--  <select
+						name="customerStatus" required>
+						<option value="">-- Select Customer Status --</option>
+						<option th:value="Active" th:text="Active"></option>
+						<option th:value="Disabled" th:text="Disabled"></option>
+					</select>
+					 -->
+
+					<br /> 
 					<table>
 						<tr>
 							<td>
 								<button onclick="submitIfChanged(event)"
 									style="display: inline-block; background-color: #6a73b2; color: #fcfaf5; font-weight: bold; padding: 10px 20px; text-decoration: none; border-radius: 6px; border-color: white; cursor: pointer;">
-									Update Customer
-								</button>
-				</form>
+									Update Customer</button>
+								</form>
+							</td>
+							<td>
+								<form
+									th:action="@{'/customers/deleteCustomer/' + ${customer.customerId}}"
+									method="post">
+									<button type="submit"
+										onclick="return confirm('Are you sure you want to delete this customer?')"
+										style="display: inline-block; background-color: #ed4758; color: #ffffff; font-weight: bold; padding: 10px 20px; text-decoration: none; border-radius: 6px; border-color: white; cursor: pointer;">
+										Delete Customer</button>
+								</form>
+							</td>
+						</tr>
+					</table>
 			</td>
+
+			<!-- ===== RIGHT CELL — 35% — Conditions ===== -->
 			<td>
-				<form th:action="@{'/customers/deleteCustomer/' + ${customer.customerId}}" method="post">
-					<button type="submit" onclick="return confirm('Are you sure you want to delete this customer?')"
-						style="display: inline-block; background-color: #ed4758; color: #ffffff; font-weight: bold; padding: 10px 20px; text-decoration: none; border-radius: 6px; border-color: white; cursor: pointer;">
-						Delete Customer
-					</button>
-				</form>
+				<div class="conditions-box">
+					<h4>📌 Conditions for updating customer</h4>
+					<ol>
+						<li>Customer Name must be at least 5 characters long.</li>
+						<li>Customer Name must be maximum 30 characters only.</li>
+						<li>Valid Up To date must be a future date (earliest is
+							tomorrow).</li>
+					</ol>
+				</div>
 			</td>
 		</tr>
-	</table>
-	</td>
-
-	<!-- ===== RIGHT CELL — 35% — Conditions ===== -->
-	<td>
-		<div class="conditions-box">
-			<h4>📌 Conditions for updating customer</h4>
-			<ol>
-				<li>Customer Name must be at least 5 characters long.</li>
-				<li>Customer Name must be maximum 30 characters only.</li>
-				<li>Valid Up To date must be a future date (earliest is tomorrow).</li>
-			</ol>
-		</div>
-	</td>
-	</tr>
 	</table>
 
 
@@ -244,25 +270,27 @@
 		document.getElementById("validUpto").min = tomorrow.toISOString().split("T")[0];
 
 		// Store original values when page loads
-		const originalValues = {};
-		document.querySelectorAll("#updateCustomemDetails input").forEach(input => {
-			originalValues[input.name] = input.value;
-		});
+ const originalValues = {};
+document.querySelectorAll("#updateCustomemDetails input, #updateCustomemDetails select").forEach(field => {
+    originalValues[field.name] = field.value;
+});
 
-		function submitIfChanged(event) {
-			const hasChanges = Object.keys(originalValues).some(name => {
-				const input = document.querySelector(`[name="${name}"]`);
-				return input && input.value !== originalValues[name];
-			});
+console.log("originalValues: "+originalValues);
 
-			if (!hasChanges) {
-				alert("No changes were made to customer details hence not updating it!");
-				event.preventDefault();
-				return false;
-			} else {
-				document.getElementById("updateCustomemDetails").submit();
-			}
-		}
+function submitIfChanged(event) {
+    const hasChanges = Object.keys(originalValues).some(name => {
+        const field = document.querySelector(`#updateCustomemDetails [name="${name}"]`);
+        return field && field.value !== originalValues[name];
+    });
+
+    if (!hasChanges) {
+        alert("No changes were made to customer details hence not updating it!");
+        event.preventDefault();
+        return false;
+    } else {
+        document.getElementById("updateCustomemDetails").submit();
+    }
+}
 	</script>
 </body>
 

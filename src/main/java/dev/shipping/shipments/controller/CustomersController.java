@@ -41,6 +41,13 @@ public class CustomersController {
 		model.addAttribute("customer", new Customers());
 		return "create-customer";
 	}
+		
+	@GetMapping("/customers/showCustomerDetails/{customerId}")
+	public String showCustomerDetails(@PathVariable String customerId, Model model,
+			RedirectAttributes redirectAttributes) {
+		return "redirect:/customers/editCustomer/"+customerId;
+
+	}
 
 	@GetMapping("/customers/editCustomer/{customerId}")
 	public String editCustomersPage(@PathVariable String customerId, Model model,
@@ -61,6 +68,10 @@ public class CustomersController {
 			return "redirect:/customers/";
 		} else {
 			model.addAttribute("customer", singleCustomer.get());
+			// The list of options for the dropdown of customer-status
+			model.addAttribute("options", List.of("Active", "Disabled" ));
+		    // The currently selected value (for th:selected comparison)
+			model.addAttribute("selectedStatus", singleCustomer.get().getCustomerStatus());
 
 			// Taking valid upto date-time, converting into just date to match the calendar
 			// format
@@ -75,9 +86,9 @@ public class CustomersController {
 	}
 
 	@PostMapping("/customers/updateCustomer")
-	public String updateCustomers(@RequestParam String customerId, @RequestParam String customerName,
+	public String updateCustomers(@RequestParam String customerId, @RequestParam String customerName, @RequestParam String customerStatus,
 			@RequestParam String validUpto, RedirectAttributes redirectAttributes) {
-		System.out.println("hitting /customers/updateCustomer - updateCustomers method:-- customer: " + customerId + " -- "+customerName+" -- "+validUpto);
+		System.out.println("hitting /customers/updateCustomer - updateCustomers method:-- customer: " + customerId + " -- "+customerName+" -- "+validUpto+" -- "+customerStatus);
 	 
 
 		Optional<Customers> c = customersRepo.findById(customerId);
@@ -123,6 +134,7 @@ System.out.println("tomorrow : "+ tomorrow);
 				redirectAttributes.addFlashAttribute("customerIdFromController", customerId);
 				redirectAttributes.addFlashAttribute("customerNameFromController", customerName);
 				redirectAttributes.addFlashAttribute("validUptoFromController", validUpto);
+				
 				redirectAttributes.addFlashAttribute("bgColor", "#f03a5b");
 				redirectAttributes.addFlashAttribute("textColor", "#f5f0f1");
 			} else {
@@ -133,7 +145,7 @@ System.out.println("tomorrow : "+ tomorrow);
 				
 				customer.setCustomerName(customerName);
 				customer.setValidUpto(validUpto);
-				
+				customer.setCustomerStatus(customerStatus);
 				
 				customersRepo.save(customer);
 				redirectAttributes.addFlashAttribute("msg", "Updated Customer: " + customerId + " !!!");
@@ -196,7 +208,6 @@ System.out.println("tomorrow : "+ tomorrow);
 				redirectAttributes.addFlashAttribute("bgColor", "#f03a5b");
 				redirectAttributes.addFlashAttribute("textColor", "#f5f0f1");
 			} else {
-
 				customersRepo.save(customer);
 				redirectAttributes.addFlashAttribute("msg", "Created Customer: " + customerId + " !!!");
 				redirectAttributes.addFlashAttribute("bgColor", "#d1fae5;");
