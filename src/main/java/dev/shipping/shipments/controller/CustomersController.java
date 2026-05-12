@@ -16,18 +16,26 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import dev.shipping.shipments.model.CustomerWarehouses;
 import dev.shipping.shipments.model.Customers;
 import dev.shipping.shipments.model.Shipments;
+import dev.shipping.shipments.repo.CustomerWarehousesRepository;
 import dev.shipping.shipments.repo.CustomersRepository;
 import dev.shipping.shipments.repo.ShipmentsRepository;
+import dev.shipping.shipments.repo.WarehousesRepository;
 
 @Controller
 public class CustomersController {
 
 	private final CustomersRepository customersRepo;
+	private final WarehousesRepository warehousesRepo;
+	private final CustomerWarehousesRepository customerWarehousesRepo;
 
-	public CustomersController(CustomersRepository customersRepo) {
+
+	public CustomersController(CustomersRepository customersRepo, WarehousesRepository warehousesRepo, CustomerWarehousesRepository customerWarehousesRepo) {
 		this.customersRepo = customersRepo;
+		this.warehousesRepo = warehousesRepo;
+		this.customerWarehousesRepo = customerWarehousesRepo;
 	}
 
 	@GetMapping("/customers/")
@@ -39,6 +47,7 @@ public class CustomersController {
 	@GetMapping("/customers/goToCreateCustomerPage")
 	public String addCustomersPage(Model model) {
 		model.addAttribute("customer", new Customers());
+		model.addAttribute("warehouses", warehousesRepo.findByWarehousesByStatusActive("Active"));
 		return "create-customer";
 	}
 		
@@ -72,6 +81,7 @@ public class CustomersController {
 			model.addAttribute("options", List.of("Active", "Disabled" ));
 		    // The currently selected value (for th:selected comparison)
 			model.addAttribute("selectedStatus", singleCustomer.get().getCustomerStatus());
+			model.addAttribute("warehouses", customerWarehousesRepo.findWarehousesByCustomerId(customerId));
 
 			// Taking valid upto date-time, converting into just date to match the calendar
 			// format
@@ -158,11 +168,13 @@ System.out.println("tomorrow : "+ tomorrow);
 	}
 
 	@PostMapping("/customers/createCustomer")
-	public String saveCustomers(@ModelAttribute Customers customer, RedirectAttributes redirectAttributes) {
+	public String saveCustomers(@ModelAttribute Customers customer, @RequestParam List<String> selectedWarehouses, RedirectAttributes redirectAttributes) {
 		System.out.println("hitting /customers/createCustomer - saveCustomers method: " + customer);
 		String customerId = customer.getCustomerId();
 
 		System.out.println("customer: " + customer.toString());
+		System.out.println("selectedWarehouses: " + selectedWarehouses.toString());
+
 
 		System.out.println(
 				"customersRepo.findById(customerId).isPresent(): " + customersRepo.findById(customerId).isPresent());
@@ -209,6 +221,15 @@ System.out.println("tomorrow : "+ tomorrow);
 				redirectAttributes.addFlashAttribute("textColor", "#f5f0f1");
 			} else {
 				customersRepo.save(customer);
+				
+				// saving customer-warehouse combination in customer_warehouses table
+				for(String warehouse : selectedWarehouses) {					
+					CustomerWarehouses cw = new CustomerWarehouses();
+					cw.setCustomerId(customerId);
+					cw.setWarehouseId(warehouse);
+					customerWarehousesRepo.save(cw);
+				}
+				
 				redirectAttributes.addFlashAttribute("msg", "Created Customer: " + customerId + " !!!");
 				redirectAttributes.addFlashAttribute("bgColor", "#d1fae5;");
 				redirectAttributes.addFlashAttribute("textColor", "#45484d");

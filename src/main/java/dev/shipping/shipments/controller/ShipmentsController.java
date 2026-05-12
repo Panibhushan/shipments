@@ -208,7 +208,7 @@ public class ShipmentsController {
 			// Check if date falls within today or before end of today
 			if (!validUptoDateTime.isAfter(startOfToday) || customerStatus.equals("Disabled")) {
 				System.out.println("Contract has expired!!");
-				return "Shipment# "+shipmentId+ " cannot be processed because either \nthe Customer: "+customerId+" is Disabled or the contract has expired!! \nPlease check and update it >>> ";
+				return "Shipment# "+shipmentId+ " for Customer: "+customerId+" cannot be processed because of below reason(s)\neither the Customer is Disabled or the Customer's contract has expired!! \nPlease check and update it >>> ";
 			} else {
 				System.out.println("Contract is valid");
 

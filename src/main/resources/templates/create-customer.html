@@ -1,84 +1,122 @@
 <!DOCTYPE html>
 <html>
 <style>
-	.href-styling {
-		display: inline-block;
-		font-weight: bold;
-		padding: 10px 20px;
-		text-decoration: none;
-		border-radius: 6px;
-	}
+#mainTable {
+	width: 100%;
+	/* 	border: 2px solid green;
+ */
+	table-layout: fixed;
+}
 
-	.active-a-tag {
-		background-color: #4CAF50;
-		color: white;
-		pointer-events: none;
-		border: 2px solid green;
-	}
+#mainTable>tbody>tr>td:first-child {
+	width: 50%;
+	vertical-align: top;
+	padding: 16px;
+}
 
-	form {
-		border-radius: 5px;
-		background-color: #f2f2f2;
-		padding: 20px;
-	}
+#mainTable>tbody>tr>td:last-child {
+	width: 50%;
+	vertical-align: top;
+	padding: 16px;
+}
 
-	label {
-		display: block;
-	}
+.href-styling {
+	display: inline-block;
+	font-weight: bold;
+	padding: 10px 20px;
+	text-decoration: none;
+	border-radius: 6px;
+}
 
-	input[type=text] {
-		width: 50%;
-		padding: 12px;
-		margin: 10px 0;
-		box-sizing: border-box;
-	}
+.active-a-tag {
+	background-color: #4CAF50;
+	color: white;
+	pointer-events: none;
+	border: 2px solid green;
+}
 
-	ul {
-		list-style-type: none;
-		margin: 0;
-		padding: 0;
-		overflow: hidden;
-		background-color: #006f5b;
-	}
+form {
+	border-radius: 5px;
+	background-color: #f2f2f2;
+	padding: 20px;
+}
 
-	ul li {
-		float: left;
-	}
+label {
+	display: block;
+}
 
-	ul li a {
-		display: block;
-		color: white;
-		text-align: center;
-		padding: 14px 16px;
-		text-decoration: none;
-	}
+input[type=text] {
+	width: 50%;
+	padding: 12px;
+	margin: 10px 0;
+	box-sizing: border-box;
+}
 
-	ul li a:hover {
-		background-color: #111111;
-	}
+ul {
+	list-style-type: none;
+	margin: 0;
+	padding: 0;
+	overflow: hidden;
+	background-color: #006f5b;
+}
 
-	/* Base styling for the date input */
-	input[type="date"] {
-		font-family: Arial, sans-serif;
-		font-size: 16px;
-		padding: 8px 12px;
-		border: 1px solid;
-		border-radius: 6px;
-		background-color: #f9f9f9;
-		color: #333;
-		outline: none;
-		transition: border-color 0.3s, box-shadow 0.3s;
-	}
-	
-	select {
-		width: 50%;
-		padding: 12px;
-		margin: 8px 0;
-		display: inline-block;
-		border: 1px solid #ccc;
-		border-radius: 4px;
-		box-sizing: border-box;
-	}
+ul li {
+	float: left;
+}
+
+ul li a {
+	display: block;
+	color: white;
+	text-align: center;
+	padding: 14px 16px;
+	text-decoration: none;
+}
+
+ul li a:hover {
+	background-color: #111111;
+}
+
+/* Base styling for the date input */
+input[type="date"] {
+	font-family: Arial, sans-serif;
+	font-size: 16px;
+	padding: 8px 12px;
+	border: 1px solid;
+	border-radius: 6px;
+	background-color: #f9f9f9;
+	color: #333;
+	outline: none;
+	transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+/* Conditions box — fills the full height of the right cell */
+.conditions-box {
+	border: 1px solid #ccc;
+	padding: 16px;
+	border-radius: 8px;
+	background: #f0f7f2;
+	height: 100%;
+	box-sizing: border-box;
+}
+
+.conditions-box h4 {
+	margin-top: 0;
+}
+
+.conditions-box ol {
+	line-height: 1.8;
+	padding-left: 20px;
+}
+
+select {
+	width: 50%;
+	padding: 12px;
+	margin: 8px 0;
+	display: inline-block;
+	border: 1px solid #ccc;
+	border-radius: 4px;
+	box-sizing: border-box;
+}
 </style>
 
 <body>
@@ -88,163 +126,179 @@
 		<li><a href="/shipments/goToCreateShipmentPage">Create New
 				Shipment</a></li>
 		<li><a href="/shipments/">Show ALL Shipments</a></li>
-		<li><a href="/customers/goToCreateCustomerPage" class="active-a-tag">Create New Customer</a></li>
+		<li><a href="/customers/goToCreateCustomerPage"
+			class="active-a-tag">Create New Customer</a></li>
 		<li><a href="/customers/">Show ALL Customers</a></li>
+		<li><a href="/warehouses/goToCreateWarehousePage">Create New
+				Warehouse</a></li>
+		<li><a href="/warehouses/">Show ALL Warehouses</a></li>
 	</ul>
-
-	<!-- 	<div>
-		<a href="/"
-			style="background-color: #c98b1c; color: #f5f0e9; margin-right: 3px"
-			class="href-styling"> Home </a><a
-			href="/shipments/goToCreateShipmentPage"
-			style="background-color: #d5e6be; color: #24360c;"
-			class="href-styling">Create New Shipment</a> <a href="/shipments/"
-			style="background-color: #47eddf; color:#592a51;"
-			class="href-styling" >Show
-			ALL Shipments</a> <a href="/customers/goToCreateCustomerPage"
-			class="href-styling active-a-tag">Create New Customer</a> <a
-			href="/customers/" style="background-color: #e8d399; color: #66635b;"
-			class="href-styling">Show ALL Customers</a>
-	</div> -->
 
 	<p th:if="${msg}" id="msgBox"
 		th:style="'background:' + ${bgColor} + '; color:' + ${textColor} + '; padding:10px; border-radius:6px; position:relative; font-weight:bold;'">
-		<span th:text="${msg}"></span>&nbsp;&nbsp;&nbsp;&nbsp;<a href="/customers/" th:style="|color:${textColor}|">Show
-			ALL
-			Customers</a>
-		<!-- ❌ Close button -->
-		<span onclick="this.parentElement.style.display='none'"
-			style="position: absolute; margin: auto; right: 14px; cursor: pointer; font-weight: bold;">
-			X </span>
-
+		<span th:text="${msg}"></span>&nbsp;&nbsp;&nbsp;&nbsp;<a
+			href="/customers/" th:style="|color:${textColor}|">Show ALL
+			Customers</a> <span onclick="this.parentElement.style.display='none'"
+			style="position: absolute; margin: auto; right: 14px; cursor: pointer; font-weight: bold;">X</span>
 	</p>
 
-	<form action="/customers/createCustomer" method="post" id="customerForm">
+	<table id="mainTable">
+		<tr>
+			<!-- ===== LEFT CELL — 50% — Update Form ===== -->
+			<td>
+				<form action="/customers/createCustomer" method="post"
+					id="customerForm">
 
-		<label for="customer id">Customer ID</label> <input type="text" name="customerId" id="customerId"
-			placeholder="enter customer id"
-			th:value="${customerIdFromController != null} ? ${customerIdFromController} : ''"
-			oninput="this.value = this.value.toUpperCase()" required> <label for="customer name">Customer Name</label>
-		<input type="text" name="customerName" id="customerName" placeholder="enter customer name"
-			th:value="${customerNameFromController != null} ? ${customerNameFromController} : ''" required> <label
-			for="valid upto date">Valid upto</label> <input type="date" name="validUpto" id="validUpto" min=""
-			placeholder="select valid upto date" required><br /> <br />
-		<label for="customer id">Customer Status</label>	 
-			<select name="customerStatus" required>
-			<option value="">-- Select Customer Status --</option>
-			<option th:value="Active"
-				th:text="Active"></option>
-				<option th:value="Disabled"
-				th:text="Disabled"></option>
-		</select> <br />
-			
-		<button type="submit"
-			style="display: inline-block; background-color: #4CAF50; color: #fcfaf5; font-weight: bold; padding: 10px 20px; text-decoration: none; border-radius: 6px; border-color: white; cursor: pointer;">
-			Create Customer</button>
-	</form>
+					<label for="customer id">Customer ID</label> <input type="text"
+						name="customerId" id="customerId" placeholder="enter customer id"
+						th:value="${customerIdFromController != null} ? ${customerIdFromController} : ''"
+						oninput="this.value = this.value.toUpperCase()" required>
+					<label for="customer name">Customer Name</label> <input type="text"
+						name="customerName" id="customerName"
+						placeholder="enter customer name"
+						th:value="${customerNameFromController != null} ? ${customerNameFromController} : ''"
+						required> <label for="valid upto date">Valid upto</label>
+					<input type="date" name="validUpto" id="validUpto" min=""
+						placeholder="select valid upto date" required><br /> <br />
+					<label for="customer id">Customer Status</label> <select
+						name="customerStatus" required>
+						<option value="">-- Select Customer Status --</option>
+						<option th:value="Active" th:text="Active"></option>
+						<option th:value="Disabled" th:text="Disabled"></option>
+					</select> <br /> <br />
+					<label for="selectedWarehouses">Select Warehouses (only active warehouses are displayed here)</label>
+					<span th:each="w : ${warehouses}"
+						style="display: inline-flex; align-items: center; margin: 5px 10px;">
+						<input type="checkbox" th:name="selectedWarehouses"
+						th:value="${w.warehouseId}" th:id="${w.warehouseId}" /> <label
+						th:for="${w.warehouseId}" th:text="${w.warehouseId}"
+						style="margin-left: 5px;"></label>
+					</span> <br /><br />
+					<button type="submit"
+						style="display: inline-block; background-color: #4CAF50; color: #fcfaf5; font-weight: bold; padding: 10px 20px; text-decoration: none; border-radius: 6px; border-color: white; cursor: pointer;">
+						Create Customer</button>
+				</form>
+			</td>
 
-	<div
-		style="border: 1px solid #ccc; padding: 5px; border-radius: 8px; width: 50%; background: #f0f7f2; margin-top: 5px;">
 
-		<h4 style="margin-top: 0;">📌 Conditions for creating customer</h4>
+			<!-- ===== RIGHT CELL — 50% — Conditions ===== -->
+			<td>
+				<div class="conditions-box">
 
-		<ol style="line-height: 1.8; padding-left: 20px; background-color: #f0f7f2; width: 40%:">
-			<li>Customer ID must be in upper case.</li>
-			<li>Customer ID cannot contain any white spaces (spaces, tabs,
-				next-line characters).</li>
-			<li>Customer ID must be at least 3 characters long.</li>
-			<li>Customer ID must be maximum 5 characters only.</li>
-			<li>Customer Name must be at least 5 characters long.</li>
-			<li>Customer Name must be maximum 30 characters only.</li>
-			<li>Valid Up To date must be a future date (earliest is
-				tomorrow).</li>
+					<h4>📌 Conditions for Creating customer</h4>
 
-		</ol>
 
-	</div>
+					<ol>
+						<li>Customer ID must be in upper case.</li>
+						<li>Customer ID cannot contain any white spaces (spaces,
+							tabs, next-line characters).</li>
+						<li>Customer ID must be at least 3 characters long.</li>
+						<li>Customer ID must be maximum 5 characters only.</li>
+						<li>Customer Name must be at least 5 characters long.</li>
+						<li>Customer Name must be maximum 30 characters only.</li>
+						<li>Valid Up To date must be a future date (earliest is
+							tomorrow).</li>
+						<li>Customer Status: Active = Shipping is allowed. Disabled =
+							Shipping is not allowed.</li>
+
+
+					</ol>
+
+				</div>
+			</td>
+		</tr>
+		<!-- <tr>
+			<td>
+				<p th:text="${warehouses}">warehouses</p>
+			</td>
+		</tr> -->
+	</table>
 
 
 	<script>
-
-		window.addEventListener("load", function () {
+		window.addEventListener("load", function() {
 			var msg = document.getElementById("msgBox");
 			if (msg) {
-				setTimeout(function () {
+				setTimeout(function() {
 					msg.style.display = "none";
 				}, 10000);
 			}
 		});
 
 		document
-			.getElementById("customerForm")
-			.addEventListener(
-				"submit",
-				function (event) {
+				.getElementById("customerForm")
+				.addEventListener(
+						"submit",
+						function(event) {
 
-					let customerId = document
-						.getElementById("customerId").value;
-					let customerName = document
-						.getElementById("customerName").value;
+							let customerId = document
+									.getElementById("customerId").value;
+							let customerName = document
+									.getElementById("customerName").value;
 
-					let errorMessage = '';
-					let isError = false;
+							let errorMessage = '';
+							let isError = false;
 
-					if (/\s/.test(customerId)) {
-						isError = true;
-						errorMessage = "Customer ID cannot contain any whitespaces (spaces, tabs, next-line characters)!!\\n";
-					} else {
-						if (customerId.length < 3) {
-							isError = true;
-							errorMessage = "Customer ID must be atleast 3 characters long !!\n";
-						} else if (customerId.length > 5) {
-							isError = true;
-							errorMessage = errorMessage + "Customer ID must be maximum 5 characters only !!\n";
-						}
-					}
+							if (/\s/.test(customerId)) {
+								isError = true;
+								errorMessage = "Customer ID cannot contain any whitespaces (spaces, tabs, next-line characters)!!\\n";
+							} else {
+								if (customerId.length < 3) {
+									isError = true;
+									errorMessage = "Customer ID must be atleast 3 characters long !!\n";
+								} else if (customerId.length > 5) {
+									isError = true;
+									errorMessage = errorMessage
+											+ "Customer ID must be maximum 5 characters only !!\n";
+								}
+							}
 
-					if (customerName.trim().length < 5) {
-						isError = true;
-						errorMessage = errorMessage + "Customer Name must be atleast 5 characters long !!\n";
-					} else if (customerName.trim().length > 30) {
-						isError = true;
-						errorMessage = errorMessage + "Customer Name must be maximum 30 characters only !!";
-					}
+							if (customerName.trim().length < 5) {
+								isError = true;
+								errorMessage = errorMessage
+										+ "Customer Name must be atleast 5 characters long !!\n";
+							} else if (customerName.trim().length > 30) {
+								isError = true;
+								errorMessage = errorMessage
+										+ "Customer Name must be maximum 30 characters only !!";
+							}
 
-					// check if the selected date is old date -- start
-					const selectedDate = document.getElementById("validUpto").value; // "2026-05-15"
+							// check if the selected date is old date -- start
+							const selectedDate = document
+									.getElementById("validUpto").value; // "2026-05-15"
 
-					if (!selectedDate) {
-						alert("Please select a date!");
-						return;
-					}
+							if (!selectedDate) {
+								alert("Please select a date!");
+								return;
+							}
 
-					const tomorrow = new Date() + 1;
-					today.setHours(0, 0, 0, 0); // strip time for fair comparison
+							const tomorrow = new Date() + 1;
+							today.setHours(0, 0, 0, 0); // strip time for fair comparison
 
-					const picked = new Date(selectedDate);
-					picked.setHours(0, 0, 0, 0);
+							const picked = new Date(selectedDate);
+							picked.setHours(0, 0, 0, 0);
 
-					if (picked < tomorrow) {
-						isError = true;
-						errorMessage = errorMessage + "Selected date cannot be older than tomorrow!";
-					}
+							if (picked < tomorrow) {
+								isError = true;
+								errorMessage = errorMessage
+										+ "Selected date cannot be older than tomorrow!";
+							}
 
-					// check if the selected date is old date -- end
+							// check if the selected date is old date -- end
 
-					if (isError) {
-						alert(errorMessage);
-						event.preventDefault(); // 🚫 stop form submission
-					}
+							if (isError) {
+								alert(errorMessage);
+								event.preventDefault(); // 🚫 stop form submission
+							}
 
-				});
+						});
 
 		// for validUpto field,  prevent calendar from showing previous dates and show only future dates from tomorrow
 		const tomorrow = new Date();
 		tomorrow.setDate(tomorrow.getDate() + 1);
-		document.getElementById("validUpto").min = tomorrow.toISOString().split("T")[0];
-
+		document.getElementById("validUpto").min = tomorrow.toISOString()
+				.split("T")[0];
 	</script>
-
 
 </body>
 

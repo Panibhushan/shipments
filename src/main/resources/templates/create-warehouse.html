@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html>
+<style>
+#mainTable {
+	width: 100%;
+	/* 	border: 2px solid green;
+ */
+	table-layout: fixed;
+}
+
+#mainTable>tbody>tr>td:first-child {
+	width: 50%;
+	vertical-align: top;
+	padding: 16px;
+}
+
+#mainTable>tbody>tr>td:last-child {
+	width: 50%;
+	vertical-align: top;
+	padding: 16px;
+}
+
+.href-styling {
+	display: inline-block;
+	font-weight: bold;
+	padding: 10px 20px;
+	text-decoration: none;
+	border-radius: 6px;
+}
+
+.active-a-tag {
+	background-color: #4CAF50;
+	color: white;
+	pointer-events: none;
+	border: 2px solid green;
+}
+
+form {
+	border-radius: 5px;
+	background-color: #f2f2f2;
+	padding: 20px;
+}
+
+label {
+	display: block;
+}
+
+input[type=text] {
+	width: 50%;
+	padding: 12px;
+	margin: 10px 0;
+	box-sizing: border-box;
+}
+
+ul {
+	list-style-type: none;
+	margin: 0;
+	padding: 0;
+	overflow: hidden;
+	background-color: #006f5b;
+}
+
+ul li {
+	float: left;
+}
+
+ul li a {
+	display: block;
+	color: white;
+	text-align: center;
+	padding: 14px 16px;
+	text-decoration: none;
+}
+
+ul li a:hover {
+	background-color: #111111;
+}
+
+/* Base styling for the date input */
+input[type="date"] {
+	font-family: Arial, sans-serif;
+	font-size: 16px;
+	padding: 8px 12px;
+	border: 1px solid;
+	border-radius: 6px;
+	background-color: #f9f9f9;
+	color: #333;
+	outline: none;
+	transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+/* Conditions box — fills the full height of the right cell */
+.conditions-box {
+	border: 1px solid #ccc;
+	padding: 16px;
+	border-radius: 8px;
+	background: #f0f7f2;
+	height: 100%;
+	box-sizing: border-box;
+}
+
+.conditions-box h4 {
+	margin-top: 0;
+}
+
+.conditions-box ol {
+	line-height: 1.8;
+	padding-left: 20px;
+}
+
+select {
+	width: 50%;
+	padding: 12px;
+	margin: 8px 0;
+	display: inline-block;
+	border: 1px solid #ccc;
+	border-radius: 4px;
+	box-sizing: border-box;
+}
+</style>
+
+<body>
+
+	<ul>
+		<li><a href="/"> Home </a>
+		<li><a href="/shipments/goToCreateShipmentPage">Create New
+				Shipment</a></li>
+		<li><a href="/shipments/">Show ALL Shipments</a></li>
+		<li><a href="/customers/goToCreateCustomerPage">Create New
+				Customer</a></li>
+		<li><a href="/customers/">Show ALL Customers</a></li>
+		<li><a href="/warehouses/goToCreateWarehousePage" class="active-a-tag">Create New
+				Warehouse</a></li>
+		<li><a href="/warehouses/">Show ALL Warehouses</a></li>
+	</ul>
+
+	<p th:if="${msg}" id="msgBox"
+		th:style="'background:' + ${bgColor} + '; color:' + ${textColor} + '; padding:10px; border-radius:6px; position:relative; font-weight:bold;'">
+		<span th:text="${msg}"></span>&nbsp;&nbsp;&nbsp;&nbsp;<a
+			href="/warehouses/" th:style="|color:${textColor}|">Show ALL
+			Warehouses</a> <span onclick="this.parentElement.style.display='none'"
+			style="position: absolute; margin: auto; right: 14px; cursor: pointer; font-weight: bold;">X</span>
+	</p>
+
+	<table id="mainTable">
+		<tr>
+			<!-- ===== LEFT CELL — 50% — Update Form ===== -->
+			<td>
+				<form action="/warehouses/createWarehouse" method="post"
+					id="warehouseForm">
+
+					<label for="warehouseId">Warehouse ID</label> <input type="text"
+						name="warehouseId" id="warehouseId"
+						placeholder="enter warehouse id"
+						th:value="${warehouseIdFromController != null} ? ${warehouseIdFromController} : ''"
+						oninput="this.value = this.value.toUpperCase()" required>
+					<label for="warehouseName">Warehouse Name</label> <input
+						type="text" name="warehouseName" id="warehouseName"
+						placeholder="enter warehouse name"
+						th:value="${warehouseNameFromController != null} ? ${warehouseNameFromController} : ''"
+						required> <label for="warehouseAddress">Warehouse Address</label>
+					<input
+						type="text" name="warehouseAddress" id="warehouseAddress"
+						placeholder="enter warehouse address"
+						th:value="${warehouseAddressFromController != null} ? ${warehouseAddressFromController} : ''"
+						required><br /> <br />
+					<label for="warehouseStatus">Warehouse Status</label> <select
+						name="warehouseStatus" required>
+						<option value="">-- Select Warehouse Status --</option>
+						<option th:value="Active" th:text="Active"></option>
+						<option th:value="Disabled" th:text="Disabled"></option>
+					</select> <br /> <br />
+					<button type="submit"
+						style="display: inline-block; background-color: #4CAF50; color: #fcfaf5; font-weight: bold; padding: 10px 20px; text-decoration: none; border-radius: 6px; border-color: white; cursor: pointer;">
+						Create Warehouse</button>
+				</form>
+			</td>
+
+
+			<!-- ===== RIGHT CELL — 50% — Conditions ===== -->
+			<td>
+				<div class="conditions-box">
+
+					<h4>📌 Conditions for Creating Warehouse</h4>
+					<ol>
+						<li>Warehouse ID must be in upper case.</li>
+						<li>Warehouse ID cannot contain any white spaces (spaces,
+							tabs, next-line characters).</li>
+						<li>Warehouse ID must be at least 3 characters long.</li>
+						<li>Warehouse ID must be maximum 5 characters only.</li>
+						<li>Warehouse Name must be at least 5 characters long.</li>
+						<li>Warehouse Name must be maximum 15 characters only.</li>
+						<li>Warehouse Address must be at least 10 characters only.</li>
+						<li>Warehouse Address must be maximum 50 characters only.</li>
+						<li>Warehouse Status: Active = Shipping is allowed. Disabled
+							= Shipping is not allowed.</li>
+					</ol>
+
+				</div>
+			</td>
+		</tr>
+	</table>
+
+
+	<script>
+		window.addEventListener("load", function() {
+			var msg = document.getElementById("msgBox");
+			if (msg) {
+				setTimeout(function() {
+					msg.style.display = "none";
+				}, 10000);
+			}
+		});
+
+		document
+				.getElementById("warehouseForm")
+				.addEventListener(
+						"submit",
+						function(event) {
+
+							let warehouseId = document
+									.getElementById("warehouseId").value;
+							let warehouseName = document
+									.getElementById("warehouseName").value;							
+							let warehouseAddress = document
+							.getElementById("warehouseAddress").value;
+
+							let errorMessage = '';
+							let isError = false;
+
+							if (/\s/.test(warehouseId)) {
+								isError = true;
+								errorMessage = "Warehouse ID cannot contain any whitespaces (spaces, tabs, next-line characters)!!\\n";
+							} else {
+								if (warehouseId.length < 3) {
+									isError = true;
+									errorMessage = "Warehouse ID must be atleast 3 characters long !!\n";
+								} else if (warehouseId.length > 5) {
+									isError = true;
+									errorMessage = errorMessage
+											+ "Warehouse ID must be maximum 5 characters only !!\n";
+								}
+							}
+
+							if (warehouseName.trim().length < 5) {
+								isError = true;
+								errorMessage = errorMessage
+										+ "Warehouse Name must be atleast 5 characters long !!\n";
+							} else if (warehouseName.trim().length > 15) {
+								isError = true;
+								errorMessage = errorMessage
+										+ "Warehouse Name must be maximum 15 characters only !!";
+							}
+							
+							if (warehouseAddress.trim().length < 10) {
+								isError = true;
+								errorMessage = errorMessage
+										+ "Warehouse Address must be atleast 5 characters long !!\n";
+							} else if (warehouseAddress.trim().length > 50) {
+								isError = true;
+								errorMessage = errorMessage
+										+ "Warehouse Address must be maximum 30 characters only !!";
+							}
+
+							if (isError) {
+								alert(errorMessage);
+								event.preventDefault(); // 🚫 stop form submission
+							}
+
+						});
+ 
+	</script>
+
+</body>
+
+</html>

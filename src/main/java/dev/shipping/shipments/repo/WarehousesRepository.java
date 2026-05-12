@@ -1,0 +1,22 @@
+package dev.shipping.shipments.repo;
+
+import dev.shipping.shipments.model.Customers;
+import dev.shipping.shipments.model.Shipments;
+import dev.shipping.shipments.model.Warehouses;
+
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+public interface WarehousesRepository extends JpaRepository<Warehouses, String> {
+	
+	  @Query("SELECT w FROM Warehouses w WHERE w.warehouseStatus = :status")
+	  List<Warehouses> findByWarehousesByStatusActive(@Param("status") String
+	  status);
+	 
+}
