@@ -142,19 +142,19 @@ public class WarehousesController {
 	@GetMapping("/warehouses/showWarehouseDetails/{warehouseId}")
 	public String showWarehouseDetails(@PathVariable String warehouseId, Model model,
 			RedirectAttributes redirectAttributes) {
-		return "redirect:/warehouses/editWarehouse/" + warehouseId;
+		return "redirect:/warehouses/viewOrEditWarehouse/" + warehouseId;
 	}
 
-	@GetMapping("/warehouses/editWarehouse/{warehouseId}")
-	public String editWarehousesPage(@PathVariable String warehouseId, Model model,
+	@GetMapping("/warehouses/viewOrEditWarehouse/{warehouseId}")
+	public String viewOrEditWarehousesPage(@PathVariable String warehouseId, Model model,
 			RedirectAttributes redirectAttributes) {
 		model.addAttribute("warehouse", new Warehouses());
 		System.out.println(
-				"hitting /warehouses/editWarehouse - editWarehousesPage method:-- warehouseId: " + warehouseId);
+				"hitting /warehouses/viewOrEditWarehouse - viewOrEditWarehousesPage method:-- warehouseId: " + warehouseId);
 
 		Optional<Warehouses> singleWarehouse = warehousesRepo.findById(warehouseId);
 
-		System.out.println("editWarehousesPage ::: Optional<Warehouses> c :: " + singleWarehouse.toString());
+		System.out.println("viewOrEditWarehousesPage ::: Optional<Warehouses> c :: " + singleWarehouse.toString());
 
 		if (!singleWarehouse.isPresent()) {
 			System.out.println("inside IF block");
@@ -236,7 +236,7 @@ public class WarehousesController {
 			}
 		}
 
-		return "redirect:/warehouses/editWarehouse/" + warehouseId;
+		return "redirect:/warehouses/viewOrEditWarehouse/" + warehouseId;
 	}
 
 }

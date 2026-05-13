@@ -77,11 +77,11 @@
 			Customer</a> <a href="/customers/" class="href-styling"
 			style="background-color: #e8d399; color: #66635b;">Show ALL
 			Customers</a>
+
 	</div>
  -->
-	<p th:if="${msg}" id="msgBox"
-		th:style="'background:' + ${bgColor} + '; color:' + ${textColor} + '; padding:10px; border-radius:6px; position:relative; font-weight:bold;'">
-				<span th:text="${msg}" style="white-space: pre-wrap;"></span> <span></span> <span th:text="${shipmentId}"></span>
+	<p th:if="${msg}" id="msgBox" style="background: #d1fae5; padding: 10px; border-radius: 6px;">
+		<span th:text="${msg}"></span> <span></span> <span th:text="${shipmentId}"></span>
 
 		<!-- hyperlink to shipment page -->
 		&nbsp;&nbsp;<a th:href="@{'/shipments/showShipmentDetails/' + ${shipmentId}}">
@@ -99,12 +99,6 @@
 			<option value="">-- Select Customer --</option>
 			<option th:each="c : ${customers}" th:value="${c.customerId}"
 				th:text="|${c.customerId} = ${c.customerName}|"></option>
-		</select> <br />
-		
-		<select name="warehouseId" required>
-			<option value="">-- Select Warehouse --</option>
-			<option th:each="w : ${warehouses}" th:value="${w.warehouseId}"
-				th:text="|${w.warehouseId} = ${w.warehouseName}|"></option>
 		</select> <br />
 
 		<a href="/customers/goToCreateCustomerPage">Customer Doesn't Exist ? Create a New Customer</a> <br /> <br />

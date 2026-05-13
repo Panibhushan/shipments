@@ -15,6 +15,9 @@ public class Shipments {
 
 	@Column(name = "customer_id")
 	private String customerId;
+	
+	@Column(name = "warehouse_id")
+	private String warehouseId;
 
 	@Column(name = "ship_status")
 	private int shipStatus = 1100;
@@ -85,12 +88,21 @@ public class Shipments {
 	public String getModifiedAt() {
 		return modifiedAt;
 	}
-	
+
+	public String getWarehouseId() {
+		return warehouseId;
+	}
+
+	public void setWarehouseId(String warehouseId) {
+		this.warehouseId = warehouseId;
+	}
 
 	@Override
 	public String toString() {
-		return "Shipments [shipmentId=" + shipmentId + ", customerId=" + customerId + ", shipStatus=" + shipStatus
-				+ ", createdAt=" + createdAt + ", modifiedAt=" + modifiedAt + "]";
+		return "Shipments [shipmentId=" + shipmentId + ", customerId=" + customerId + ", warehouseId=" + warehouseId
+				+ ", shipStatus=" + shipStatus + ", createdAt=" + createdAt + ", modifiedAt=" + modifiedAt + "]";
 	}
+	
+
 
 }

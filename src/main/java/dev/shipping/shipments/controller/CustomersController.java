@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -19,6 +20,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import dev.shipping.shipments.model.CustomerWarehouses;
 import dev.shipping.shipments.model.Customers;
 import dev.shipping.shipments.model.Shipments;
+import dev.shipping.shipments.model.Warehouses;
 import dev.shipping.shipments.repo.CustomerWarehousesRepository;
 import dev.shipping.shipments.repo.CustomersRepository;
 import dev.shipping.shipments.repo.ShipmentsRepository;
@@ -31,8 +33,8 @@ public class CustomersController {
 	private final WarehousesRepository warehousesRepo;
 	private final CustomerWarehousesRepository customerWarehousesRepo;
 
-
-	public CustomersController(CustomersRepository customersRepo, WarehousesRepository warehousesRepo, CustomerWarehousesRepository customerWarehousesRepo) {
+	public CustomersController(CustomersRepository customersRepo, WarehousesRepository warehousesRepo,
+			CustomerWarehousesRepository customerWarehousesRepo) {
 		this.customersRepo = customersRepo;
 		this.warehousesRepo = warehousesRepo;
 		this.customerWarehousesRepo = customerWarehousesRepo;
@@ -50,11 +52,11 @@ public class CustomersController {
 		model.addAttribute("warehouses", warehousesRepo.findByWarehousesByStatusActive("Active"));
 		return "create-customer";
 	}
-		
+
 	@GetMapping("/customers/showCustomerDetails/{customerId}")
 	public String showCustomerDetails(@PathVariable String customerId, Model model,
 			RedirectAttributes redirectAttributes) {
-		return "redirect:/customers/editCustomer/"+customerId;
+		return "redirect:/customers/editCustomer/" + customerId;
 
 	}
 
@@ -62,8 +64,7 @@ public class CustomersController {
 	public String editCustomersPage(@PathVariable String customerId, Model model,
 			RedirectAttributes redirectAttributes) {
 		model.addAttribute("customer", new Customers());
-		System.out.println(
-				"hitting /customers/editCustomer - editCustomersPage method:-- customerId: " + customerId);
+		System.out.println("hitting /customers/editCustomer - editCustomersPage method:-- customerId: " + customerId);
 
 		Optional<Customers> singleCustomer = customersRepo.findById(customerId);
 
@@ -78,10 +79,13 @@ public class CustomersController {
 		} else {
 			model.addAttribute("customer", singleCustomer.get());
 			// The list of options for the dropdown of customer-status
-			model.addAttribute("options", List.of("Active", "Disabled" ));
-		    // The currently selected value (for th:selected comparison)
+			model.addAttribute("options", List.of("Active", "Disabled"));
+			// The currently selected value (for th:selected comparison)
 			model.addAttribute("selectedStatus", singleCustomer.get().getCustomerStatus());
-			model.addAttribute("warehouses", customerWarehousesRepo.findWarehousesByCustomerId(customerId));
+			model.addAttribute("assignedWarehouses",
+					customerWarehousesRepo.findAllocatedWarehousesByCustomerId(customerId));
+			model.addAttribute("unassignedWarehouses",
+					customerWarehousesRepo.findWarehousesNotAllocatedToCustomer(customerId));
 
 			// Taking valid upto date-time, converting into just date to match the calendar
 			// format
@@ -96,10 +100,12 @@ public class CustomersController {
 	}
 
 	@PostMapping("/customers/updateCustomer")
-	public String updateCustomers(@RequestParam String customerId, @RequestParam String customerName, @RequestParam String customerStatus,
-			@RequestParam String validUpto, RedirectAttributes redirectAttributes) {
-		System.out.println("hitting /customers/updateCustomer - updateCustomers method:-- customer: " + customerId + " -- "+customerName+" -- "+validUpto+" -- "+customerStatus);
-	 
+	public String updateCustomers(@RequestParam String customerId, @RequestParam String customerName,
+			@RequestParam String customerStatus, @RequestParam String validUpto,
+			// ✅ Defaults to empty list when no checkboxes are checked
+			@RequestParam(value = "selectedWarehouses", required = false, defaultValue = "") List<String> selectedWarehouses, RedirectAttributes redirectAttributes) {
+		System.out.println("hitting /customers/updateCustomer - updateCustomers method:-- customer: " + customerId
+				+ " -- " + customerName + " -- " + validUpto + " -- " + customerStatus);
 
 		Optional<Customers> c = customersRepo.findById(customerId);
 
@@ -112,7 +118,7 @@ public class CustomersController {
 			redirectAttributes.addFlashAttribute("textColor", "#ffffff");
 		} else {
 			System.out.println("inside ELSE block");
-			String messageToDisplay = "" ;
+			String messageToDisplay = "";
 
 			boolean hasError = false;
 
@@ -126,12 +132,11 @@ public class CustomersController {
 
 			// Get today's date
 			LocalDate tomorrow = LocalDate.now().plusDays(1);
-System.out.println("tomorrow : "+ tomorrow);
+			System.out.println("tomorrow : " + tomorrow);
 			// Get the selected date from model (already converted by setter)
-			LocalDate selectedDate = LocalDate.parse(validUpto,
-					DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-			
-			System.out.println("selectedDate : "+ selectedDate);
+			LocalDate selectedDate = LocalDate.parse(validUpto, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+
+			System.out.println("selectedDate : " + selectedDate);
 
 			// Check if selected date is before today
 			if (selectedDate.isBefore(tomorrow)) {
@@ -144,37 +149,81 @@ System.out.println("tomorrow : "+ tomorrow);
 				redirectAttributes.addFlashAttribute("customerIdFromController", customerId);
 				redirectAttributes.addFlashAttribute("customerNameFromController", customerName);
 				redirectAttributes.addFlashAttribute("validUptoFromController", validUpto);
-				
+
 				redirectAttributes.addFlashAttribute("bgColor", "#f03a5b");
 				redirectAttributes.addFlashAttribute("textColor", "#f5f0f1");
 			} else {
-				
 
 				Customers customer = customersRepo.findById(customerId)
 						.orElseThrow(() -> new RuntimeException("Customer not found"));
-				
+
 				customer.setCustomerName(customerName);
 				customer.setValidUpto(validUpto);
 				customer.setCustomerStatus(customerStatus);
-				
 				customersRepo.save(customer);
+
+				System.out.println("updateCustomer:: selectedWarehouses: " + selectedWarehouses.toString());
+
+				customerWarehousesRepo.deleteAllWarehousesByCustomerId(customerId);
+
+				System.out.println(
+						"updateCustomer:: deleteAllWarehousesByCustomerId: DELETED ALL THE RECORDS FOR THE CUSTOMER: "
+								+ customerId + " FROM CUSTOMER_WAREGOUSE TABLE!!");
+
+				/*
+				 * // check if selectedWarehouses is empty, if its not then only save
+				 * customer-warehouse combination in customer_warehouses table if
+				 * (!selectedWarehouses.isEmpty()) { for (String warehouse : selectedWarehouses)
+				 * { CustomerWarehouses cw = new CustomerWarehouses();
+				 * cw.setCustomerId(customerId); cw.setWarehouseId(warehouse);
+				 * customerWarehousesRepo.save(cw); } }
+				 */
+				
+				
+				 // warehouses that are currently in DB for this customer
+			    List<CustomerWarehouses> currentIds = customerWarehousesRepo.findAllWarehousesByCustomerId(customerId);
+
+			    // filter out the warehouses to insert only NEW warehouses based on checkbox selections
+			    List<String> toInsert = selectedWarehouses.stream()
+			        .filter(id -> !currentIds.contains(id))
+			        .collect(Collectors.toList());
+
+			    // filter out the warehouses to delete only the checkbox unchecked/REMOVED ones
+			    List<CustomerWarehouses> toDelete = currentIds.stream()
+			        .filter(id -> !selectedWarehouses.contains(id))
+			        .collect(Collectors.toList());
+
+			    // Insert the new warehouses to customer_warehouses table
+			   toInsert.forEach(wId -> {
+			        CustomerWarehouses cw = new CustomerWarehouses();
+			        cw.setCustomerId(customerId);
+			        cw.setWarehouseId(wId);
+			        customerWarehousesRepo.save(cw);
+			    });
+			    
+			// Delete the unchecked warehouses from customer_warehouses table
+			    if (!toDelete.isEmpty()) {
+			        customerWarehousesRepo.deleteByCustomerIdAndWarehouseIdIn(customerId, toDelete);
+			    }				
+
 				redirectAttributes.addFlashAttribute("msg", "Updated Customer: " + customerId + " !!!");
 				redirectAttributes.addFlashAttribute("bgColor", "#d1fae5;");
 				redirectAttributes.addFlashAttribute("textColor", "#45484d");
 			}
 		}
 
-		return "redirect:/customers/editCustomer/"+customerId;
+		return "redirect:/customers/editCustomer/" + customerId;
 	}
 
 	@PostMapping("/customers/createCustomer")
-	public String saveCustomers(@ModelAttribute Customers customer, @RequestParam List<String> selectedWarehouses, RedirectAttributes redirectAttributes) {
+	public String saveCustomers(@ModelAttribute Customers customer, // ✅ Defaults to empty list when no checkboxes are checked
+			@RequestParam(value = "selectedWarehouses", required = false, defaultValue = "") List<String> selectedWarehouses,
+			RedirectAttributes redirectAttributes) {
 		System.out.println("hitting /customers/createCustomer - saveCustomers method: " + customer);
 		String customerId = customer.getCustomerId();
 
 		System.out.println("customer: " + customer.toString());
 		System.out.println("selectedWarehouses: " + selectedWarehouses.toString());
-
 
 		System.out.println(
 				"customersRepo.findById(customerId).isPresent(): " + customersRepo.findById(customerId).isPresent());
@@ -221,16 +270,23 @@ System.out.println("tomorrow : "+ tomorrow);
 				redirectAttributes.addFlashAttribute("textColor", "#f5f0f1");
 			} else {
 				customersRepo.save(customer);
-				
-				// saving customer-warehouse combination in customer_warehouses table
-				for(String warehouse : selectedWarehouses) {					
-					CustomerWarehouses cw = new CustomerWarehouses();
-					cw.setCustomerId(customerId);
-					cw.setWarehouseId(warehouse);
-					customerWarehousesRepo.save(cw);
+
+				// check if selectedWarehouses is empty, if its not then only save
+				// customer-warehouse combination in customer_warehouses table
+
+				if (!selectedWarehouses.isEmpty()) {
+					for (String warehouse : selectedWarehouses) {
+						CustomerWarehouses cw = new CustomerWarehouses();
+						cw.setCustomerId(customerId);
+						cw.setWarehouseId(warehouse);
+						customerWarehousesRepo.save(cw);
+					}
 				}
+
+//				redirectAttributes.addFlashAttribute("msg", "Created Customer: " + customerId + " !!!");
+	
+				redirectAttributes.addFlashAttribute("msg", "Created Customer: " + customerId + " !!!"+"&nbsp;&nbsp;&nbsp;&nbsp;<a href='/customers/showCustomerDetails/"+customerId+"'>View  "+ customerId +"</a>");
 				
-				redirectAttributes.addFlashAttribute("msg", "Created Customer: " + customerId + " !!!");
 				redirectAttributes.addFlashAttribute("bgColor", "#d1fae5;");
 				redirectAttributes.addFlashAttribute("textColor", "#45484d");
 			}
@@ -238,10 +294,11 @@ System.out.println("tomorrow : "+ tomorrow);
 
 		return "redirect:/customers/goToCreateCustomerPage";
 	}
-	
+
 	@PostMapping("/customers/deleteCustomer/{customerId}")
 	public String deleteCustomer(@PathVariable String customerId, RedirectAttributes redirectAttributes) {
-		System.out.println("inside /customers/deleteCustomer/{customerId} :: deleteCustomer method :: customerId: "+customerId);
+		System.out.println(
+				"inside /customers/deleteCustomer/{customerId} :: deleteCustomer method :: customerId: " + customerId);
 		Optional<Customers> c = customersRepo.findById(customerId);
 		if (!c.isPresent()) {
 			System.out.println("inside IF block");
@@ -249,8 +306,9 @@ System.out.println("tomorrow : "+ tomorrow);
 			redirectAttributes.addFlashAttribute("bgColor", "#d95f6c");
 			redirectAttributes.addFlashAttribute("textColor", "#ffffff");
 		} else {
-			System.out.println("customersRepo.deleteById("+customerId+")");
+			System.out.println("customersRepo.deleteById(" + customerId + ")");
 			customersRepo.deleteById(customerId);
+			customerWarehousesRepo.deleteAllWarehousesByCustomerId(customerId);
 			redirectAttributes.addFlashAttribute("msg", "Customer " + customerId + " is Deleted!!!");
 			redirectAttributes.addFlashAttribute("bgColor", "#d1fae5;");
 			redirectAttributes.addFlashAttribute("textColor", "#45484d");

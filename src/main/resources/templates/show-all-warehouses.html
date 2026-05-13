@@ -158,7 +158,7 @@ ul li a:hover {
 			<td th:text="${w.createdAt}"></td>
 			<td th:text="${w.modifiedAt}"></td>
 			<td><a
-				th:href="@{'/warehouses/editWarehouse/' + ${w.warehouseId}}"
+				th:href="@{'/warehouses/viewOrEditWarehouse/' + ${w.warehouseId}}"
 				style="display: inline-block; background-color: #6a73b2; color: #fcfaf5; font-weight: bold; padding: 10px 20px; font-size: 13px; text-decoration: none; border-radius: 6px; border-color: white; cursor: pointer;">View
 					/ Edit Warehouse</a></td>
 			<td>
