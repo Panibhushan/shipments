@@ -2,35 +2,35 @@
 <html>
 
 <style>
-	table {
-		width: 80%;
-		border-collapse: separate;
-		border-spacing: 0 6px;
-		font-family: Arial, sans-serif;
-		border: none;
-		box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
-	}
+table {
+	width: 90%;
+	border-collapse: separate;
+	border-spacing: 0 6px;
+	font-family: Arial, sans-serif;
+	border: none;
+	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+}
 
-	thead th {
-		text-align: center;
-		padding: 6px;
-		color: #374151;
-		background: #ededb9;
-		border: 1px #e6e65c;
-	}
+thead th {
+	text-align: center;
+	padding: 6px;
+	color: #374151;
+	background: #ededb9;
+	border: 1px #e6e65c;
+}
 
-	tbody tr {
-		box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
-		margin: auto auto;
-	}
+tbody tr {
+	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+	margin: auto auto;
+}
 
-	td {
-		padding: 8px;
-		margin: auto auto;
-		text-align: center;
-	}
+td {
+	padding: 8px;
+	margin: auto auto;
+	text-align: center;
+}
 
-	/* tbody tr td:first-child {
+/* tbody tr td:first-child {
 	border-top-left-radius: 8px;
 	border-bottom-left-radius: 8px;
 }
@@ -39,25 +39,25 @@ tbody tr td:last-child {
 	border-top-right-radius: 8px;
 	border-bottom-right-radius: 8px;
 } */
-	tbody tr:hover {
-		transform: scale(1.01);
-		transition: 0.2s;
-		/* background: #f4f4d9;   */
-		background: #efefef;
-	}
+tbody tr:hover {
+	transform: scale(1.01);
+	transition: 0.2s;
+	/* background: #f4f4d9;   */
+	background: #efefef;
+}
 
-	button {
-		margin: 3px 3px;
-		padding: 10px 10px;
-		cursor: pointer;
-	}
+button {
+	margin: 3px 3px;
+	padding: 10px 10px;
+	cursor: pointer;
+}
 
-	button:hover {
-		transform: scale(1.01);
-		transition: 0.2s;
-	}
+button:hover {
+	transform: scale(1.01);
+	transition: 0.2s;
+}
 
-	/* 	#viewShipmentDetails {
+/* 	#viewShipmentDetails {
 		background-color: #b4dcef;
 		color: #5015b9;
 		font-weight: bold;
@@ -66,56 +66,56 @@ tbody tr td:last-child {
 		padding: 10px 10px;
 		cursor: pointer;
 	} */
-	#viewShipmentDetails {
-		display: inline-block;
-		min-width: 140px;
-		text-align: center;
-		background-color: #b4dcef;
-		color: #5015b9;
-		font-weight: bold;
-		text-decoration: none;
-		padding: 10px 16px;
-		margin: 3px;
-	}
+#viewShipmentDetails {
+	display: inline-block;
+	min-width: 140px;
+	text-align: center;
+	background-color: #b4dcef;
+	color: #5015b9;
+	font-weight: bold;
+	text-decoration: none;
+	padding: 10px 16px;
+	margin: 3px;
+}
 
-	.href-styling {
-		display: inline-block;
-		font-weight: bold;
-		padding: 10px 20px;
-		text-decoration: none;
-		border-radius: 6px;
-	}
+.href-styling {
+	display: inline-block;
+	font-weight: bold;
+	padding: 10px 20px;
+	text-decoration: none;
+	border-radius: 6px;
+}
 
-	.active-a-tag {
-		background-color: #4CAF50;
-		color: white;
-		pointer-events: none;
-		border: 2px solid green;
-	}
+.active-a-tag {
+	background-color: #4CAF50;
+	color: white;
+	pointer-events: none;
+	border: 2px solid green;
+}
 
-	ul {
-		list-style-type: none;
-		margin: 0;
-		padding: 0;
-		overflow: hidden;
-		background-color: #006f5b;
-	}
+ul {
+	list-style-type: none;
+	margin: 0;
+	padding: 0;
+	overflow: hidden;
+	background-color: #006f5b;
+}
 
-	ul li {
-		float: left;
-	}
+ul li {
+	float: left;
+}
 
-	ul li a {
-		display: block;
-		color: white;
-		text-align: center;
-		padding: 14px 16px;
-		text-decoration: none;
-	}
+ul li a {
+	display: block;
+	color: white;
+	text-align: center;
+	padding: 14px 16px;
+	text-decoration: none;
+}
 
-	ul li a:hover {
-		background-color: #111111;
-	}
+ul li a:hover {
+	background-color: #111111;
+}
 </style>
 
 <body>
@@ -134,12 +134,28 @@ tbody tr td:last-child {
 		<li><a href="/warehouses/">Show ALL Warehouses</a></li>
 	</ul>
 
-
 	<p th:if="${msg}" id="msgBox"
+		th:style="'background:' + ${bgColor} + '; color:' + ${textColor} + '; padding:10px; border-radius:6px; position:relative; font-weight:bold;'">
+		<span th:utext="${msg}" style="white-space: pre-wrap;"></span>
+
+		<!-- <a
+			th:href="@{'/customers/showCustomerDetails/' + ${customerId}}"
+			style="cursor: pointer; font-weight: bold; color: white; margin-right: 20px;">
+			View Customer: <span th:text="${customerId}"></span>
+		</a> 
+		<a th:href="@{'/warehouses/viewOrEditWarehouse/' + ${warehouseId}}"
+			style="cursor: pointer; font-weight: bold; color: white;"> View
+			Warehouse: <span th:text="${warehouseId}"></span>
+		</a>  -->
+		<span onclick="this.parentElement.style.display='none'"
+			style="position: absolute; margin: auto; right: 14px; top: 40%; cursor: pointer; font-weight: bold;">X</span>
+	</p>
+
+	<!-- <p th:if="${msg}" id="msgBox"
 		th:style="'background:' + ${bgColor} + '; color:' + ${textColor} + '; padding:10px; border-radius:6px; position:relative; font-weight:bold;'">
 	<span th:text="${msg}" style="white-space: pre-wrap;"></span> <span onclick="this.parentElement.style.display='none'"
 			style="position: absolute; margin: auto; right: 14px; cursor: pointer; font-weight: bold;">X</span>
-	</p>
+	</p> -->
 
 	<!-- <p th:if="${msg}" id="msgBox"
 		style="background: #d95f6c; color: #ffffff; padding: 10px; border-radius: 6px; position: relative;; font-weight: bold;">
@@ -164,43 +180,64 @@ tbody tr td:last-child {
 			<tr>
 				<th>Shipment ID</th>
 				<th>Customer</th>
-				<th>Shipment Status</th>
+				<th>Warehouse</th>
+				<th>Status</th>
 				<th colspan="2">Actions</th>
 			</tr>
 		</thead>
 		<tr th:each="s : ${shipments}">
-			<td><a th:href="@{'/shipments/showShipmentDetails/' + ${s.shipmentId}}"
-					style="color: blue; font-weight: bold; text-decoration: none;">
+			<td><a
+				th:href="@{'/shipments/showShipmentDetails/' + ${s.shipmentId}}"
+				style="color: blue; font-weight: bold; text-decoration: none;">
 					<span th:text="${s.shipmentId}"></span>
-				</a></td>
+			</a></td>
 
-			<td th:text="${s.customerId}"></td>
+			<!-- 	<td th:text="${s.customerId}"></td>
+			<td th:text="${s.warehouseId}"></td> -->
+
+			<td><a target="_blank"
+				th:href="@{'/customers/showCustomerDetails/' + ${s.customerId}}"
+				th:text="${s.customerId}"> </a></td>
+			<td><a target="_blank"
+				th:href="@{'/warehouses/showWarehouseDetails/' + ${s.warehouseId}}"
+				th:text="${s.warehouseId}"> </a></td>
+
 			<!-- 	<td th:text="${s.shipStatus}"></td> -->
 
-			<td th:switch="${s.shipStatus}"><span th:case="1100">1100
-					- Created</span> <span th:case="1200">1200 - Picked</span> <span th:case="1300">1300 - Packed</span>
-				<span th:case="1400">1400
-					- Shipped</span> <span th:case="9000">9000 - Cancelled</span> <span th:case="*"> <span
-						th:text="|${s.shipStatus} - Unknown Status|"></span></span></td>
+			<td th:switch="${s.shipStatus}"><span th:case="1100"
+				style="background-color: #ddd8d8; color: #212021; border: none; font-weight: bold; padding: 6px 10px;">1100
+					- Created</span> <span th:case="1200"
+				style="background-color: #b4dcef; color: #5015b9; border: none; font-weight: bold; padding: 6px 10px;">1200
+					- Picked</span> <span th:case="1300"
+				style="background-color: #ebe2a2; color: #422006; border: none; font-weight: bold; padding: 6px 10px;">1300
+					- Packed</span> <span th:case="1400"
+				style="background-color: #a5e38f; color: #14532d; border: none; font-weight: bold; padding: 6px 10px;">1400
+					- Shipped</span> <span th:case="9000"
+				style="background-color: #ed4758; color: #ffffff; border: none; font-weight: bold; padding: 6px 10px;">9000
+					- Cancelled</span> <span th:case="*"> <span
+					th:text="|${s.shipStatus} - Unknown Status|"></span></span></td>
 
 			<td style="text-align: center; vertical-align: middle;"><a
-					th:href="@{'/shipments/showShipmentDetails/' + ${s.shipmentId}}" id="viewShipmentDetails"> View
-					Details </a></td>
+				th:href="@{'/shipments/showShipmentDetails/' + ${s.shipmentId}}"
+				id="viewShipmentDetails"> View Details </a></td>
 
 			<!-- show Cancel button only if the shipment status is below 1400, i.e., not shipped / cancelled -->
-			<td th:if="${(s.shipStatus < 1400)}" style="text-align: center; vertical-align: middle;">
-				<form th:action="@{/shipments/cancelShipmentFromAllShipmentsPage}" method="post">
+			<td th:if="${(s.shipStatus < 1400)}"
+				style="text-align: center; vertical-align: middle;">
+				<form th:action="@{/shipments/cancelShipmentFromAllShipmentsPage}"
+					method="post">
 
 					<input type="hidden" name="shipmentId" th:value="${s.shipmentId}" />
 					<input type="hidden" name="shipStatus" th:value="${s.shipStatus}" />
 					<input type="hidden" name="customerId" th:value="${s.customerId}" />
-
+					<input type="hidden" name="warehouseId" th:value="${s.warehouseId}" />
 
 					<!-- show Cancel button only if the shipment status is below 1400, i.e., not shipped / cancelled -->
-					<button th:if="${(s.shipStatus < 1400)}" type="submit" name="action" value="CANCEL"
+					<button th:if="${(s.shipStatus < 1400)}" type="submit"
+						name="action" value="CANCEL"
 						style="background-color: #ed4758; color: #ffffff; border: none; font-weight: bold;"
-						onclick="return confirmSubmit(event, 'CANCEL')" th:id="|button${s.shipmentId}|">CANCEL the
-						Shipment</button>
+						onclick="return confirmSubmit(event, 'CANCEL')"
+						th:id="|button${s.shipmentId}|">CANCEL the Shipment</button>
 
 
 				</form>
@@ -239,10 +276,10 @@ tbody tr td:last-child {
 	<!-- 	<div style="background: #d7d7bd; width:100px; height:100px;"></div>
  -->
 	<script>
-		window.addEventListener("load", function () {
+		window.addEventListener("load", function() {
 			var msg = document.getElementById("msgBox");
 			if (msg) {
-				setTimeout(function () {
+				setTimeout(function() {
 					msg.style.display = "none";
 				}, 10000);
 			}
@@ -250,7 +287,7 @@ tbody tr td:last-child {
 
 		function confirmSubmit(event, eventType) {
 			const confirmed = confirm("Are you sure you want to " + eventType
-				+ " this shipment ?");
+					+ " this shipment ?");
 
 			if (!confirmed) {
 				event.preventDefault(); // stop form submission
@@ -259,8 +296,6 @@ tbody tr td:last-child {
 
 			return true;
 		}
-
-
 	</script>
 
 </body>

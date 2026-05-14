@@ -7,6 +7,7 @@ import dev.shipping.shipments.model.Customers;
 import dev.shipping.shipments.repo.CustomerWarehousesRepository;
 import dev.shipping.shipments.repo.CustomersRepository;
 import dev.shipping.shipments.repo.ShipmentsRepository;
+import dev.shipping.shipments.repo.WarehousesRepository;
 import dev.shipping.shipments.service.DynamoDbService;
 import dev.shipping.shipments.service.SnsPublisherService;
 import dev.shipping.shipments.service.SqsSenderService;
@@ -16,12 +17,14 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -33,17 +36,19 @@ public class ShipmentsController {
 	private final ShipmentsRepository shipmentsRepo;
 	private final CustomersRepository customersRepo;
 	private final CustomerWarehousesRepository customerWarehousesRepo;
+	private final WarehousesRepository warehousesRepo;
 
 	private SnsPublisherService snsService;
 	private DynamoDbService dynamoDbService;
 	private SqsSenderService sqsService;
 
 	public ShipmentsController(ShipmentsRepository shipmentsRepo, CustomersRepository customersRepo,
-			CustomerWarehousesRepository customerWarehousesRepo, DynamoDbService dynamoDbService,
-			SnsPublisherService snsService, SqsSenderService sqsService) {
+			CustomerWarehousesRepository customerWarehousesRepo, WarehousesRepository warehousesRepo,
+			DynamoDbService dynamoDbService, SnsPublisherService snsService, SqsSenderService sqsService) {
 		this.shipmentsRepo = shipmentsRepo;
 		this.customersRepo = customersRepo;
 		this.customerWarehousesRepo = customerWarehousesRepo;
+		this.warehousesRepo = warehousesRepo;
 		this.dynamoDbService = dynamoDbService;
 		this.snsService = snsService;
 		this.sqsService = sqsService;
@@ -83,15 +88,31 @@ public class ShipmentsController {
 				"/shipments/goToCreateShipmentPage : today:: " + today + " -- formattedDateTime: " + formattedDateTime);
 
 		List<Customers> activeAndValidCustomers = customersRepo.findByCustomerStatusAndValidUpto("Active", today);
-		List<Warehouses> allocatedWarehousesForCustomer = customerWarehousesRepo
-				.findAllocatedWarehousesByCustomerId("VVVVV");
-		
-		System.out.println("/shipments/goToCreateShipmentPage:: allocatedWarehousesForCustomer: "+allocatedWarehousesForCustomer.toString());
-
 		model.addAttribute("customers", activeAndValidCustomers);
-		model.addAttribute("warehouses",allocatedWarehousesForCustomer);
+
+		// we will be directly calling the "/shipments/getWarehousesByCustomer" from
+		// html page to the warehouses based on selected customer, so no need to pass
+		// the data from controller
+
+		/*
+		 * List<Warehouses> allocatedWarehousesForCustomer = customerWarehousesRepo
+		 * .findAllocatedWarehousesByCustomerId("VVVVV");
+		 * 
+		 * System.out.
+		 * println("/shipments/goToCreateShipmentPage:: allocatedWarehousesForCustomer: "
+		 * +allocatedWarehousesForCustomer.toString());
+		 * model.addAttribute("warehouses",allocatedWarehousesForCustomer);
+		 */
 
 		return "create-shipment";
+	}
+
+	@GetMapping("/shipments/getWarehousesByCustomer")
+	public ResponseEntity<List<Warehouses>> getByCustomer(@RequestParam String customerId) {
+
+		System.out.println("/shipments/getWarehousesByCustomer:: customerId: " + customerId);
+
+		return ResponseEntity.ok(customerWarehousesRepo.findAllocatedWarehousesByCustomerId(customerId));
 	}
 
 	@PostMapping("/shipments/createShipment")
@@ -167,12 +188,14 @@ public class ShipmentsController {
 
 	@PostMapping("/shipments/cancelShipmentFromAllShipmentsPage")
 	public String cancelShipmentFromAllShipmentsPage(@RequestParam String shipmentId, @RequestParam Integer shipStatus,
-			@RequestParam String action, @RequestParam String customerId,@RequestParam String warehouseId, RedirectAttributes redirectAttributes) {
+			@RequestParam String action, @RequestParam String customerId, @RequestParam String warehouseId,
+			RedirectAttributes redirectAttributes) {
 
 		String response = helperFunctionToUpdateShipmentStatus(shipmentId, shipStatus, action, customerId, warehouseId);
 		if (!response.equals("SHIPMENT_STATUS_UPDATED_SUCCESSFULLY")) {
 			redirectAttributes.addFlashAttribute("msg", response);
 			redirectAttributes.addFlashAttribute("customerId", customerId);
+			redirectAttributes.addFlashAttribute("warehouseId", warehouseId);
 			redirectAttributes.addFlashAttribute("bgColor", "#d95f6c");
 			redirectAttributes.addFlashAttribute("textColor", "#ffffff");
 		}
@@ -181,8 +204,8 @@ public class ShipmentsController {
 
 	@PostMapping("/shipments/updateShipmentStatusFromInsideShipmentDetailsPage")
 	public String updateShipmentStatusFromInsideShipmentDetailsPage(@RequestParam String shipmentId,
-			@RequestParam Integer shipStatus, @RequestParam String action, @RequestParam String customerId, @RequestParam String warehouseId,
-			RedirectAttributes redirectAttributes) {
+			@RequestParam Integer shipStatus, @RequestParam String action, @RequestParam String customerId,
+			@RequestParam String warehouseId, RedirectAttributes redirectAttributes) {
 
 		System.out.println("inside /shipments/updateShipmentStatusFromInsideShipmentDetailsPage: " + shipmentId + " - "
 				+ shipStatus + " - " + action);
@@ -191,6 +214,7 @@ public class ShipmentsController {
 		if (!response.equals("SHIPMENT_STATUS_UPDATED_SUCCESSFULLY")) {
 			redirectAttributes.addFlashAttribute("msg", response);
 			redirectAttributes.addFlashAttribute("customerId", customerId);
+			redirectAttributes.addFlashAttribute("warehouseId", warehouseId);
 			redirectAttributes.addFlashAttribute("disableButtonActions", true);
 			redirectAttributes.addFlashAttribute("bgColor", "#d95f6c");
 			redirectAttributes.addFlashAttribute("textColor", "#ffffff");
@@ -201,8 +225,8 @@ public class ShipmentsController {
 
 	@PostMapping("/shipments/updateShipmentStatusFromInsideShipmentAuditDetailsPage")
 	public String updateShipmentStatusFromInsideShipmentAuditDetailsPage(@RequestParam String shipmentId,
-			@RequestParam Integer shipStatus, @RequestParam String action, @RequestParam String customerId,@RequestParam String warehouseId,
-			RedirectAttributes redirectAttributes) {
+			@RequestParam Integer shipStatus, @RequestParam String action, @RequestParam String customerId,
+			@RequestParam String warehouseId, RedirectAttributes redirectAttributes) {
 
 		System.out.println("inside /shipments/updateShipmentStatusFromInsideShipmentDetailsPage: " + shipmentId + " - "
 				+ shipStatus + " - " + action);
@@ -213,6 +237,7 @@ public class ShipmentsController {
 		if (!response.equals("SHIPMENT_STATUS_UPDATED_SUCCESSFULLY")) {
 			redirectAttributes.addFlashAttribute("msg", response);
 			redirectAttributes.addFlashAttribute("customerId", customerId);
+			redirectAttributes.addFlashAttribute("warehouseId", warehouseId);
 			redirectAttributes.addFlashAttribute("disableButtonActions", true);
 			redirectAttributes.addFlashAttribute("bgColor", "#d95f6c");
 			redirectAttributes.addFlashAttribute("textColor", "#ffffff");
@@ -230,39 +255,48 @@ public class ShipmentsController {
 		System.out.println("Action clicked: " + action);
 		System.out.println("Current status: " + shipStatus);
 
-		String shipmentStatusAndDesc = "THIS IS shipmentStatusAndDesc";
+		String shipmentStatusAndDesc  ="";
 
 		/*
 		 * Customers singleCustomer = customersRepo.findById(customerId) .orElseThrow(()
 		 * -> new RuntimeException("Customer not found"));
 		 */
 		Optional<Customers> singleCustomer = customersRepo.findById(customerId);
+		boolean isWarehouseActive = true;
 
-		Optional<CustomerWarehouses> customerWarehouses = customerWarehousesRepo.findById(customerId+"_"+warehouseId);
-		
-		
+		Optional<Warehouses> singleWarehouse = warehousesRepo.findById(warehouseId);
+
+		isWarehouseActive = singleWarehouse.get().getWarehouseStatus().equals("Active");
+
+		Optional<CustomerWarehouses> customerWarehouses = customerWarehousesRepo
+				.findById(customerId + "_" + warehouseId);
+
 		System.out.println("helperFunctionToUpdateShipmentStatus:: singleCustomer: " + singleCustomer);
 
-		if (singleCustomer.isEmpty() || customerWarehouses.isEmpty()) {
-			System.out.println("Customer not found");
-			return "Shipment# " + shipmentId + " cannot be processed because of below reason(s) \nCustomer: " + customerId
-					+ " is not found or \nthe customer does not have shipping enabled from this warehouse: "+warehouseId;
-		} else {
-			// Parse the date
-			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MMM-yyyy HH:mm:ss");
-			LocalDateTime validUptoDateTime = LocalDateTime.parse(singleCustomer.get().getValidUpto(), formatter);
+		
+		// <<-------- START :: check if the validUpto date is after start of today & check if customer status is active or disabled :: -------->>
+		// Parse the date
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MMM-yyyy HH:mm:ss");
+		LocalDateTime validUptoDateTime = LocalDateTime.parse(singleCustomer.get().getValidUpto(), formatter);
 
-			// Start of today
-			LocalDateTime startOfToday = LocalDate.now().atStartOfDay();
+		// Start of today
+		LocalDateTime startOfToday = LocalDate.now().atStartOfDay();
 
-			String customerStatus = singleCustomer.get().getCustomerStatus();
+		String customerStatus = singleCustomer.get().getCustomerStatus();
+		
+		boolean isCustomerActiveAndHasValidContract = validUptoDateTime.isAfter(startOfToday) && customerStatus.equals("Active");
 
-			// Check if date falls within today or before end of today
-			if (!validUptoDateTime.isAfter(startOfToday) || customerStatus.equals("Disabled")) {
-				System.out.println("Contract has expired!!");
-				return "Shipment# " + shipmentId + " for Customer: " + customerId
-						+ " cannot be processed because of below reason(s)\neither the Customer is Disabled or the Customer's contract has expired!! \nPlease check and update it >>> ";
-			} else {
+		// <<-------- END :: check if the validUpto date is after start of today & check if customer status is active or disabled ::  -------->>
+		
+		
+		System.out.println(
+				"Checking conditions to see if Customer (Exists, Active, Contract is valid), Warehouse is Active & Customer is allocated with that warehouse");
+		System.out.println(
+				"singleCustomer.isPresent(): " + singleCustomer.isPresent() + "\ncustomerWarehouses.isPresent(): "
+						+ customerWarehouses.isPresent() + "\nisWarehouseActive: " + isWarehouseActive+ "\nisCustomerActiveAndHasValidContract: "+isCustomerActiveAndHasValidContract);
+
+		
+		if (singleCustomer.isPresent() && customerWarehouses.isPresent() && isWarehouseActive && isCustomerActiveAndHasValidContract)   {
 				System.out.println("Contract is valid");
 
 				switch (action) {
@@ -295,7 +329,28 @@ public class ShipmentsController {
 
 				shipmentsRepo.save(shipment);
 				return "SHIPMENT_STATUS_UPDATED_SUCCESSFULLY";
+			 
+		} else {
+			String errorMessage = "Shipment# " + shipmentId + " cannot be updated because of below reason(s) \n";
+
+			if (!singleCustomer.isPresent()) {
+				errorMessage += "Customer: " + customerId + " is not found !!";
+			}			
+
+			if (!isCustomerActiveAndHasValidContract) {
+				errorMessage += "\nEither the Customer is Disabled or the Customer's contract has expired!! Please check and update it >>> "+"&nbsp;&nbsp; <a style=\"color: #edff2b;\" href='/customers/showCustomerDetails/"+customerId+"'>View  "+ customerId +"</a>";
 			}
+			
+			if (!customerWarehouses.isPresent()) {
+				errorMessage += "\nThe customer does not have shipping enabled from this warehouse: " + warehouseId+"&nbsp;&nbsp;&nbsp;&nbsp;<a style=\"color: #edff2b;\" href='/customers/showCustomerDetails/"+customerId+"'>View  "+ customerId +"</a>";
+			}
+			
+			if (!isWarehouseActive) {
+				errorMessage += "\nThe warehouse is Inactive/Disabled"+"&nbsp;&nbsp;&nbsp;&nbsp;<a style=\"color: #edff2b;\" href='/warehouses/viewOrEditWarehouse/"+warehouseId+"'>View  "+ warehouseId +"</a>";
+			}
+
+			return errorMessage;
+
 		}
 	}
 

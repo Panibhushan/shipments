@@ -1,62 +1,64 @@
 <!DOCTYPE html>
 <html>
 <style>
-	select {
-		width: 50%;
-		padding: 12px;
-		margin: 8px 0;
-		display: inline-block;
-		border: 1px solid #ccc;
-		border-radius: 4px;
-		box-sizing: border-box;
-	}
+select {
+	width: 50%;
+	padding: 12px;
+	margin: 8px 0;
+	display: inline-block;
+	border: 1px solid #ccc;
+	border-radius: 4px;
+	box-sizing: border-box;
+}
 
-	.href-styling {
-		display: inline-block;
-		font-weight: bold;
-		padding: 10px 20px;
-		text-decoration: none;
-		border-radius: 6px;
-	}
+.href-styling {
+	display: inline-block;
+	font-weight: bold;
+	padding: 10px 20px;
+	text-decoration: none;
+	border-radius: 6px;
+}
 
-	.active-a-tag {
-		background-color: #4CAF50;
-		color: white;
-		pointer-events: none;
-		border: 2px solid green;
-	}
+.active-a-tag {
+	background-color: #4CAF50;
+	color: white;
+	pointer-events: none;
+	border: 2px solid green;
+}
 
-	ul {
-		list-style-type: none;
-		margin: 0;
-		padding: 0;
-		overflow: hidden;
-		background-color: #006f5b;
-	}
+ul {
+	list-style-type: none;
+	margin: 0;
+	padding: 0;
+	overflow: hidden;
+	background-color: #006f5b;
+}
 
-	ul li {
-		float: left;
-	}
+ul li {
+	float: left;
+}
 
-	ul li a {
-		display: block;
-		color: white;
-		text-align: center;
-		padding: 14px 16px;
-		text-decoration: none;
-	}
+ul li a {
+	display: block;
+	color: white;
+	text-align: center;
+	padding: 14px 16px;
+	text-decoration: none;
+}
 
-	ul li a:hover {
-		background-color: #111111;
-	}
+ul li a:hover {
+	background-color: #111111;
+}
 </style>
 
 <body>
 	<ul>
 		<li><a href="/"> Home </a>
-		<li><a href="/shipments/goToCreateShipmentPage" class="active-a-tag">Create New Shipment</a></li>
+		<li><a href="/shipments/goToCreateShipmentPage"
+			class="active-a-tag">Create New Shipment</a></li>
 		<li><a href="/shipments/">Show ALL Shipments</a></li>
-		<li><a href="/customers/goToCreateCustomerPage">Create New Customer</a></li>
+		<li><a href="/customers/goToCreateCustomerPage">Create New
+				Customer</a></li>
 		<li><a href="/customers/">Show ALL Customers</a></li>
 		<li><a href="/warehouses/goToCreateWarehousePage">Create New
 				Warehouse</a></li>
@@ -81,10 +83,12 @@
  -->
 	<p th:if="${msg}" id="msgBox"
 		th:style="'background:' + ${bgColor} + '; color:' + ${textColor} + '; padding:10px; border-radius:6px; position:relative; font-weight:bold;'">
-				<span th:text="${msg}" style="white-space: pre-wrap;"></span> <span></span> <span th:text="${shipmentId}"></span>
+		<span th:text="${msg}" style="white-space: pre-wrap;"></span> <span></span>
+		<span th:text="${shipmentId}"></span>
 
 		<!-- hyperlink to shipment page -->
-		&nbsp;&nbsp;<a th:href="@{'/shipments/showShipmentDetails/' + ${shipmentId}}">
+		&nbsp;&nbsp;<a
+			th:href="@{'/shipments/showShipmentDetails/' + ${shipmentId}}">
 			View Shipment Details</a>
 		<!-- ❌ Close button -->
 		<span onclick="this.parentElement.style.display='none'"
@@ -95,22 +99,39 @@
 	<h2>Create New Shipment</h2>
 
 	<form action="/shipments/createShipment" method="post">
-		<select name="customerId" required>
+		<select name="customerId" id="customerId"
+			onchange="loadWarehouses(this.value)" required>
 			<option value="">-- Select Customer --</option>
 			<option th:each="c : ${customers}" th:value="${c.customerId}"
 				th:text="|${c.customerId} = ${c.customerName}|"></option>
 		</select> <br />
-		
-		<select name="warehouseId" required>
+
+		<!-- <select name="warehouseId" id="warehouseSelect"  required>
 			<option value="">-- Select Warehouse --</option>
 			<option th:each="w : ${warehouses}" th:value="${w.warehouseId}"
 				th:text="|${w.warehouseId} = ${w.warehouseName}|"></option>
+		</select>  -->
+
+		<select id="warehouseSelect" name="warehouseId" required>
+			<option value="">-- Select Warehouse --</option>
 		</select> <br />
 
-		<a href="/customers/goToCreateCustomerPage">Customer Doesn't Exist ? Create a New Customer</a> <br /> <br />
+		<!-- Message shown when no warehouses found -->
+		<!-- We will be dynamically setting the href in the <a> tag to edit the selected customer in case there are no warehouses found for that customer -->
+		<div id="warehouseMessage"
+			style="display: none; margin-top: 6px; font-size: 0.9rem; color: #c0392b;">
+			No warehouses are configured for this customer. <a target="_blank"
+				id="editCustomerLink" href="#"
+				style="color: #2980b9; font-weight: bold;"> Click to Allocate the
+				warehouse(s) now</a>
+		</div>
+
+
+		<br /> <a href="/customers/goToCreateCustomerPage">Customer
+			Doesn't Exist ? Create a New Customer</a> <br /> <br />
 
 		<button type="submit"
-			style="display: inline-block; background-color: #4CAF50; color: #fcfaf5; font-weight: bold; padding: 10px 20px; border: none; cursor:pointer;">
+			style="display: inline-block; background-color: #4CAF50; color: #fcfaf5; font-weight: bold; padding: 10px 20px; border: none; cursor: pointer;">
 			Create Shipment</button>
 	</form>
 
@@ -130,6 +151,62 @@
 				}, 10000);
 			}
 		});
+		 
+		
+		function loadWarehouses(customerId) {
+		    
+			var selectedCustomer = customerId;
+			
+			const warehouseSelect  = document.getElementById('warehouseSelect');
+		    const warehouseMessage = document.getElementById('warehouseMessage');
+
+		    console.log('warehouseSelect:', warehouseSelect);     // should not be null
+		    console.log('warehouseMessage:', warehouseMessage);   // should not be null
+		    const editCustomerLink = document.getElementById('editCustomerLink');
+
+
+		    warehouseSelect.innerHTML = '<option value="">-- Select Warehouse --</option>';
+		    warehouseMessage.style.display = 'none';
+
+		    if (!customerId) return;
+
+		    fetch(`/shipments/getWarehousesByCustomer?customerId=${customerId}`, {
+		        method: 'GET',
+		        headers: { 'Accept': 'application/json' }
+		    })
+		    .then(response => {
+		        console.log('Response status:', response.status);  // should be 200
+		        if (!response.ok) throw new Error('Failed to fetch warehouses');
+		        return response.json();
+		    })
+		    .then(data => {
+		        console.log('Warehouses data:', data);             // check what's returned
+	            editCustomerLink.href = `/customers/editCustomer/${selectedCustomer}`; // ✅ set href dynamically
+
+		        if (!data || data.length === 0) {
+		            console.log('No warehouses — showing message');
+		            warehouseSelect.innerHTML = '<option value="">-- No Warehouses Configured --</option>';
+		            warehouseMessage.style.display = 'block';
+		            return;
+		        }
+
+		        warehouseMessage.style.display = 'none';
+		        data.forEach(w => {
+		            const option = document.createElement('option');
+		            option.value = w.warehouseId;
+		            option.textContent = `${w.warehouseId} = ${w.warehouseName}`;
+		            warehouseSelect.appendChild(option);
+		        });
+		    })
+		    .catch(err => {
+		        console.error('Catch block hit — error:', err);   // if this fires, check Step 1
+		        warehouseSelect.innerHTML = '<option value="">-- Error Loading Warehouses --</option>';
+		    });
+		}
+		
+		 
+		
+		
 	</script>
 
 </body>

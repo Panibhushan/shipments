@@ -122,8 +122,9 @@ ul li a:hover {
 
 	</ul>
 
-	<h2>All Warehouses</h2>
-
+<!-- 	<h2>All Warehouses</h2>
+ -->
+ <br />
 	<p th:if="${msg}" id="msgBox"
 		th:style="'background:' + ${bgColor} + '; color:' + ${textColor} + '; padding:10px; border-radius:6px; position:relative; font-weight:bold;'">
 		<span th:text="${msg}"></span>&nbsp;&nbsp;&nbsp;&nbsp;
@@ -141,8 +142,8 @@ ul li a:hover {
 	<table border="1">
 		<thead>
 			<tr>
-				<th>Warehouse Id</th>
-				<th>Warehouse Name</th>
+				<th>ID</th>
+				<th>Name</th>
 				<th>Address</th>
 				<th>Status</th>
 				<th>Created At</th>
@@ -154,7 +155,14 @@ ul li a:hover {
 			<td th:text="${w.warehouseId}"></td>
 			<td th:text="${w.warehouseName}"></td>
 			<td th:text="${w.warehouseAddress}"></td>
-			<td th:text="${w.warehouseStatus}"></td>
+			<!-- 			<td th:text="${w.warehouseStatus}"></td>  -->
+
+			<td><span th:text="${w.warehouseStatus}"
+				th:style="${w.warehouseStatus == 'Active'} ? 
+                    'background:#d4edda; color:#155724; padding:3px 10px; border-radius:12px; font-weight:bold;' : 
+                    'background:#f8d7da; color:#721c24; padding:3px 10px; border-radius:12px; font-weight:bold;'">
+			</span></td>
+
 			<td th:text="${w.createdAt}"></td>
 			<td th:text="${w.modifiedAt}"></td>
 			<td><a
@@ -178,10 +186,10 @@ ul li a:hover {
 	<br />
 
 	<script>
-		window.addEventListener("load", function () {
+		window.addEventListener("load", function() {
 			var msg = document.getElementById("msgBox");
 			if (msg) {
-				setTimeout(function () {
+				setTimeout(function() {
 					msg.style.display = "none";
 				}, 10000);
 			}

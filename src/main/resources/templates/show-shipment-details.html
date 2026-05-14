@@ -3,7 +3,7 @@
 
 <style>
 #shipmentDetailsTable {
-	width: 80%;
+	width: 90%;
 	border-collapse: separate;
 	border-spacing: 0 6px;
 	font-family: Arial, sans-serif;
@@ -110,15 +110,36 @@ ul li a:hover {
 				Warehouse</a></li>
 		<li><a href="/warehouses/">Show ALL Warehouses</a></li>
 	</ul>
-	<p th:if="${msg}" id="msgBox"
+
+	<!-- 	<p th:if="${msg}" id="msgBox"
 		th:style="'background:' + ${bgColor} + '; color:' + ${textColor} + '; padding:10px; border-radius:6px; position:relative; font-weight:bold;'">
 		<span th:text="${msg}" style="white-space: pre-wrap;"></span>
-		&nbsp;&nbsp;<a
-			th:href="@{'/customers/showCustomerDetails/' + ${customerId}}"
-			style="cursor: pointer; font-weight: bold; color: white">View
-			Customer: <span th:text="${customerId}"></span>
-		</a> <span onclick="this.parentElement.style.display='none'"
+		&nbsp;&nbsp; <br />
+<a th:href="@{'/customers/showCustomerDetails/' + ${customerId}}"
+			style="cursor: pointer; font-weight: bold; color: white; margin-right: 20px;">
+			View Customer: <span th:text="${customerId}"></span>
+		</a> <a th:href="@{'/warehouses/viewOrEditWarehouse/' + ${warehouseId}}"
+			style="cursor: pointer; font-weight: bold; color: white;"> View
+			Warehouse: <span th:text="${warehouseId}"></span>
+		</a>  <span onclick="this.parentElement.style.display='none'"
 			style="position: absolute; margin: auto; top: 40%; right: 14px; cursor: pointer; font-weight: bold;">X</span>
+	</p> -->
+
+	<p th:if="${msg}" id="msgBox"
+		th:style="'background:' + ${bgColor} + '; color:' + ${textColor} + '; padding:10px; border-radius:6px; position:relative; font-weight:bold;'">
+		<span th:utext="${msg}" style="white-space: pre-wrap;"></span>
+
+		<!-- <a
+			th:href="@{'/customers/showCustomerDetails/' + ${customerId}}"
+			style="cursor: pointer; font-weight: bold; color: white; margin-right: 20px;">
+			View Customer: <span th:text="${customerId}"></span>
+		</a> 
+		<a th:href="@{'/warehouses/viewOrEditWarehouse/' + ${warehouseId}}"
+			style="cursor: pointer; font-weight: bold; color: white;"> View
+			Warehouse: <span th:text="${warehouseId}"></span>
+		</a>  -->
+		<span onclick="this.parentElement.style.display='none'"
+			style="position: absolute; margin: auto; right: 14px; top: 40%; cursor: pointer; font-weight: bold;">X</span>
 	</p>
 
 	<h2>Shipment Details</h2>
@@ -141,14 +162,20 @@ ul li a:hover {
 			<td><a target="_blank"
 				th:href="@{'/customers/showCustomerDetails/' + ${shipment.customerId}}"
 				th:text="${shipment.customerId}"> </a></td>
-			<td><a target
-					="_blank" th:href="@{'/warehouses/showWarehouseDetails/' + ${shipment.warehouseId}}"
-					th:text="${shipment.warehouseId}"> </a></td>
-			<td th:switch="${shipment.shipStatus}"><span th:case="1100">1100
-					- Created</span> <span th:case="1200">1200 - Picked</span> <span
-				th:case="1300">1300 - Packed</span> <span th:case="1400">1400
-					- Shipped</span> <span th:case="9000">9000 - Cancelled</span> <span
-				th:case="*"> <span
+			<td><a target="_blank"
+				th:href="@{'/warehouses/showWarehouseDetails/' + ${shipment.warehouseId}}"
+				th:text="${shipment.warehouseId}"> </a></td>
+			<td th:switch="${shipment.shipStatus}"><span th:case="1100"
+				style="background-color: #ddd8d8; color: #212021; border: none; font-weight: bold; padding: 6px 10px;">1100
+					- Created</span> <span th:case="1200"
+				style="background-color: #b4dcef; color: #5015b9; border: none; font-weight: bold; padding: 6px 10px;">1200
+					- Picked</span> <span th:case="1300"
+				style="background-color: #ebe2a2; color: #422006; border: none; font-weight: bold; padding: 6px 10px;">1300
+					- Packed</span> <span th:case="1400"
+				style="background-color: #a5e38f; color: #14532d; border: none; font-weight: bold; padding: 6px 10px;">1400
+					- Shipped</span> <span th:case="9000"
+				style="background-color: #ed4758; color: #ffffff; border: none; font-weight: bold; padding: 6px 10px;">9000
+					- Cancelled</span> <span th:case="*"> <span
 					th:text="|${shipment.shipStatus} - Unknown Status|"></span></span></td>
 
 			<td th:text="${shipment.createdAt}"></td>
@@ -167,8 +194,8 @@ ul li a:hover {
 						th:value="${shipment.shipmentId}" /> <input type="hidden"
 						name="shipStatus" th:value="${shipment.shipStatus}" /> <input
 						type="hidden" name="customerId" th:value="${shipment.customerId}" />
-						<input
-						type="hidden" name="warehouseId" th:value="${shipment.warehouseId}" />
+					<input type="hidden" name="warehouseId"
+						th:value="${shipment.warehouseId}" />
 
 					<button type="submit" name="action" value="PICK"
 						th:if="${shipment.shipStatus == 1100}"
