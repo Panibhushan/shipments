@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <style>
-/* ── Nav ── */
+/* ── NAV ── */
 ul {
 	list-style-type: none;
 	margin: 0;
@@ -9,11 +9,7 @@ ul {
 	overflow: hidden;
 	background-color: #006f5b;
 }
-
-ul li {
-	float: left;
-}
-
+ul li { float: left; }
 ul li a {
 	display: block;
 	color: white;
@@ -21,100 +17,123 @@ ul li a {
 	padding: 14px 16px;
 	text-decoration: none;
 }
+ul li a:hover { background-color: #111111; }
 
-ul li a:hover {
-	background-color: #111111;
+/* ── PAGE WRAPPER ── */
+.page-wrapper {
+	display: flex;
+	gap: 0;
+	align-items: flex-start;
 }
 
-/* ── Outer two-column table ── */
-#mainTable {
-	width: 100%;
-	table-layout: fixed;
-}
-
-#mainTable>tbody>tr>td:first-child {
+/* ── SECTION 1 — 60% — Form ── */
+.form-section {
 	width: 60%;
-	vertical-align: top;
-	padding: 16px;
-}
-
-#mainTable>tbody>tr>td:last-child {
-	width: 40%;
-	vertical-align: top;
-	padding: 16px;
-}
-
-/* ── Form shell ── */
-form {
-	border-radius: 5px;
-	background-color: #f2f2f2;
-	padding: 10px 20px;
-}
-
-/* ── Inner two-column info grid (sits inside the 60% cell) ── */
-#infoGrid {
-	width: 100%;
-	border-collapse: collapse;
-	margin-bottom: 12px;
-}
-
-#infoGrid td {
-	width: 50%;
-	vertical-align: top;
-	padding: 6px 12px 6px 0;
-}
-
-/* ── Field labels & inputs ── */
-label {
-	display: block;
-	font-weight: bold;
-	margin-top: 8px;
-}
-
-input[type=text] {
-	width: 90%;
-	padding: 10px;
-	margin: 6px 0;
+	padding: 20px 24px;
 	box-sizing: border-box;
 }
 
-input[type="date"] {
-	font-family: Arial, sans-serif;
-	font-size: 16px;
-	padding: 8px 12px;
-	border: 1px solid #ccc;
-	border-radius: 6px;
-	background-color: #f9f9f9;
+/* ── SECTION 2 — 40% — Conditions ── */
+.conditions-section {
+	width: 40%;
+	padding: 20px 20px 24px;
+	box-sizing: border-box;
+	background: #f0f7f2;
+	border-left: 2px solid #c8e0d0;
+	border-radius: 8px;
+	align-self: flex-start;
+	margin-top: 20px;
+}
+.conditions-section h4 {
+	margin-top: 0;
+	font-size: 1rem;
+	color: #2d5a3d;
+}
+.conditions-section ol {
+	line-height: 1.9;
+	padding-left: 20px;
 	color: #333;
-	outline: none;
-	width: 90%;
-	margin: 6px 0;
+}
+
+/* ── FORM CHROME ── */
+form#updateCustomerDetails {
+	border-radius: 8px;
+	background-color: #f2f2f2;
+	padding: 20px 24px;
+}
+
+/* ── TWO-COLUMN GRID inside the form ── */
+.form-grid {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 0 32px;
+}
+
+/* Full-width rows */
+.full-span {
+	grid-column: 1 / -1;
+}
+
+/* ── FIELD STYLING ── */
+label {
+	display: block;
+	font-weight: 400;
+	margin-top: 14px;
+	margin-bottom: 2px;
+	font-size: 0.82rem;
+	color: #888;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+}
+
+/* Read-only display values — big & bold */
+.readonly-value {
+	padding: 6px 0 10px;
+	font-size: 1.25rem;
+	font-weight: 700;
+	color: #1a1a1a;
+	border-bottom: 2px solid #ccc;
+	margin-bottom: 10px;
+}
+
+input[type=text],
+input[type=date] {
+	width: 100%;
+	padding: 10px 12px;
+	margin: 4px 0 8px;
+	box-sizing: border-box;
+	border: 1px solid #ccc;
+	border-radius: 5px;
+	font-size: 0.95rem;
+	font-family: Arial, sans-serif;
+	background-color: #fff;
+	color: #333;
 }
 
 select {
-	width: 90%;
-	padding: 10px;
-	margin: 6px 0;
-	border: 1px solid #ccc;
-	border-radius: 4px;
-	box-sizing: border-box;
-}
-
-/* ── Warehouse rows (span full width via colspan=2) ── */
-.warehouse-section {
 	width: 100%;
-	padding: 6px 0;
+	padding: 10px 12px;
+	margin: 4px 0 8px;
+	box-sizing: border-box;
+	border: 1px solid #ccc;
+	border-radius: 5px;
+	font-size: 0.95rem;
+	background: white;
 }
 
-.warehouse-section label {
-	margin-bottom: 4px;
+/* ── Warehouse checkbox rows ── */
+.warehouse-label-row {
+	margin-top: 14px;
+}
+.warehouse-label-row label {
+	margin-bottom: 6px;
 }
 
-/* ── Tooltip ── */
 .tooltip-wrapper {
 	display: flex;
 	flex-wrap: wrap;
 	gap: 4px;
+	margin-top: 4px;
 }
 
 .tooltip-trigger {
@@ -139,12 +158,11 @@ select {
 	z-index: 9999;
 	transition: opacity 0.2s;
 }
-
-.tooltip-trigger:hover .tooltip-box, .tooltip-box:hover {
+.tooltip-trigger:hover .tooltip-box,
+.tooltip-box:hover {
 	visibility: visible;
 	opacity: 1;
 }
-
 .tooltip-box a {
 	display: block;
 	margin-top: 4px;
@@ -152,32 +170,46 @@ select {
 	text-decoration: underline;
 }
 
-/* ── Conditions box ── */
-.conditions-box {
-	border: 1px solid #ccc;
-	padding: 16px;
-	border-radius: 8px;
-	background: #f0f7f2;
-	height: 100%;
-	box-sizing: border-box;
+/* ── BUTTONS ── */
+.button-row {
+	display: flex;
+	gap: 12px;
+	margin-top: 20px;
 }
 
-.conditions-box h4 {
-	margin-top: 0;
-}
-
-.conditions-box ol {
-	line-height: 1.8;
-	padding-left: 20px;
-}
-
-/* ── Buttons ── */
-.href-styling {
+.btn-update {
 	display: inline-block;
+	background-color: #6a73b2;
+	color: #fcfaf5;
 	font-weight: bold;
-	padding: 10px 20px;
-	text-decoration: none;
+	padding: 10px 24px;
+	border: none;
 	border-radius: 6px;
+	cursor: pointer;
+	font-size: 0.95rem;
+}
+.btn-update:hover { background-color: #555fa0; }
+
+.btn-delete {
+	display: inline-block;
+	background-color: #ed4758;
+	color: #ffffff;
+	font-weight: bold;
+	padding: 10px 24px;
+	border: none;
+	border-radius: 6px;
+	cursor: pointer;
+	font-size: 0.95rem;
+}
+.btn-delete:hover { background-color: #c73444; }
+
+/* ── MSG BOX ── */
+#msgBox {
+	margin: 10px 16px;
+	padding: 10px 14px;
+	border-radius: 6px;
+	font-weight: bold;
+	position: relative;
 }
 </style>
 
@@ -185,260 +217,239 @@ select {
 
 	<ul>
 		<li><a href="/"> Home </a></li>
-		<li><a href="/shipments/goToCreateShipmentPage">Create New
-				Shipment</a></li>
+		<li><a href="/shipments/goToCreateShipmentPage">Create New Shipment</a></li>
 		<li><a href="/shipments/">Show ALL Shipments</a></li>
-		<li><a href="/customers/goToCreateCustomerPage">Create New
-				Customer</a></li>
+		<li><a href="/customers/goToCreateCustomerPage">Create New Customer</a></li>
 		<li><a href="/customers/">Show ALL Customers</a></li>
-		<li><a href="/warehouses/goToCreateWarehousePage">Create New
-				Warehouse</a></li>
+		<li><a href="/warehouses/goToCreateWarehousePage">Create New Warehouse</a></li>
 		<li><a href="/warehouses/">Show ALL Warehouses</a></li>
 	</ul>
 
 	<p th:if="${msg}" id="msgBox"
 		th:style="'background:' + ${bgColor} + '; color:' + ${textColor} + '; padding:10px; border-radius:6px; position:relative; font-weight:bold;'">
-		<span th:text="${msg}"></span>&nbsp;&nbsp;&nbsp;&nbsp; <a
-			href="/customers/" th:style="|color:${textColor}|">Show ALL
-			Customers</a> <span onclick="this.parentElement.style.display='none'"
-			style="position: absolute; margin: auto; right: 14px; cursor: pointer; font-weight: bold;">X</span>
+		<span th:text="${msg}"></span>&nbsp;&nbsp;&nbsp;&nbsp;
+		<a href="/customers/" th:style="|color:${textColor}|">Show ALL Customers</a>
+		<span onclick="this.parentElement.style.display='none'"
+			style="position:absolute; right:14px; cursor:pointer; font-weight:bold;">X</span>
 	</p>
 
-	<table id="mainTable">
-		<tr>
+	<!-- ═══════════════════════════════════════════════════ -->
+	<!--  PAGE WRAPPER: Section 1 (60%) + Section 2 (40%)  -->
+	<!-- ═══════════════════════════════════════════════════ -->
+	<div class="page-wrapper">
 
-			<!-- ===== LEFT CELL — 60% ===== -->
-			<td>
-				<form action="/customers/updateCustomer" method="post"
-					name="updateCustomerDetails" id="updateCustomerDetails">
+		<!-- ══ SECTION 1 — FORM (60%) ══ -->
+		<div class="form-section">
+			<form action="/customers/updateCustomer" method="post"
+				name="updateCustomerDetails" id="updateCustomerDetails">
 
-					<input type="hidden" name="customerId"
-						th:value="${customer.customerId}" />
+				<input type="hidden" name="customerId" th:value="${customer.customerId}" />
 
-					<!-- ── Inner grid: two columns ── -->
-					<table id="infoGrid">
-						<tbody>
+				<!-- TWO-COLUMN GRID — explicit row pairs for alignment -->
+				<div class="form-grid">
 
-							<!-- Row 1: Customer Id / Created At -->
-							<tr>
-								<td><label>Customer Id</label>
-									<h3 style="margin: 4px 0;" th:text="${customer.customerId}"></h3>
-								</td>
-								<td><label>Created At</label>
-									<h4 style="margin: 4px 0;" th:text="${customer.createdAt}"></h4>
-								</td>
-							</tr>
+					<!-- ── Row 1: Customer Id | Created At ── -->
+					<div>
+						<label>Customer Id</label>
+						<div class="readonly-value" th:text="${customer.customerId}">CUST-001</div>
+					</div>
+					<div>
+						<label>Created At</label>
+						<div class="readonly-value" th:text="${customer.createdAt}">2024-01-01 10:00</div>
+					</div>
 
-							<!-- Row 2: Customer Name / Modified At -->
-							<tr>
-								<td><label for="customerName">Customer Name</label> <input
-									type="text" name="customerName" id="customerName"
-									placeholder="enter customer name"
-									th:value="${customer.customerName != null} ? ${customer.customerName} : ''"
-									required /></td>
-								<td><label>Modified At</label>
-									<h4 style="margin: 4px 0;" th:text="${customer.modifiedAt}"></h4>
-								</td>
-							</tr>
+					<!-- ── Row 2: Customer Name | Modified At ── -->
+					<div>
+						<label for="customerName">Customer Name</label>
+						<input type="text" name="customerName" id="customerName"
+							placeholder="Enter customer name"
+							th:value="${customer.customerName != null} ? ${customer.customerName} : ''"
+							required />
+					</div>
+					<div>
+						<label>Modified At</label>
+						<div class="readonly-value" th:text="${customer.modifiedAt}">2024-06-15 14:30</div>
+					</div>
 
-							<!-- Row 3: Customer Status / Valid Upto -->
-							<tr>
-								<td><label for="customerStatus">Customer Status</label> <select
-									name="customerStatus" required>
-										<option th:each="opt : ${options}" th:value="${opt}"
-											th:text="${opt}" th:selected="${opt == selectedStatus}">
-										</option>
-								</select></td>
-								<td><label for="validUpto">Valid Upto</label> <input
-									type="date" name="validUpto" id="validUpto"
-									th:value="${validUptoJustDate != null} ? ${validUptoJustDate} : ''"
-									placeholder="select valid upto date" required /></td>
-							</tr>
+					<!-- ── Row 3: Customer Status | Valid Upto ── -->
+					<div>
+						<label for="customerStatus">Customer Status</label>
+						<select name="customerStatus" id="customerStatus" required>
+							<option th:each="opt : ${options}" th:value="${opt}"
+								th:text="${opt}" th:selected="${opt == selectedStatus}">
+							</option>
+						</select>
+					</div>
+					<div>
+						<label for="validUpto">Valid Upto</label>
+						<input type="date" name="validUpto" id="validUpto"
+							th:value="${validUptoJustDate != null} ? ${validUptoJustDate} : ''"
+							placeholder="Select valid upto date" required />
+					</div>
 
-							<!-- Row 4: Allocated Warehouses (full width) -->
-							<tr>
-								<td colspan="2" class="warehouse-section"><label>Allocated
-										Warehouses <small>(hover warehouse-id to see details)</small>
-								</label> <!-- show checkboxes only when list has data -->
-									<div class="tooltip-wrapper"
-										th:unless="${#lists.isEmpty(assignedWarehouses)}">
-										<span th:each="aw : ${assignedWarehouses}"
-											style="display: inline-flex; align-items: center; margin: 5px 10px;">
-											<input type="checkbox" th:name="selectedWarehouses"
-											th:value="${aw.warehouseId}" th:id="${aw.warehouseId}" checked /> <span
-											class="tooltip-trigger"> <span
-												th:text="${aw.warehouseId}"></span>
-												<div class="tooltip-box">
-													<b>Name:</b> <span th:text="${aw.warehouseName}"></span><br />
-													<b>Address:</b> <span th:text="${aw.warehouseAddress}"></span><br />
-													<b>Status:</b> <span th:text="${aw.warehouseStatus}"></span><br />
-													<a
-														th:href="@{'/warehouses/showWarehouseDetails/' + ${aw.warehouseId}}"
-														target="_blank">View Details →</a>
-												</div>
-										</span>
-										</span>
-									</div> <!-- show [NONE] only when list is empty --> <span
-									th:if="${#lists.isEmpty(assignedWarehouses)}"
-									style="color: #888; font-style: italic;">[NONE]</span></td>
-							</tr>
+					<!-- ── Full-width: Allocated Warehouses ── -->
+					<div class="full-span warehouse-label-row">
+						<label>Allocated Warehouses <small style="text-transform:none; letter-spacing:0;">(hover warehouse-id to see details)</small></label>
+						<div class="tooltip-wrapper" th:unless="${#lists.isEmpty(assignedWarehouses)}">
+							<span th:each="aw : ${assignedWarehouses}"
+								style="display:inline-flex; align-items:center; margin:5px 10px;">
+								<input type="checkbox" th:name="selectedWarehouses"
+									th:value="${aw.warehouseId}" th:id="${aw.warehouseId}" checked />
+								<span class="tooltip-trigger">
+									<span th:text="${aw.warehouseId}"></span>
+									<div class="tooltip-box">
+										<b>Name:</b> <span th:text="${aw.warehouseName}"></span><br />
+										<b>Address:</b> <span th:text="${aw.warehouseAddress}"></span><br />
+										<b>Status:</b> <span th:text="${aw.warehouseStatus}"></span><br />
+										<a th:href="@{'/warehouses/showWarehouseDetails/' + ${aw.warehouseId}}" target="_blank">View Details →</a>
+									</div>
+								</span>
+							</span>
+						</div>
+						<span th:if="${#lists.isEmpty(assignedWarehouses)}"
+							style="color:#888; font-style:italic;">[NONE]</span>
+					</div>
 
-							<!-- Row 5: Unallocated Warehouses (full width) -->
-							<tr>
-								<td colspan="2" class="warehouse-section"><label>Other
-										Available Non-Allocated Warehouses <small>(hover
-											warehouse-id to see details)</small>
-								</label> <!-- show checkboxes only when list has data -->
-									<div class="tooltip-wrapper"
-										th:unless="${#lists.isEmpty(unassignedWarehouses)}">
-										<span th:each="uw : ${unassignedWarehouses}"
-											style="display: inline-flex; align-items: center; margin: 5px 10px;">
-											<input type="checkbox" th:name="selectedWarehouses"
-											th:value="${uw.warehouseId}" th:id="${uw.warehouseId}" /> <span
-											class="tooltip-trigger"> <span
-												th:text="${uw.warehouseId}"></span>
-												<div class="tooltip-box">
-													<b>Name:</b> <span th:text="${uw.warehouseName}"></span><br />
-													<b>Address:</b> <span th:text="${uw.warehouseAddress}"></span><br />
-													<b>Status:</b> <span th:text="${uw.warehouseStatus}"></span><br />
-													<a
-														th:href="@{'/warehouses/showWarehouseDetails/' + ${uw.warehouseId}}"
-														target="_blank">View Details →</a>
-												</div>
-										</span>
-										</span>
-									</div> <!-- show [NONE] only when list is empty --> <span
-									th:if="${#lists.isEmpty(unassignedWarehouses)}"
-									style="color: #888; font-style: italic;">[NONE]</span></td>
-							</tr>
+					<!-- ── Full-width: Unallocated Warehouses ── -->
+					<div class="full-span warehouse-label-row">
+						<label>Other Available Non-Allocated Warehouses <small style="text-transform:none; letter-spacing:0;">(hover warehouse-id to see details)</small></label>
+						<div class="tooltip-wrapper" th:unless="${#lists.isEmpty(unassignedWarehouses)}">
+							<span th:each="uw : ${unassignedWarehouses}"
+								style="display:inline-flex; align-items:center; margin:5px 10px;">
+								<input type="checkbox" th:name="selectedWarehouses"
+									th:value="${uw.warehouseId}" th:id="${uw.warehouseId}" />
+								<span class="tooltip-trigger">
+									<span th:text="${uw.warehouseId}"></span>
+									<div class="tooltip-box">
+										<b>Name:</b> <span th:text="${uw.warehouseName}"></span><br />
+										<b>Address:</b> <span th:text="${uw.warehouseAddress}"></span><br />
+										<b>Status:</b> <span th:text="${uw.warehouseStatus}"></span><br />
+										<a th:href="@{'/warehouses/showWarehouseDetails/' + ${uw.warehouseId}}" target="_blank">View Details →</a>
+									</div>
+								</span>
+							</span>
+						</div>
+						<span th:if="${#lists.isEmpty(unassignedWarehouses)}"
+							style="color:#888; font-style:italic;">[NONE]</span>
+					</div>
 
-						</tbody>
-					</table>
+				</div><!-- /form-grid -->
 
-					<!-- ── Both buttons inside the main form ── -->
-					<table style="margin-top: 12px;">
-						<tr>
-							<td>
-								<button type="button" onclick="submitIfChanged(event)"
-									style="display: inline-block; background-color: #6a73b2; color: #fcfaf5; font-weight: bold; padding: 10px 20px; border-radius: 6px; border-color: white; cursor: pointer;">
-									Update Customer</button>
-							</td>
-							<td style="padding-left: 10px;">
-								<button type="button" onclick="confirmDelete()"
-									style="display: inline-block; background-color: #ed4758; color: #ffffff; font-weight: bold; padding: 10px 20px; border-radius: 6px; border-color: white; cursor: pointer;">
-									Delete Customer</button>
-							</td>
-						</tr>
-					</table>
-
-				</form> <!-- Hidden delete form — submitted only when user confirms -->
-				<form id="deleteCustomerForm"
-					th:action="@{'/customers/deleteCustomer/' + ${customer.customerId}}"
-					method="post" style="display: none;"></form>
-			</td>
-
-			<!-- ===== RIGHT CELL — 40% ===== -->
-			<td>
-				<div class="conditions-box">
-					<h4>📌 Conditions for updating customer</h4>
-					<ol>
-						<li>Customer Name must be at least 5 characters long.</li>
-						<li>Customer Name must be maximum 30 characters only.</li>
-						<li>Valid Up To date must be a future date (earliest is
-							tomorrow).</li>
-						<li>Customer Status: Active = Shipping is allowed. Disabled =
-							Shipping is not allowed.</li>
-					</ol>
+				<!-- Both buttons inside the colored form area -->
+				<div class="button-row">
+					<button type="button" class="btn-update" onclick="submitIfChanged(event)">
+						Update Customer
+					</button>
+					<button type="button" class="btn-delete" onclick="confirmDelete()">
+						Delete Customer
+					</button>
 				</div>
-			</td>
 
-		</tr>
-	</table>
+			</form><!-- /updateCustomerDetails -->
+
+			<!-- Hidden delete form — submitted only when user confirms -->
+			<form id="deleteCustomerForm"
+				th:action="@{'/customers/deleteCustomer/' + ${customer.customerId}}"
+				method="post" style="display:none;"></form>
+		</div><!-- /form-section -->
+
+		<!-- ══ SECTION 2 — CONDITIONS (40%) ══ -->
+		<div class="conditions-section">
+			<h4>📌 Conditions for updating customer</h4>
+			<ol>
+				<li>Customer Name must be at least 5 characters long.</li>
+				<li>Customer Name must be maximum 30 characters only.</li>
+				<li>Valid Up To date must be a future date (earliest is tomorrow).</li>
+				<li>Customer Status: <strong>Active</strong> = Shipping is allowed. <strong>Disabled</strong> = Shipping is not allowed.</li>
+			</ol>
+		</div><!-- /conditions-section -->
+
+	</div><!-- /page-wrapper -->
 
 
 	<script>
-	window.addEventListener("load", function () {
-		var msg = document.getElementById("msgBox");
-		if (msg) {
-			setTimeout(function () { msg.style.display = "none"; }, 10000);
-		}
-	});
-
-	document.getElementById("updateCustomerDetails").addEventListener("submit", function (event) {
-		let customerName = document.getElementById("customerName").value;
-		let errorMessage = '';
-		let isError = false;
-
-		if (customerName.trim().length < 5) {
-			isError = true;
-			errorMessage += "Customer Name must be atleast 5 characters long !!\n";
-		} else if (customerName.trim().length > 30) {
-			isError = true;
-			errorMessage += "Customer Name must be maximum 30 characters only !!";
-		}
-
-		const selectedDate = document.getElementById("validUpto").value;
-		if (!selectedDate) { alert("Please select a date!"); return; }
-
-		const tomorrow = new Date();
-		tomorrow.setDate(tomorrow.getDate() + 1);
-		tomorrow.setHours(0, 0, 0, 0);
-
-		const picked = new Date(selectedDate);
-		picked.setHours(0, 0, 0, 0);
-
-		if (picked < tomorrow) {
-			isError = true;
-			errorMessage += "Selected date cannot be older than tomorrow!";
-		}
-
-		if (isError) { alert(errorMessage); event.preventDefault(); }
-	});
-
-	// Prevent calendar from showing previous dates
-	const tomorrow = new Date();
-	tomorrow.setDate(tomorrow.getDate() + 1);
-	document.getElementById("validUpto").min = tomorrow.toISOString().split("T")[0];
-
-	// Store original values when page loads
-	const originalValues = {};
-	document.querySelectorAll("#updateCustomerDetails input, #updateCustomerDetails select").forEach(field => {
-		if (field.type === "checkbox") {
-			originalValues[field.name + "_" + field.value] = field.checked;
-		} else {
-			originalValues[field.name] = field.value;
-		}
-	});
-
-	function confirmDelete() {
-		if (confirm('Are you sure you want to delete this customer?')) {
-			document.getElementById("deleteCustomerForm").submit();
-		}
-	}
-
-	function submitIfChanged(event) {
-		const hasChanges = Object.keys(originalValues).some(name => {
-			if (name.includes("_")) {
-				const underscoreIdx = name.indexOf("_");
-				const fieldName  = name.substring(0, underscoreIdx);
-				const fieldValue = name.substring(underscoreIdx + 1);
-				const checkbox = document.querySelector(
-					`#updateCustomerDetails input[type="checkbox"][name="${fieldName}"][value="${fieldValue}"]`
-				);
-				return checkbox && checkbox.checked !== originalValues[name];
+		window.addEventListener("load", function () {
+			var msg = document.getElementById("msgBox");
+			if (msg) {
+				setTimeout(function () { msg.style.display = "none"; }, 10000);
 			}
-			const field = document.querySelector(`#updateCustomerDetails [name="${name}"]`);
-			return field && field.value !== originalValues[name];
 		});
 
-		if (!hasChanges) {
-			alert("No changes were made to customer details hence not updating it!");
-			event.preventDefault();
-			return false;
-		} else {
-			document.getElementById("updateCustomerDetails").submit();
+		document.getElementById("updateCustomerDetails").addEventListener("submit", function (event) {
+			let customerName = document.getElementById("customerName").value;
+			let errorMessage = '';
+			let isError = false;
+
+			if (customerName.trim().length < 5) {
+				isError = true;
+				errorMessage += "Customer Name must be at least 5 characters long!\n";
+			} else if (customerName.trim().length > 30) {
+				isError = true;
+				errorMessage += "Customer Name must be maximum 30 characters only!\n";
+			}
+
+			const selectedDate = document.getElementById("validUpto").value;
+			if (!selectedDate) { alert("Please select a date!"); return; }
+
+			const tomorrow = new Date();
+			tomorrow.setDate(tomorrow.getDate() + 1);
+			tomorrow.setHours(0, 0, 0, 0);
+
+			const picked = new Date(selectedDate);
+			picked.setHours(0, 0, 0, 0);
+
+			if (picked < tomorrow) {
+				isError = true;
+				errorMessage += "Selected date cannot be older than tomorrow!";
+			}
+
+			if (isError) { alert(errorMessage); event.preventDefault(); }
+		});
+
+		// Prevent calendar from showing past dates
+		const tomorrow = new Date();
+		tomorrow.setDate(tomorrow.getDate() + 1);
+		document.getElementById("validUpto").min = tomorrow.toISOString().split("T")[0];
+
+		// Store original values on page load
+		const originalValues = {};
+		document.querySelectorAll("#updateCustomerDetails input, #updateCustomerDetails select").forEach(field => {
+			if (field.type === "checkbox") {
+				originalValues[field.name + "_" + field.value] = field.checked;
+			} else {
+				originalValues[field.name] = field.value;
+			}
+		});
+
+		function confirmDelete() {
+			if (confirm('Are you sure you want to delete this customer?')) {
+				document.getElementById("deleteCustomerForm").submit();
+			}
 		}
-	}
-</script>
+
+		function submitIfChanged(event) {
+			const hasChanges = Object.keys(originalValues).some(name => {
+				if (name.includes("_")) {
+					const underscoreIdx = name.indexOf("_");
+					const fieldName  = name.substring(0, underscoreIdx);
+					const fieldValue = name.substring(underscoreIdx + 1);
+					const checkbox = document.querySelector(
+						`#updateCustomerDetails input[type="checkbox"][name="${fieldName}"][value="${fieldValue}"]`
+					);
+					return checkbox && checkbox.checked !== originalValues[name];
+				}
+				const field = document.querySelector(`#updateCustomerDetails [name="${name}"]`);
+				return field && field.value !== originalValues[name];
+			});
+
+			if (!hasChanges) {
+				alert("No changes were made to customer details — not updating.");
+				event.preventDefault();
+				return false;
+			} else {
+				document.getElementById("updateCustomerDetails").submit();
+			}
+		}
+	</script>
 </body>
 </html>

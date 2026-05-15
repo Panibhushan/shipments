@@ -1,13 +1,31 @@
 package dev.shipping.shipments;
 
+import io.github.cdimascio.dotenv.Dotenv;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
 public class ShipmentsApplication {
+    public static void main(String[] args) {
+      
+    	System.out.println("Working directory: " + System.getProperty("user.dir"));
+    	
+    	Dotenv dotenv = Dotenv.configure()
+    		    .directory("./")
+    		    .load();
+    	 
+    	dotenv.entries().forEach(entry -> 
+    	    System.setProperty(entry.getKey(), entry.getValue())
+    	);
 
-	public static void main(String[] args) {
-		SpringApplication.run(ShipmentsApplication.class, args);
-	}
+		/*
+		 * // Debug - print to confirm values loaded System.out.println("DB URL: " +
+		 * System.getProperty("DB_URL_LOCAL")); System.out.println("DB USER: " +
+		 * System.getProperty("DB_USERNAME_LOCAL")); System.out.println("DB PASSWORD: "
+		 * + System.getProperty("DB_PASSWORD_LOCAL"));
+		 */
 
-} 
+
+    	SpringApplication.run(ShipmentsApplication.class, args);
+    }
+}
