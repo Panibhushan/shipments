@@ -118,15 +118,15 @@ ul li a:hover {
 		<li><a href="/warehouses/goToCreateWarehousePage">Create New
 				Warehouse</a></li>
 		<li><a href="/warehouses/" class="active-a-tag">Show ALL
-				Warehouses</a></li><li><a href="/items/goToCreateItemPage">Create New
-				Item</a></li>
+				Warehouses</a></li>
+		<li><a href="/items/goToCreateItemPage">Create New Item</a></li>
 		<li><a href="/items/">Show ALL Items</a></li>
 
 	</ul>
 
-<!-- 	<h2>All Warehouses</h2>
+	<!-- 	<h2>All Warehouses</h2>
  -->
- <br />
+	<br />
 	<p th:if="${msg}" id="msgBox"
 		th:style="'background:' + ${bgColor} + '; color:' + ${textColor} + '; padding:10px; border-radius:6px; position:relative; font-weight:bold;'">
 		<span th:text="${msg}"></span>&nbsp;&nbsp;&nbsp;&nbsp;
@@ -137,51 +137,61 @@ ul li a:hover {
 
 	</p>
 
-	<a href="/warehouses/goToCreateWarehousePage"
+	<a href="/items/goToCreateItemPage"
 		style="display: inline-block; background-color: #4CAF50; color: #fcfaf5; font-weight: bold; padding: 10px 20px; text-decoration: none; border-radius: 6px;">Create
-		New Warehouse</a>
+		New Item</a>
 	<br />
 	<table border="1">
 		<thead>
 			<tr>
+				<th>Customer</th>
 				<th>ID</th>
-				<th>Name</th>
-				<th>Address</th>
+				<th>Description</th>
+				<th>UOM</th>
 				<th>Status</th>
 				<th>Created At</th>
 				<th>Modified At</th>
 				<th colspan="2">Actions</th>
 			</tr>
 		</thead>
-		<tr th:each="w : ${warehouses}">
-			<td th:text="${w.warehouseId}"></td>
-			<td th:text="${w.warehouseName}"></td>
-			<td th:text="${w.warehouseAddress}"></td>
-			<!-- 			<td th:text="${w.warehouseStatus}"></td>  -->
+		
+		<!--	<td th:text="${items}"></td>-->
+		
+		
+ 	<tr th:each="i : ${items}">
+						<input type="hidden" name="itemCustomerUomId" th:value="${i.itemCustomerUomId}" />
 
-			<td><span th:text="${w.warehouseStatus}"
-				th:style="${w.warehouseStatus == 'Active'} ? 
+		
+		<td th:text="${i.customerId}"></td>
+			<td th:text="${i.itemId}"></td>
+			<td th:text="${i.itemDescription}"></td>
+			<td th:text="${i.itemUom}"></td>
+						<td th:text="${i.itemStatus}"></td> 
+
+			<td><span th:text="${i.itemStatus}"
+				th:style="${i.itemStatus == 'Active'} ? 
                     'background:#d4edda; color:#155724; padding:3px 10px; border-radius:12px; font-weight:bold;' : 
                     'background:#f8d7da; color:#721c24; padding:3px 10px; border-radius:12px; font-weight:bold;'">
 			</span></td>
 
-			<td th:text="${w.createdAt}"></td>
-			<td th:text="${w.modifiedAt}"></td>
-			<td><a
-				th:href="@{'/warehouses/viewOrEditWarehouse/' + ${w.warehouseId}}"
+
+
+			<td th:text="${i.createdAt}"></td>
+			<td th:text="${i.modifiedAt}"></td>
+			<td><a th:href="@{'/items/viewOrEditItem/' + ${i.itemCustomerUomId}}"
 				style="display: inline-block; background-color: #6a73b2; color: #fcfaf5; font-weight: bold; padding: 10px 20px; font-size: 13px; text-decoration: none; border-radius: 6px; border-color: white; cursor: pointer;">View
-					/ Edit Warehouse</a></td>
+					/ Edit Item</a></td>
 			<td>
 				<form
-					th:action="@{'/warehouses/deleteWarehouse/' + ${w.warehouseId}}"
+					th:action="@{'/items/deleteItem/' + ${i.itemCustomerUomId}}"
 					method="post">
 					<button type="submit"
-						onclick="return confirm('Are you sure you want to delete this warehouse?')"
+						onclick="return confirm('Are you sure you want to delete this item?')"
 						style="display: inline-block; background-color: #ed4758; color: #ffffff; font-weight: bold; padding: 10px 20px; font-size: 13px; text-decoration: none; border-radius: 6px; border-color: white; cursor: pointer;">Delete
-						Warehouse</button>
+						Item</button>
 				</form>
 			</td>
-		</tr>
+		</tr> 
 	</table>
 
 	<br />

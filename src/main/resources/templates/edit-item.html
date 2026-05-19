@@ -9,7 +9,11 @@ ul {
 	overflow: hidden;
 	background-color: #006f5b;
 }
-ul li { float: left; }
+
+ul li {
+	float: left;
+}
+
 ul li a {
 	display: block;
 	color: white;
@@ -17,7 +21,10 @@ ul li a {
 	padding: 14px 16px;
 	text-decoration: none;
 }
-ul li a:hover { background-color: #111111; }
+
+ul li a:hover {
+	background-color: #111111;
+}
 
 /* ── PAGE WRAPPER ── */
 .page-wrapper {
@@ -44,11 +51,13 @@ ul li a:hover { background-color: #111111; }
 	align-self: flex-start;
 	margin-top: 20px;
 }
+
 .conditions-section h4 {
 	margin-top: 0;
 	font-size: 1rem;
 	color: #2d5a3d;
 }
+
 .conditions-section ol {
 	line-height: 1.9;
 	padding-left: 20px;
@@ -56,7 +65,7 @@ ul li a:hover { background-color: #111111; }
 }
 
 /* ── FORM CHROME ── */
-form#updateWarehouseDetails {
+form#updateItemDetails {
 	border-radius: 8px;
 	background-color: #f2f2f2;
 	padding: 20px 24px;
@@ -71,7 +80,7 @@ form#updateWarehouseDetails {
 
 /* Full-width rows */
 .full-span {
-	grid-column: 1 / -1;
+	grid-column: 1/-1;
 }
 
 /* ── FIELD STYLING ── */
@@ -96,8 +105,7 @@ label {
 	margin-bottom: 10px;
 }
 
-input[type=text],
-input[type=date] {
+input[type=text], input[type=date] {
 	width: 100%;
 	padding: 10px 12px;
 	margin: 4px 0 8px;
@@ -121,11 +129,12 @@ select {
 	background: white;
 }
 
-/* ── Warehouse checkbox rows ── */
-.warehouse-label-row {
+/* ── Item checkbox rows ── */
+.item-label-row {
 	margin-top: 14px;
 }
-.warehouse-label-row label {
+
+.item-label-row label {
 	margin-bottom: 6px;
 }
 
@@ -158,11 +167,12 @@ select {
 	z-index: 9999;
 	transition: opacity 0.2s;
 }
-.tooltip-trigger:hover .tooltip-box,
-.tooltip-box:hover {
+
+.tooltip-trigger:hover .tooltip-box, .tooltip-box:hover {
 	visibility: visible;
 	opacity: 1;
 }
+
 .tooltip-box a {
 	display: block;
 	margin-top: 4px;
@@ -188,7 +198,10 @@ select {
 	cursor: pointer;
 	font-size: 0.95rem;
 }
-.btn-update:hover { background-color: #555fa0; }
+
+.btn-update:hover {
+	background-color: #555fa0;
+}
 
 .btn-delete {
 	display: inline-block;
@@ -201,7 +214,10 @@ select {
 	cursor: pointer;
 	font-size: 0.95rem;
 }
-.btn-delete:hover { background-color: #c73444; }
+
+.btn-delete:hover {
+	background-color: #c73444;
+}
 
 /* ── MSG BOX ── */
 #msgBox {
@@ -217,22 +233,25 @@ select {
 
 	<ul>
 		<li><a href="/"> Home </a></li>
-		<li><a href="/shipments/goToCreateShipmentPage">Create New Shipment</a></li>
+		<li><a href="/shipments/goToCreateShipmentPage">Create New
+				Shipment</a></li>
 		<li><a href="/shipments/">Show ALL Shipments</a></li>
-		<li><a href="/customers/goToCreateCustomerPage">Create New Customer</a></li>
+		<li><a href="/customers/goToCreateCustomerPage">Create New
+				Customer</a></li>
 		<li><a href="/customers/">Show ALL Customers</a></li>
-		<li><a href="/warehouses/goToCreateWarehousePage">Create New Warehouse</a></li>
-		<li><a href="/warehouses/">Show ALL Warehouses</a></li><li><a href="/items/goToCreateItemPage">Create New
-				Item</a></li>
+		<li><a href="/items/goToCreateItemPage">Create New Item</a></li>
+		<li><a href="/items/">Show ALL Items</a></li>
+		<li><a href="/items/goToCreateItemPage">Create New Item</a></li>
 		<li><a href="/items/">Show ALL Items</a></li>
 	</ul>
 
 	<p th:if="${msg}" id="msgBox"
 		th:style="'background:' + ${bgColor} + '; color:' + ${textColor} + '; padding:10px; border-radius:6px; position:relative; font-weight:bold;'">
-		<span th:text="${msg}"></span>&nbsp;&nbsp;&nbsp;&nbsp;
-		<a href="/warehouses/" th:style="|color:${textColor}|">Show ALL Warehouses</a>
-		<span onclick="this.parentElement.style.display='none'"
-			style="position:absolute; right:14px; cursor:pointer; font-weight:bold;">X</span>
+		<span th:text="${msg}"></span>&nbsp;&nbsp;&nbsp;&nbsp; 
+<!-- 		<a href="/items/" th:style="|color:${textColor}|">Show ALL Items</a>  -->
+		<span
+			onclick="this.parentElement.style.display='none'"
+			style="position: absolute; right: 14px; cursor: pointer; font-weight: bold;">X</span>
 	</p>
 
 	<!-- ═══════════════════════════════════════════════ -->
@@ -242,27 +261,33 @@ select {
 
 		<!-- ══ SECTION 1 — FORM (70%) ══ -->
 		<div class="form-section">
-			<form action="/warehouses/updateWarehouse" method="post"
-				name="updateWarehouseDetails" id="updateWarehouseDetails">
+			<form action="/items/updateItem" method="post"
+				name="updateItemDetails" id="updateItemDetails">
 
-				<input type="hidden" name="warehouseId" th:value="${warehouse.warehouseId}" />
+				<input type="hidden" name="itemId" th:value="${item.itemId}" />
 
 				<!-- TWO-COLUMN GRID -->
 				<div class="form-grid">
 
-					<!-- ── Column 1: Warehouse Id, Name, Status ── -->
+					<!-- ── Column 1: Item Id, Name, Status ── -->
 					<div>
-						<label>Warehouse Id</label>
-						<div class="readonly-value" th:text="${warehouse.warehouseId}">WH-001</div>
+						<label>Item Id</label>
+						<div class="readonly-value" th:text="${item.itemId}"></div>
 
-						<label for="warehouseName">Warehouse Name</label>
-						<input type="text" name="warehouseName" id="warehouseName"
-							placeholder="Enter warehouse name"
-							th:value="${warehouse.warehouseName != null} ? ${warehouse.warehouseName} : ''"
-							required />
+						<label>Customer</label>
+						<div class="readonly-value" th:text="${item.customerId}"></div>
 
-						<label for="warehouseStatus">Warehouse Status</label>
-						<select name="warehouseStatus" id="warehouseStatus" required>
+						<label for="itemDescription">Item Description</label> <input
+							type="text" name="itemDescription" id="itemDescription"
+							placeholder="Enter item description"
+							th:value="${item.itemDescription != null} ? ${item.itemDescription} : ''"
+							required /> <label for="itemUom">Item UOM</label> <input
+							type="text" name="itemUom" id="itemUom"
+							placeholder="Enter item description"
+							th:value="${item.itemUom!= null} ? ${item.itemUom} : ''" required />
+
+						<label for="itemStatus">Item Status</label> <select
+							name="itemStatus" id="itemStatus" required>
 							<option th:each="opt : ${options}" th:value="${opt}"
 								th:text="${opt}" th:selected="${opt == selectedStatus}">
 							</option>
@@ -272,52 +297,52 @@ select {
 					<!-- ── Column 2: Created At, Modified At ── -->
 					<div>
 						<label>Created At</label>
-						<div class="readonly-value" th:text="${warehouse.createdAt}">2024-01-01 10:00</div>
+						<div class="readonly-value" th:text="${item.createdAt}">Eg. 2024-01-01
+							10:00</div>
 
 						<label>Modified At</label>
-						<div class="readonly-value" th:text="${warehouse.modifiedAt}">2024-06-15 14:30</div>
+						<div class="readonly-value" th:text="${item.modifiedAt}">Eg. 2024-06-15
+							14:30</div>
 					</div>
 
-					<!-- ── Full-width row: Warehouse Address ── -->
-					<div class="full-span">
-						<label for="warehouseAddress">Warehouse Address</label>
-						<input type="text" name="warehouseAddress" id="warehouseAddress"
-							placeholder="Enter warehouse address"
-							th:value="${warehouse.warehouseAddress != null} ? ${warehouse.warehouseAddress} : ''"
-							required />
-					</div>
 
-				</div><!-- /form-grid -->
+				</div>
+				<!-- /form-grid -->
 
 				<!-- Both buttons inside the colored form area -->
 				<div class="button-row" style="margin-top: 16px;">
-					<button type="button" class="btn-update" onclick="submitIfChanged(event)">
-						Update Warehouse
-					</button>
-					<form th:action="@{'/warehouses/deleteWarehouse/' + ${warehouse.warehouseId}}" method="post" style="display:inline; margin:0;">
+					<button type="button" class="btn-update"
+						onclick="submitIfChanged(event)">Update Item</button>
+					<form th:action="@{'/items/deleteItem/' + ${item.itemId}}"
+						method="post" style="display: inline; margin: 0;">
 						<button type="submit" class="btn-delete"
-							onclick="return confirm('Are you sure you want to delete this warehouse?')">
-							Delete Warehouse
-						</button>
+							onclick="return confirm('Are you sure you want to delete this item?')">
+							Delete Item</button>
 					</form>
 				</div>
 
-			</form><!-- /updateWarehouseDetails -->
-		</div><!-- /form-section -->
+			</form>
+			<!-- /updateItemDetails -->
+		</div>
+		<!-- /form-section -->
 
 		<!-- ══ SECTION 2 — CONDITIONS (30%) ══ -->
 		<div class="conditions-section">
-			<h4>📌 Conditions for updating warehouse</h4>
+			<h4>📌 Conditions for updating item</h4>
 			<ol>
-				<li>Warehouse Name must be at least 5 characters long.</li>
-				<li>Warehouse Name must be maximum 15 characters only.</li>
-				<li>Warehouse Address must be at least 10 characters long.</li>
-				<li>Warehouse Address must be maximum 50 characters only.</li>
-				<li>Warehouse Status: <strong>Active</strong> = Shipping is allowed. <strong>Disabled</strong> = Shipping is not allowed.</li>
+				<li>Item Description must be at least 5 characters long.</li>
+				<li>Item Description must be maximum 30 characters only.</li>
+				<li>Item UOM must be at least 2 characters long.</li>
+				<li>Item UOM must be maximum 4 characters only.</li>
+				<li>Item Status: <strong>Active</strong> = Shipping is allowed.
+					<strong>Disabled</strong> = Shipping is not allowed.
+				</li>
 			</ol>
-		</div><!-- /conditions-section -->
+		</div>
+		<!-- /conditions-section -->
 
-	</div><!-- /page-wrapper -->
+	</div>
+	<!-- /page-wrapper -->
 
 
 	<script>
@@ -332,26 +357,28 @@ select {
 		});
 
 		// Client-side validation
-		document.getElementById("updateWarehouseDetails").addEventListener("submit", function (event) {
-			let warehouseName    = document.getElementById("warehouseName").value;
-			let warehouseAddress = document.getElementById("warehouseAddress").value;
+		document.getElementById("updateItemDetails").addEventListener("submit", function (event) {
+			 
+			let itemDescription = document.getElementById("itemDescription").value;
+			let itemUom= document.getElementById("itemUom").value;
+
 			let errorMessage = '';
 			let isError = false;
-
-			if (warehouseName.trim().length < 5) {
+ 
+			if (itemDescription.trim().length < 5) {
 				isError = true;
-				errorMessage += "Warehouse Name must be at least 5 characters long!\n";
-			} else if (warehouseName.trim().length > 15) {
+				errorMessage += "Item Description must be at least 5 characters long!\n";
+			} else if (itemDescription.trim().length > 30) {
 				isError = true;
-				errorMessage += "Warehouse Name must be maximum 15 characters only!\n";
+				errorMessage += "Item Description must be maximum 30 characters only!\n";
 			}
-
-			if (warehouseAddress.trim().length < 10) {
+			
+			if (itemUom.trim().length < 2) {
 				isError = true;
-				errorMessage += "Warehouse Address must be at least 10 characters long!\n";
-			} else if (warehouseAddress.trim().length > 50) {
+				errorMessage += "Item UOM must be at least 2 characters long!\n";
+			} else if (itemUom.trim().length > 4) {
 				isError = true;
-				errorMessage += "Warehouse Address must be maximum 50 characters only!\n";
+				errorMessage += "Item UOM must be maximum 4 characters only!\n";
 			}
 
 			if (isError) {
@@ -362,22 +389,22 @@ select {
 
 		// Store original values on page load
 		const originalValues = {};
-		document.querySelectorAll("#updateWarehouseDetails input, #updateWarehouseDetails select").forEach(field => {
+		document.querySelectorAll("#updateItemDetails input, #updateItemDetails select").forEach(field => {
 			originalValues[field.name] = field.value;
 		});
 
 		function submitIfChanged(event) {
 			const hasChanges = Object.keys(originalValues).some(name => {
-				const field = document.querySelector(`#updateWarehouseDetails [name="${name}"]`);
+				const field = document.querySelector(`#updateItemDetails [name="${name}"]`);
 				return field && field.value !== originalValues[name];
 			});
 
 			if (!hasChanges) {
-				alert("No changes were made to warehouse details — not updating.");
+				alert("No changes were made to item details — not updating.");
 				event.preventDefault();
 				return false;
 			} else {
-				document.getElementById("updateWarehouseDetails").submit();
+				document.getElementById("updateItemDetails").submit();
 			}
 		}
 	</script>

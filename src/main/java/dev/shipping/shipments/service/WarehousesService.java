@@ -1,0 +1,140 @@
+package dev.shipping.shipments.service;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.ui.Model;
+
+import dev.shipping.shipments.model.Warehouses;
+import dev.shipping.shipments.repo.WarehousesRepository;
+
+@Service
+public class WarehousesService {
+
+	private final WarehousesRepository warehousesRepo;
+
+	public WarehousesService(WarehousesRepository warehousesRepo) {
+		this.warehousesRepo = warehousesRepo;
+	}
+
+	// ─────────────────────────────────────────────
+	// READ
+	// ─────────────────────────────────────────────
+
+	public List<Warehouses> getAllWarehouses() {
+		return warehousesRepo.findAll();
+	}
+
+	public boolean warehouseExists(String warehouseId) {
+		return warehousesRepo.findById(warehouseId).isPresent();
+	}
+
+	/**
+	 * Populates all model attributes needed for the edit-warehouse page.
+	 * Called only after confirming the warehouse exists.
+	 */
+	public void populateEditWarehouseModel(String warehouseId, Model model) {
+		Warehouses warehouse = warehousesRepo.findById(warehouseId)
+				.orElseThrow(() -> new RuntimeException("Warehouse not found: " + warehouseId));
+
+		model.addAttribute("warehouse", warehouse);
+		model.addAttribute("options", List.of("Active", "Disabled"));
+		model.addAttribute("selectedStatus", warehouse.getWarehouseStatus());
+	}
+
+	// ─────────────────────────────────────────────
+	// VALIDATION
+	// ─────────────────────────────────────────────
+
+	/**
+	 * Validates fields when creating a new warehouse.
+	 * Returns a list of error messages; empty list means no errors.
+	 */
+	public List<String> validateNewWarehouse(Warehouses warehouse) {
+		List<String> errors = new ArrayList<>();
+		String warehouseId = warehouse.getWarehouseId();
+		String warehouseName = warehouse.getWarehouseName();
+		String warehouseAddress = warehouse.getWarehouseAddress();
+
+		// Warehouse ID checks
+		if (warehouseId.matches(".*\\s.*")) {
+			errors.add("Warehouse ID cannot contain any whitespaces (spaces, tabs, next-line characters)!!");
+		} else {
+			if (warehouseId.length() < 3) {
+				errors.add("Cannot use Warehouse ID as  \""+warehouseId+"\"\nWarehouse ID must be atleast 3 characters long !!");
+			} else if (warehouseId.length() > 5) {
+				errors.add("Cannot use Warehouse ID as \""+warehouseId+"\"\nWarehouse ID must be maximum 5 characters only !!");
+			}
+		}
+
+		// Warehouse Name checks
+		if (warehouseName.trim().length() < 5) {
+			errors.add("Cannot update Warehouse Name to \""+warehouseName+"\"\nWarehouse Name must be atleast 5 characters long !!");
+		} else if (warehouseName.trim().length() > 15) {
+			errors.add("Cannot update Warehouse Name to \""+warehouseName+"\"\nWarehouse Name must be maximum 15 characters only !!");
+		}
+
+		// Warehouse Address checks
+		if (warehouseAddress.trim().length() < 10) {
+			errors.add("Cannot update Warehouse Address to \""+warehouseAddress+"\"\nWarehouse Address must be atleast 10 characters long !!");
+		} else if (warehouseAddress.trim().length() > 50) {
+			errors.add("Cannot update Warehouse Address to \""+warehouseAddress+"\"\nWarehouse Address must be maximum 50 characters only !!");
+		}
+
+		return errors;
+	}
+
+	/**
+	 * Validates fields when updating an existing warehouse.
+	 * Returns a list of error messages; empty list means no errors.
+	 */
+	public List<String> validateWarehouseUpdate(String warehouseName, String warehouseAddress) {
+		List<String> errors = new ArrayList<>();
+
+		// Warehouse Name checks
+		if (warehouseName.trim().length() < 5) {
+			errors.add("Cannot update Warehouse Name to \""+warehouseName+"\"\nWarehouse Name must be atleast 5 characters long !!");
+		} else if (warehouseName.trim().length() > 15) {
+			errors.add("Cannot update Warehouse Name to \""+warehouseName+"\"\nWarehouse Name must be maximum 15 characters only !!");
+		}
+
+		// Warehouse Address checks
+		if (warehouseAddress.trim().length() < 10) {
+			errors.add("Cannot update Warehouse Address to \""+warehouseAddress+"\"\nWarehouse Address must be atleast 10 characters long !!");
+		} else if (warehouseAddress.trim().length() > 50) {
+			errors.add("Cannot update Warehouse Address to \""+warehouseAddress+"\"\nWarehouse Address must be maximum 50 characters only !!");
+		}
+
+		return errors;
+	}
+
+	// ─────────────────────────────────────────────
+	// WRITE
+	// ─────────────────────────────────────────────
+
+	@Transactional
+	public void createWarehouse(Warehouses warehouse) {
+		warehousesRepo.save(warehouse);
+	}
+
+	@Transactional
+	public void updateWarehouse(String warehouseId, String warehouseName,
+			String warehouseStatus, String warehouseAddress) {
+		Warehouses warehouse = warehousesRepo.findById(warehouseId)
+				.orElseThrow(() -> new RuntimeException("Warehouse not found: " + warehouseId));
+
+		warehouse.setWarehouseName(warehouseName);
+		warehouse.setWarehouseAddress(warehouseAddress);
+		warehouse.setWarehouseStatus(warehouseStatus);
+
+		warehousesRepo.save(warehouse);
+	}
+
+	@Transactional
+	public void deleteWarehouse(String warehouseId) {
+		warehousesRepo.deleteById(warehouseId);
+	}
+
+}

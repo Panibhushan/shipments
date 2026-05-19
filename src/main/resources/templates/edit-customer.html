@@ -222,13 +222,15 @@ select {
 		<li><a href="/customers/goToCreateCustomerPage">Create New Customer</a></li>
 		<li><a href="/customers/">Show ALL Customers</a></li>
 		<li><a href="/warehouses/goToCreateWarehousePage">Create New Warehouse</a></li>
-		<li><a href="/warehouses/">Show ALL Warehouses</a></li>
+		<li><a href="/warehouses/">Show ALL Warehouses</a></li><li><a href="/items/goToCreateItemPage">Create New
+				Item</a></li>
+		<li><a href="/items/">Show ALL Items</a></li>
 	</ul>
 
 	<p th:if="${msg}" id="msgBox"
 		th:style="'background:' + ${bgColor} + '; color:' + ${textColor} + '; padding:10px; border-radius:6px; position:relative; font-weight:bold;'">
-		<span th:text="${msg}"></span>&nbsp;&nbsp;&nbsp;&nbsp;
-		<a href="/customers/" th:style="|color:${textColor}|">Show ALL Customers</a>
+		<span th:text="${msg}" style="white-space: pre-wrap;"></span>&nbsp;&nbsp;&nbsp;&nbsp;
+		<!-- <a href="/customers/" th:style="|color:${textColor}|">Show ALL Customers</a> -->
 		<span onclick="this.parentElement.style.display='none'"
 			style="position:absolute; right:14px; cursor:pointer; font-weight:bold;">X</span>
 	</p>
@@ -390,6 +392,16 @@ select {
 
 			const selectedDate = document.getElementById("validUpto").value;
 			if (!selectedDate) { alert("Please select a date!"); return; }
+			
+			 // ---- Date validity check to see if the date actually exists incase user manually entered it ----
+		    const dateInput = document.getElementById("validUpto").value; // "2026-04-31"
+		    if (selectedDate) {
+		        const picked = new Date(selectedDate);
+		        if (isNaN(picked.getTime())) {
+		            alert("Invalid date! Please enter a valid date.");
+		            return; // ❌ stop
+		        }
+		    }
 
 			const tomorrow = new Date();
 			tomorrow.setDate(tomorrow.getDate() + 1);

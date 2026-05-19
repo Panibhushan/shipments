@@ -131,7 +131,9 @@ select {
 		<li><a href="/customers/">Show ALL Customers</a></li>
 		<li><a href="/warehouses/goToCreateWarehousePage">Create New
 				Warehouse</a></li>
-		<li><a href="/warehouses/">Show ALL Warehouses</a></li>
+		<li><a href="/warehouses/">Show ALL Warehouses</a></li><li><a href="/items/goToCreateItemPage">Create New
+				Item</a></li>
+		<li><a href="/items/">Show ALL Items</a></li>
 	</ul>
 
 	<!-- <p th:if="${msg}" id="msgBox"
@@ -144,12 +146,11 @@ select {
 	
 	<p th:if="${msg}" id="msgBox"
 		th:style="'background:' + ${bgColor} + '; color:' + ${textColor} + '; padding:10px; border-radius:6px; position:relative; font-weight:bold;'">
-		<span th:utext="${msg}"></span>&nbsp;&nbsp;&nbsp;&nbsp;<a
+		<span th:utext="${msg}" style="white-space: pre-wrap;"></span>&nbsp;&nbsp;&nbsp;&nbsp;<a
 			href="/customers/" th:style="|color:${textColor}|">Show ALL
 			Customers</a> <span onclick="this.parentElement.style.display='none'"
 			style="position: absolute; margin: auto; right: 14px; cursor: pointer; font-weight: bold;">X</span>
 	</p>
-	
 	
 
 	<table id="mainTable">
@@ -170,7 +171,7 @@ select {
 						required> <label for="valid upto date">Valid upto</label>
 					<input type="date" name="validUpto" id="validUpto" min=""
 						placeholder="select valid upto date" required><br /> <br />
-					<label for="customer id">Customer Status</label> <select
+					<label for="customer status">Customer Status</label> <select
 						name="customerStatus" required>
 						<option value="">-- Select Customer Status --</option>
 						<option th:value="Active" th:text="Active"></option>
@@ -195,7 +196,7 @@ select {
 			<td>
 				<div class="conditions-box">
 
-					<h4>📌 Conditions for Creating customer</h4>
+					<h4>📌 Conditions for Creating Customer</h4>
 
 
 					<ol>

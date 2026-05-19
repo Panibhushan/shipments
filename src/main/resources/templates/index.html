@@ -9,6 +9,7 @@
       padding: 0;
       height: 100%;
       width: 100%;
+      text-align:center;
     }
 
 *, *::before, *::after {
@@ -17,7 +18,7 @@
 
 .grid-container {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(4, 1fr);
     grid-template-rows: repeat(2, 1fr);
     height: 100vh;
     width: 100vw;
@@ -38,6 +39,8 @@
     .item4 { background: #d7ccaa; }
     .item5 { background: #cfffb6; }
     .item6 { background: #b6c2ff; }
+    .item7 { background: #edb3e7; }
+    .item8 { background: #a3ad64; }
   </style>
 </head>
 
@@ -49,28 +52,35 @@
         Create New Shipment
       </a>
     </div>
-    <div class="grid-item item2">
-      <a href="/shipments/"
-        style="display: inline-block; background-color: #47eddf; color: #592a51; font-weight: bold; padding: 10px 20px; text-decoration: none; border-radius: 6px;">
-        Show ALL Shipments
-      </a>
-    </div>
     <div class="grid-item item3">
       <a href="/customers/goToCreateCustomerPage"
         style="display: inline-block; background-color: #e090b0; color: #4a2e39; font-weight: bold; padding: 10px 20px; text-decoration: none; border-radius: 6px;">
         Create New Customer
       </a>
     </div>
-    <div class="grid-item item4">
-      <a href="/customers/"
-        style="display: inline-block; background-color: #e8dec3; color: #66635b; font-weight: bold; padding: 10px 20px; text-decoration: none; border-radius: 6px;">
-        Show ALL Customers
-      </a>
-    </div>
+   
     <div class="grid-item item5">
       <a href="/warehouses/goToCreateWarehousePage"
         style="display: inline-block; background-color: #bdf3ba; color: #4a2e39; font-weight: bold; padding: 10px 20px; text-decoration: none; border-radius: 6px;">
         Create New Warehouse
+      </a>
+    </div>
+    <div class="grid-item item7">
+      <a href="/items/goToCreateItemPage"
+        style="display: inline-block; background-color: #de9dc9; color: #66635b; font-weight: bold; padding: 10px 20px; text-decoration: none; border-radius: 6px;">
+        Create Item
+      </a>
+    </div>       
+    <div class="grid-item item2">
+      <a href="/shipments/"
+        style="display: inline-block; background-color: #47eddf; color: #592a51; font-weight: bold; padding: 10px 20px; text-decoration: none; border-radius: 6px;">
+        Show ALL Shipments
+      </a>
+    </div>
+     <div class="grid-item item4">
+      <a href="/customers/"
+        style="display: inline-block; background-color: #e8dec3; color: #66635b; font-weight: bold; padding: 10px 20px; text-decoration: none; border-radius: 6px;">
+        Show ALL Customers
       </a>
     </div>
     <div class="grid-item item6">
@@ -79,6 +89,12 @@
         Show ALL Warehouses
       </a>
     </div>
+    <div class="grid-item item8">
+      <a href="/items/"
+        style="display: inline-block; background-color: #bab57d; color: #66635b; font-weight: bold; padding: 10px 20px; text-decoration: none; border-radius: 6px;">
+        Show ALL Items
+      </a>
+    </div>    
   </div>
 </body>
 

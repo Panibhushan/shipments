@@ -18,7 +18,7 @@ public interface CustomerWarehousesRepository extends JpaRepository<CustomerWare
 	List<Warehouses> findAllocatedWarehousesByCustomerId(@Param("customerId") String customerId);
 	
 	@Query("SELECT cw.warehouseId FROM CustomerWarehouses cw WHERE cw.customerId = :customerId")	
-	List<CustomerWarehouses> findAllWarehousesByCustomerId(@Param("customerId") String customerId);
+	List<String> findAllWarehousesByCustomerId(@Param("customerId") String customerId);
 
 	@Modifying // ← tells JPA this is not a SELECT
 	@Transactional // ← required for any write operation
@@ -33,5 +33,5 @@ public interface CustomerWarehousesRepository extends JpaRepository<CustomerWare
     @Transactional
     @Query("DELETE FROM CustomerWarehouses cw WHERE cw.customerId = :customerId AND cw.warehouseId IN :warehouseIds")
     void deleteByCustomerIdAndWarehouseIdIn(@Param("customerId") String customerId, 
-                                            @Param("warehouseIds") List<CustomerWarehouses> toDelete);
+                                            @Param("warehouseIds") List<String> toDelete);
 }
