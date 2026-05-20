@@ -1,23 +1,10 @@
 <!DOCTYPE html>
-<html>
-<style>
-/* ── NAV ── */
-ul {
-	list-style-type: none;
-	margin: 0;
-	padding: 0;
-	overflow: hidden;
-	background-color: #006f5b;
-}
-ul li { float: left; }
-ul li a {
-	display: block;
-	color: white;
-	text-align: center;
-	padding: 14px 16px;
-	text-decoration: none;
-}
-ul li a:hover { background-color: #111111; }
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+ 
+  <link rel="stylesheet" th:href="@{/css/navbar.css}" />
+<style> 
 
 /* ── PAGE WRAPPER ── */
 .page-wrapper {
@@ -213,19 +200,12 @@ select {
 }
 </style>
 
+
+</head>
+
 <body>
 
-	<ul>
-		<li><a href="/"> Home </a></li>
-		<li><a href="/shipments/goToCreateShipmentPage">Create New Shipment</a></li>
-		<li><a href="/shipments/">Show ALL Shipments</a></li>
-		<li><a href="/customers/goToCreateCustomerPage">Create New Customer</a></li>
-		<li><a href="/customers/">Show ALL Customers</a></li>
-		<li><a href="/warehouses/goToCreateWarehousePage">Create New Warehouse</a></li>
-		<li><a href="/warehouses/">Show ALL Warehouses</a></li><li><a href="/items/goToCreateItemPage">Create New
-				Item</a></li>
-		<li><a href="/items/">Show ALL Items</a></li>
-	</ul>
+<div th:replace="~{fragments/navbar :: navbar}"></div>
 
 	<p th:if="${msg}" id="msgBox"
 		th:style="'background:' + ${bgColor} + '; color:' + ${textColor} + '; padding:10px; border-radius:6px; position:relative; font-weight:bold;'">

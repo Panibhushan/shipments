@@ -35,6 +35,7 @@ public class ShipmentsController {
 	@GetMapping("/shipments/")
 	public String home(Model model) {
 		model.addAttribute("shipments", shipmentsService.getAllShipments());
+	    model.addAttribute("activePage", "allShipments");  // ←  this is show which dropdown is active in the navbar
 		return "show-all-shipments";
 	}
 
@@ -46,6 +47,7 @@ public class ShipmentsController {
 	public String addShipmentsPage(Model model) {
 		model.addAttribute("shipment", new Shipments());
 		model.addAttribute("customers", shipmentsService.getActiveAndValidCustomers());
+	    model.addAttribute("activePage", "createShipment");  // ←  this is show which dropdown is active in the navbar
 		return "create-shipment";
 	}
 

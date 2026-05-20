@@ -1,5 +1,9 @@
 <!DOCTYPE html>
-<html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+ 
+  <link rel="stylesheet" th:href="@{/css/navbar.css}" />
 
 <style>
 table {
@@ -92,50 +96,16 @@ button:hover {
 	pointer-events: none;
 	border: 2px solid green;
 }
-
-ul {
-	list-style-type: none;
-	margin: 0;
-	padding: 0;
-	overflow: hidden;
-	background-color: #006f5b;
-}
-
-ul li {
-	float: left;
-}
-
-ul li a {
-	display: block;
-	color: white;
-	text-align: center;
-	padding: 14px 16px;
-	text-decoration: none;
-}
-
-ul li a:hover {
-	background-color: #111111;
-}
+ 
 </style>
+
+</head>
 
 <body>
 
-	<ul>
-		<li><a href="/"> Home </a>
-		<li><a href="/shipments/goToCreateShipmentPage">Create New
-				Shipment</a></li>
-		<li><a href="/shipments/" class="active-a-tag">Show ALL
-				Shipments</a></li>
-		<li><a href="/customers/goToCreateCustomerPage">Create New
-				Customer</a></li>
-		<li><a href="/customers/">Show ALL Customers</a></li>
-		<li><a href="/warehouses/goToCreateWarehousePage">Create New
-				Warehouse</a></li>
-		<li><a href="/warehouses/">Show ALL Warehouses</a></li><li><a href="/items/goToCreateItemPage">Create New
-				Item</a></li>
-		<li><a href="/items/">Show ALL Items</a></li>
-	</ul>
+<div th:replace="~{fragments/navbar :: navbar}"></div>
 
+<br />
 	<p th:if="${msg}" id="msgBox"
 		th:style="'background:' + ${bgColor} + '; color:' + ${textColor} + '; padding:10px; border-radius:6px; position:relative; font-weight:bold;'">
 		<span th:utext="${msg}" style="white-space: pre-wrap;"></span>
@@ -170,8 +140,8 @@ ul li a:hover {
 			X </span>
 
 	</p> -->
-	<h2>Shipments List</h2>
-
+<!-- 	<h2>Shipments List</h2>
+ -->
 	<a href="/shipments/goToCreateShipmentPage"
 		style="display: inline-block; background-color: #4CAF50; color: #fcfaf5; font-weight: bold; padding: 10px 20px; text-decoration: none; border-radius: 6px;">Create
 		New Shipment</a>
@@ -197,10 +167,10 @@ ul li a:hover {
 			<!-- 	<td th:text="${s.customerId}"></td>
 			<td th:text="${s.warehouseId}"></td> -->
 
-			<td><a target="_blank"
+			<td><a target="_blank" style="color: blue; font-weight: bold;"
 				th:href="@{'/customers/showCustomerDetails/' + ${s.customerId}}"
 				th:text="${s.customerId}"> </a></td>
-			<td><a target="_blank"
+			<td><a target="_blank" style="color: blue; font-weight: bold;"
 				th:href="@{'/warehouses/showWarehouseDetails/' + ${s.warehouseId}}"
 				th:text="${s.warehouseId}"> </a></td>
 
@@ -275,8 +245,17 @@ ul li a:hover {
 		</tr>
 	</table>
 
-	<!-- 	<div style="background: #d7d7bd; width:100px; height:100px;"></div>
- -->
+	<!-- Show this if shipments list is EMPTY -->
+	<div th:if="${#lists.isEmpty(shipments)}"
+	     style="text-align:center;  color:#888;">
+	    <p style="font-size:1.1rem; margin-bottom:10px;">No shipment records to display.</p><br />
+	    <a href="/shipments/goToCreateShipmentPage"
+	       style="background:#4CAF50; color:white; padding:8px 18px; border-radius:6px;
+	              text-decoration:none; font-weight:bold;">
+	         Create New Shipment
+	    </a>
+	</div>
+
 	<script>
 		window.addEventListener("load", function() {
 			var msg = document.getElementById("msgBox");

@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<nav th:fragment="navbar">
+
+  <ul class="navbar">
+
+    <!-- ── HOME ── -->
+    <li><a href="/">HOME</a></li>
+
+    <!-- ── SHIPMENTS ── -->
+    <li>
+      <span class="nav-toggle">SHIPMENTS <span class="caret">▾</span></span>
+      <ul class="dropdown-menu">
+        <li>
+          <a th:href="${activePage == 'createShipment'} ? '#' : '/shipments/goToCreateShipmentPage'"
+             th:classappend="${activePage == 'createShipment'} ? ' nav-active'"
+             th:onclick="${activePage == 'createShipment'} ? 'return false;' : ''">
+            Create New Shipment
+          </a>
+        </li>
+        <li>
+          <a th:href="${activePage == 'allShipments'} ? '#' : '/shipments/'"
+             th:classappend="${activePage == 'allShipments'} ? ' nav-active'"
+             th:onclick="${activePage == 'allShipments'} ? 'return false;' : ''">
+            Show ALL Shipments
+          </a>
+        </li>
+      </ul>
+    </li>
+
+    <!-- ── CUSTOMERS ── -->
+    <li>
+      <span class="nav-toggle">CUSTOMERS <span class="caret">▾</span></span>
+      <ul class="dropdown-menu">
+        <li>
+          <a th:href="${activePage == 'createCustomer'} ? '#' : '/customers/goToCreateCustomerPage'"
+             th:classappend="${activePage == 'createCustomer'} ? ' nav-active'"
+             th:onclick="${activePage == 'createCustomer'} ? 'return false;' : ''">
+            Create New Customer
+          </a>
+        </li>
+        <li>
+          <a th:href="${activePage == 'allCustomers'} ? '#' : '/customers/'"
+             th:classappend="${activePage == 'allCustomers'} ? ' nav-active'"
+             th:onclick="${activePage == 'allCustomers'} ? 'return false;' : ''">
+            Show ALL Customers
+          </a>
+        </li>
+      </ul>
+    </li>
+
+    <!-- ── WAREHOUSES ── -->
+    <li>
+      <span class="nav-toggle">WAREHOUSES <span class="caret">▾</span></span>
+      <ul class="dropdown-menu">
+        <li>
+          <a th:href="${activePage == 'createWarehouse'} ? '#' : '/warehouses/goToCreateWarehousePage'"
+             th:classappend="${activePage == 'createWarehouse'} ? ' nav-active'"
+             th:onclick="${activePage == 'createWarehouse'} ? 'return false;' : ''">
+            Create New Warehouse
+          </a>
+        </li>
+        <li>
+          <a th:href="${activePage == 'allWarehouses'} ? '#' : '/warehouses/'"
+             th:classappend="${activePage == 'allWarehouses'} ? ' nav-active'"
+             th:onclick="${activePage == 'allWarehouses'} ? 'return false;' : ''">
+            Show ALL Warehouses
+          </a>
+        </li>
+      </ul>
+    </li>
+
+    <!-- ── ITEMS ── -->
+    <li>
+      <span class="nav-toggle">ITEMS <span class="caret">▾</span></span>
+      <ul class="dropdown-menu">
+        <li>
+          <a th:href="${activePage == 'createItem'} ? '#' : '/items/goToCreateItemPage'"
+             th:classappend="${activePage == 'createItem'} ? ' nav-active'"
+             th:onclick="${activePage == 'createItem'} ? 'return false;' : ''">
+            Create New Item
+          </a>
+        </li>
+        <li>
+          <a th:href="${activePage == 'allItems'} ? '#' : '/items/'"
+             th:classappend="${activePage == 'allItems'} ? ' nav-active'"
+             th:onclick="${activePage == 'allItems'} ? 'return false;' : ''">
+            Show ALL Items
+          </a>
+        </li>
+      </ul>
+    </li>
+
+    <!-- ── INVENTORY ── -->
+    <li>
+      <span class="nav-toggle">INVENTORY <span class="caret">▾</span></span>
+      <ul class="dropdown-menu">
+        <li>
+          <a th:href="${activePage == 'addInventory'} ? '#' : '/inventory/addInventory'"
+             th:classappend="${activePage == 'addInventory'} ? ' nav-active'"
+             th:onclick="${activePage == 'addInventory'} ? 'return false;' : ''">
+            Add Inventory
+          </a>
+        </li>
+        <li>
+          <a th:href="${activePage == 'allInventory'} ? '#' : '/inventory/'"
+             th:classappend="${activePage == 'allInventory'} ? ' nav-active'"
+             th:onclick="${activePage == 'allInventory'} ? 'return false;' : ''">
+            Show ALL Inventory
+          </a>
+        </li>
+      </ul>
+    </li>
+
+  </ul>
+
+</nav>
+
+</html>

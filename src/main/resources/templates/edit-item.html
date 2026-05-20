@@ -1,30 +1,11 @@
 <!DOCTYPE html>
-<html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+ 
+  <link rel="stylesheet" th:href="@{/css/navbar.css}" />
 <style>
-/* ── NAV ── */
-ul {
-	list-style-type: none;
-	margin: 0;
-	padding: 0;
-	overflow: hidden;
-	background-color: #006f5b;
-}
-
-ul li {
-	float: left;
-}
-
-ul li a {
-	display: block;
-	color: white;
-	text-align: center;
-	padding: 14px 16px;
-	text-decoration: none;
-}
-
-ul li a:hover {
-	background-color: #111111;
-}
+ 
 
 /* ── PAGE WRAPPER ── */
 .page-wrapper {
@@ -80,7 +61,7 @@ form#updateItemDetails {
 
 /* Full-width rows */
 .full-span {
-	grid-column: 1/-1;
+	grid-column: 1 / -1;
 }
 
 /* ── FIELD STYLING ── */
@@ -229,91 +210,78 @@ select {
 }
 </style>
 
+
+</head>
+
 <body>
 
-	<ul>
-		<li><a href="/"> Home </a></li>
-		<li><a href="/shipments/goToCreateShipmentPage">Create New
-				Shipment</a></li>
-		<li><a href="/shipments/">Show ALL Shipments</a></li>
-		<li><a href="/customers/goToCreateCustomerPage">Create New
-				Customer</a></li>
-		<li><a href="/customers/">Show ALL Customers</a></li>
-		<li><a href="/items/goToCreateItemPage">Create New Item</a></li>
-		<li><a href="/items/">Show ALL Items</a></li>
-		<li><a href="/items/goToCreateItemPage">Create New Item</a></li>
-		<li><a href="/items/">Show ALL Items</a></li>
-	</ul>
-
+	<div th:replace="~{fragments/navbar :: navbar}"></div>
+ 
 	<p th:if="${msg}" id="msgBox"
 		th:style="'background:' + ${bgColor} + '; color:' + ${textColor} + '; padding:10px; border-radius:6px; position:relative; font-weight:bold;'">
-		<span th:text="${msg}"></span>&nbsp;&nbsp;&nbsp;&nbsp; 
-<!-- 		<a href="/items/" th:style="|color:${textColor}|">Show ALL Items</a>  -->
+		<span th:text="${msg}"></span>&nbsp;&nbsp;&nbsp;&nbsp;
 		<span
 			onclick="this.parentElement.style.display='none'"
 			style="position: absolute; right: 14px; cursor: pointer; font-weight: bold;">X</span>
 	</p>
 
-	<!-- ═══════════════════════════════════════════════ -->
-	<!--   PAGE WRAPPER: Section 1 (70%) + Section 2 (30%) -->
-	<!-- ═══════════════════════════════════════════════ -->
 	<div class="page-wrapper">
 
-		<!-- ══ SECTION 1 — FORM (70%) ══ -->
+		<!-- ══ SECTION 1 — FORM ══ -->
 		<div class="form-section">
 			<form action="/items/updateItem" method="post"
 				name="updateItemDetails" id="updateItemDetails">
 
-				<input type="hidden" name="itemId" th:value="${item.itemId}" />
+				<input type="hidden" name="itemCustomerUomId" th:value="${item.itemCustomerUomId}" />
+				<input type="hidden" name="itemUom" th:value="${item.itemUom}" />
 
-				<!-- TWO-COLUMN GRID -->
 				<div class="form-grid">
 
-					<!-- ── Column 1: Item Id, Name, Status ── -->
+					<!-- ── Column 1: Item Id, Customer Id, Item UOM ── -->
 					<div>
 						<label>Item Id</label>
-						<div class="readonly-value" th:text="${item.itemId}"></div>
+						<div class="readonly-value" th:text="${item.itemId}">ITM-001</div>
 
 						<label>Customer</label>
-						<div class="readonly-value" th:text="${item.customerId}"></div>
+						<div class="readonly-value" th:text="${item.customerId}">CUST-042</div>
 
-						<label for="itemDescription">Item Description</label> <input
-							type="text" name="itemDescription" id="itemDescription"
-							placeholder="Enter item description"
-							th:value="${item.itemDescription != null} ? ${item.itemDescription} : ''"
-							required /> <label for="itemUom">Item UOM</label> <input
-							type="text" name="itemUom" id="itemUom"
-							placeholder="Enter item description"
-							th:value="${item.itemUom!= null} ? ${item.itemUom} : ''" required />
+						<label for="itemUom">Item UOM</label>
+						<div class="readonly-value" th:text="${item.itemUom}">EACH</div>
+					 
+					</div>
 
-						<label for="itemStatus">Item Status</label> <select
-							name="itemStatus" id="itemStatus" required>
+					<!-- ── Column 2: Created At, Modified At, Item Status ── -->
+					<div>
+						<label>Created At</label>
+						<div class="readonly-value" th:text="${item.createdAt}">2024-01-01 10:00</div>
+
+						<label>Modified At</label>
+						<div class="readonly-value" th:text="${item.modifiedAt}">2024-06-15 14:30</div>
+
+						<label for="itemStatus">Item Status</label>
+						<select name="itemStatus" id="itemStatus" required>
 							<option th:each="opt : ${options}" th:value="${opt}"
-								th:text="${opt}" th:selected="${opt == selectedStatus}">
+								th:text="${opt}" th:selected="${opt == selectedItemStatus}">
 							</option>
 						</select>
 					</div>
 
-					<!-- ── Column 2: Created At, Modified At ── -->
-					<div>
-						<label>Created At</label>
-						<div class="readonly-value" th:text="${item.createdAt}">Eg. 2024-01-01
-							10:00</div>
-
-						<label>Modified At</label>
-						<div class="readonly-value" th:text="${item.modifiedAt}">Eg. 2024-06-15
-							14:30</div>
+					<!-- ── Full-width: Item Description ── -->
+					<div class="full-span">
+						<label for="itemDescription">Item Description</label>
+						<input type="text" name="itemDescription" id="itemDescription"
+							placeholder="Enter item description"
+							th:value="${item.itemDescription != null} ? ${item.itemDescription} : ''"
+							required />
 					</div>
-
 
 				</div>
 				<!-- /form-grid -->
 
-				<!-- Both buttons inside the colored form area -->
 				<div class="button-row" style="margin-top: 16px;">
 					<button type="button" class="btn-update"
 						onclick="submitIfChanged(event)">Update Item</button>
-					<form th:action="@{'/items/deleteItem/' + ${item.itemId}}"
+					<form th:action="@{'/items/deleteItem/' + ${item.itemCustomerUomId}}"
 						method="post" style="display: inline; margin: 0;">
 						<button type="submit" class="btn-delete"
 							onclick="return confirm('Are you sure you want to delete this item?')">
@@ -322,31 +290,27 @@ select {
 				</div>
 
 			</form>
-			<!-- /updateItemDetails -->
 		</div>
 		<!-- /form-section -->
 
-		<!-- ══ SECTION 2 — CONDITIONS (30%) ══ -->
+		<!-- ══ SECTION 2 — CONDITIONS ══ -->
 		<div class="conditions-section">
 			<h4>📌 Conditions for updating item</h4>
 			<ol>
 				<li>Item Description must be at least 5 characters long.</li>
 				<li>Item Description must be maximum 30 characters only.</li>
-				<li>Item UOM must be at least 2 characters long.</li>
-				<li>Item UOM must be maximum 4 characters only.</li>
+				<li>Item UOM must be selected from the available options.</li>
 				<li>Item Status: <strong>Active</strong> = Shipping is allowed.
 					<strong>Disabled</strong> = Shipping is not allowed.
 				</li>
 			</ol>
 		</div>
-		<!-- /conditions-section -->
 
 	</div>
 	<!-- /page-wrapper -->
 
 
 	<script>
-		// Auto-hide msg box after 10s
 		window.addEventListener("load", function () {
 			var msg = document.getElementById("msgBox");
 			if (msg) {
@@ -356,29 +320,18 @@ select {
 			}
 		});
 
-		// Client-side validation
 		document.getElementById("updateItemDetails").addEventListener("submit", function (event) {
-			 
 			let itemDescription = document.getElementById("itemDescription").value;
-			let itemUom= document.getElementById("itemUom").value;
 
 			let errorMessage = '';
 			let isError = false;
- 
+
 			if (itemDescription.trim().length < 5) {
 				isError = true;
 				errorMessage += "Item Description must be at least 5 characters long!\n";
 			} else if (itemDescription.trim().length > 30) {
 				isError = true;
 				errorMessage += "Item Description must be maximum 30 characters only!\n";
-			}
-			
-			if (itemUom.trim().length < 2) {
-				isError = true;
-				errorMessage += "Item UOM must be at least 2 characters long!\n";
-			} else if (itemUom.trim().length > 4) {
-				isError = true;
-				errorMessage += "Item UOM must be maximum 4 characters only!\n";
 			}
 
 			if (isError) {
@@ -387,7 +340,6 @@ select {
 			}
 		});
 
-		// Store original values on page load
 		const originalValues = {};
 		document.querySelectorAll("#updateItemDetails input, #updateItemDetails select").forEach(field => {
 			originalValues[field.name] = field.value;

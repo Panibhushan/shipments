@@ -1,0 +1,75 @@
+/* ── NAV ── */ 
+.navbar {
+  list-style-type: none;
+  margin: 0;
+  padding: 0;
+  background-color: #006f5b;
+  display: flex;
+  align-items: stretch;
+  white-space: nowrap;
+}
+
+.navbar li {
+  position: relative;
+}
+
+.navbar li a,
+.navbar li .nav-toggle {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: white;
+  padding: 14px 16px;
+  text-decoration: none;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  background: none;
+  border: none;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.navbar li a:hover,
+.navbar li .nav-toggle:hover {
+  background-color: #111111;
+}
+
+.caret {
+  font-size: 0.65rem;
+}
+
+/* ── DROPDOWN ── */
+.dropdown-menu {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 0;
+  background-color: #005548;
+  min-width: 200px;
+  list-style: none;
+  margin: 0;
+  padding: 4px 0;
+  z-index: 9999;
+  border-top: 2px solid #00a884;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+}
+
+.dropdown-menu li a {
+  padding: 10px 18px;
+  font-weight: 400;
+  font-size: 0.88rem;
+}
+
+.dropdown-menu li a.nav-active {
+  background-color: #00a884;   /* highlighted green */
+  color: #fff;
+  font-weight: 700;
+  cursor: default;
+  pointer-events: none;        /* makes it unclickable */
+}
+
+.navbar li:hover .dropdown-menu {
+  display: block;
+}

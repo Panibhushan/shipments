@@ -1,5 +1,9 @@
 <!DOCTYPE html>
-<html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+ 
+  <link rel="stylesheet" th:href="@{/css/navbar.css}" />
 <style>
 table {
 	width: 90%;
@@ -78,50 +82,14 @@ button:hover {
 	color: white;
 	pointer-events: none;
 	border: 2px solid green;
-}
-
-ul {
-	list-style-type: none;
-	margin: 0;
-	padding: 0;
-	overflow: hidden;
-	background-color: #006f5b;
-}
-
-ul li {
-	float: left;
-}
-
-ul li a {
-	display: block;
-	color: white;
-	text-align: center;
-	padding: 14px 16px;
-	text-decoration: none;
-}
-
-ul li a:hover {
-	background-color: #111111;
-}
+} 
 </style>
+
+</head>
 
 <body>
 
-	<ul>
-		<li><a href="/"> Home </a>
-		<li><a href="/shipments/goToCreateShipmentPage">Create New
-				Shipment</a></li>
-		<li><a href="/shipments/">Show ALL Shipments</a></li>
-		<li><a href="/customers/goToCreateCustomerPage">Create New
-				Customer</a></li>
-		<li><a href="/customers/" class="active-a-tag">Show ALL
-				Customers</a></li>
-		<li><a href="/warehouses/goToCreateWarehousePage">Create New
-				Warehouse</a></li>
-		<li><a href="/warehouses/">Show ALL Warehouses</a></li><li><a href="/items/goToCreateItemPage">Create New
-				Item</a></li>
-		<li><a href="/items/">Show ALL Items</a></li>
-	</ul>
+<div th:replace="~{fragments/navbar :: navbar}"></div>
 
 <!-- 	<h2>All Customers</h2> -->
 
@@ -178,8 +146,16 @@ ul li a:hover {
 		</tr>
 	</table>
 
-	<br />
-	<br />
+	<!-- Show this if customers list is EMPTY -->
+	<div th:if="${#lists.isEmpty(customers)}"  
+	     style="text-align:center;  color:#888;">
+	    <p style="font-size:1.1rem; margin-bottom:10px;">No Customers records to display.</p><br />
+	    <a href="/customers/goToCreateCustomerPage"
+	       style="background:#4CAF50; color:white; padding:8px 18px; border-radius:6px;
+	              text-decoration:none; font-weight:bold;">
+	         Create New Customer
+	    </a>
+	</div>
 
 	<script>
 		window.addEventListener("load", function () {

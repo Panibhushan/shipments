@@ -26,12 +26,14 @@ public class WarehousesController {
 	@GetMapping("/warehouses/")
 	public String showAllWarehouses(Model model) {
 		model.addAttribute("warehouses", warehousesService.getAllWarehouses());
+		model.addAttribute("activePage", "allWarehouses");  // ←  this is show which dropdown is active in the navbar
 		return "show-all-warehouses";
 	}
 
 	@GetMapping("/warehouses/goToCreateWarehousePage")
 	public String addWarehousesPage(Model model) {
 		model.addAttribute("warehouse", new Warehouses());
+		model.addAttribute("activePage", "createWarehouse");  // ←  this is show which dropdown is active in the navbar
 		return "create-warehouse";
 	}
 

@@ -1,8 +1,13 @@
 <!DOCTYPE html>
-<html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+ 
+  <link rel="stylesheet" th:href="@{/css/navbar.css}" />
+  
 <style>
 table {
-	width: 85%;
+	width: 95%;
 	border-collapse: separate;
 	border-spacing: 0 6px;
 	font-family: Arial, sans-serif;
@@ -80,49 +85,13 @@ button:hover {
 	border: 2px solid green;
 }
 
-ul {
-	list-style-type: none;
-	margin: 0;
-	padding: 0;
-	overflow: hidden;
-	background-color: #006f5b;
-}
-
-ul li {
-	float: left;
-}
-
-ul li a {
-	display: block;
-	color: white;
-	text-align: center;
-	padding: 14px 16px;
-	text-decoration: none;
-}
-
-ul li a:hover {
-	background-color: #111111;
-}
 </style>
+
+</head>
 
 <body>
 
-	<ul>
-		<li><a href="/"> Home </a>
-		<li><a href="/shipments/goToCreateShipmentPage">Create New
-				Shipment</a></li>
-		<li><a href="/shipments/">Show ALL Shipments</a></li>
-		<li><a href="/customers/goToCreateCustomerPage">Create New
-				Customer</a></li>
-		<li><a href="/customers/">Show ALL Customers</a></li>
-		<li><a href="/warehouses/goToCreateWarehousePage">Create New
-				Warehouse</a></li>
-		<li><a href="/warehouses/" class="active-a-tag">Show ALL
-				Warehouses</a></li>
-		<li><a href="/items/goToCreateItemPage">Create New Item</a></li>
-		<li><a href="/items/">Show ALL Items</a></li>
-
-	</ul>
+<div th:replace="~{fragments/navbar :: navbar}"></div>
 
 	<!-- 	<h2>All Warehouses</h2>
  -->
@@ -134,7 +103,6 @@ ul li a:hover {
 		<span onclick="this.parentElement.style.display='none'"
 			style="position: absolute; margin: auto; right: 14px; cursor: pointer; font-weight: bold;">
 			X </span>
-
 	</p>
 
 	<a href="/items/goToCreateItemPage"
@@ -145,7 +113,7 @@ ul li a:hover {
 		<thead>
 			<tr>
 				<th>Customer</th>
-				<th>ID</th>
+				<th>Item</th>
 				<th>Description</th>
 				<th>UOM</th>
 				<th>Status</th>
@@ -162,20 +130,20 @@ ul li a:hover {
 						<input type="hidden" name="itemCustomerUomId" th:value="${i.itemCustomerUomId}" />
 
 		
-		<td th:text="${i.customerId}"></td>
+		<td><a target="_blank" style="color:blue; font: bold;"
+				th:href="@{'/customers/showCustomerDetails/' + ${i.customerId}}"
+				th:text="${i.customerId}"> </a></td>
 			<td th:text="${i.itemId}"></td>
 			<td th:text="${i.itemDescription}"></td>
 			<td th:text="${i.itemUom}"></td>
-						<td th:text="${i.itemStatus}"></td> 
-
+<!-- 						<td th:text="${i.itemStatus}"></td> 
+ -->
 			<td><span th:text="${i.itemStatus}"
 				th:style="${i.itemStatus == 'Active'} ? 
                     'background:#d4edda; color:#155724; padding:3px 10px; border-radius:12px; font-weight:bold;' : 
                     'background:#f8d7da; color:#721c24; padding:3px 10px; border-radius:12px; font-weight:bold;'">
 			</span></td>
-
-
-
+			
 			<td th:text="${i.createdAt}"></td>
 			<td th:text="${i.modifiedAt}"></td>
 			<td><a th:href="@{'/items/viewOrEditItem/' + ${i.itemCustomerUomId}}"
@@ -194,9 +162,17 @@ ul li a:hover {
 		</tr> 
 	</table>
 
-	<br />
-	<br />
-
+	<!-- Show this if items list is EMPTY -->
+	<div th:if="${#lists.isEmpty(items)}"  
+	     style="text-align:center;  color:#888;">
+	    <p style="font-size:1.1rem; margin-bottom:10px;">No Items records to display.</p><br />
+	    <a href="/items/goToCreateItemPage"
+	       style="background:#4CAF50; color:white; padding:8px 18px; border-radius:6px;
+	              text-decoration:none; font-weight:bold;">
+	         Create New Item
+	    </a>
+	</div>
+	 
 	<script>
 		window.addEventListener("load", function() {
 			var msg = document.getElementById("msgBox");

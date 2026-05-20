@@ -26,13 +26,15 @@ public class CustomersController {
 	@GetMapping("/customers/")
 	public String showAllCustomers(Model model) {
 		model.addAttribute("customers", customersService.getAllCustomers());
+	    model.addAttribute("activePage", "allCustomers");  // ←  this is show which dropdown is active in the navbar
 		return "show-all-customers";
 	}
 
 	@GetMapping("/customers/goToCreateCustomerPage")
 	public String addCustomersPage(Model model) {
 		model.addAttribute("customer", new Customers());
-		model.addAttribute("warehouses", customersService.getActiveWarehouses());
+	    model.addAttribute("activePage", "createCustomer");  // ←  this is show which dropdown is active in the navbar
+	model.addAttribute("warehouses", customersService.getActiveWarehouses());
 		return "create-customer";
 	}
 

@@ -1,5 +1,9 @@
 <!DOCTYPE html>
-<html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+ 
+  <link rel="stylesheet" th:href="@{/css/navbar.css}" />
 
 <style>
 #shipmentDetailsTable {
@@ -70,30 +74,7 @@ button:hover {
 	pointer-events: none;
 	border: 2px solid green;
 }
-
-ul {
-	list-style-type: none;
-	margin: 0;
-	padding: 0;
-	overflow: hidden;
-	background-color: #006f5b;
-}
-
-ul li {
-	float: left;
-}
-
-ul li a {
-	display: block;
-	color: white;
-	text-align: center;
-	padding: 14px 16px;
-	text-decoration: none;
-}
-
-ul li a:hover {
-	background-color: #111111;
-}
+ 
 
 #shipmentAuditTable table {
 	font-family: Arial, sans-serif;
@@ -117,21 +98,11 @@ ul li a:hover {
 }
 </style>
 
+</head>
+
 <body>
-	<ul>
-		<li><a href="/"> Home </a>
-		<li><a href="/shipments/goToCreateShipmentPage">Create New
-				Shipment</a></li>
-		<li><a href="/shipments/">Show ALL Shipments</a></li>
-		<li><a href="/customers/goToCreateCustomerPage">Create New
-				Customer</a></li>
-		<li><a href="/customers/">Show ALL Customers</a></li>
-		<li><a href="/warehouses/goToCreateWarehousePage">Create New
-				Warehouse</a></li>
-		<li><a href="/warehouses/">Show ALL Warehouses</a></li><li><a href="/items/goToCreateItemPage">Create New
-				Item</a></li>
-		<li><a href="/items/">Show ALL Items</a></li>
-	</ul>
+
+<div th:replace="~{fragments/navbar :: navbar}"></div>
 	<!-- 	<p th:if="${msg}" id="msgBox"
 		th:style="'background:' + ${bgColor} + '; color:' + ${textColor} + '; padding:10px; border-radius:6px; position:relative; font-weight:bold;'">
 		<span th:text="${msg}" style="white-space: pre-wrap;"></span>
@@ -182,10 +153,10 @@ ul li a:hover {
 		<tr>
 			<td th:text="${shipment.shipmentId}"></td>
 
-			<td><a target="_blank"
+			<td><a target="_blank" style="color: blue; font-weight: bold;"
 				th:href="@{'/customers/showCustomerDetails/' + ${shipment.customerId}}"
 				th:text="${shipment.customerId}"> </a></td>
-			<td><a target="_blank"
+			<td><a target="_blank" style="color: blue; font-weight: bold;"
 				th:href="@{'/warehouses/showWarehouseDetails/' + ${shipment.warehouseId}}"
 				th:text="${shipment.warehouseId}"> </a></td>
 			<td th:switch="${shipment.shipStatus}"><span th:case="1100"

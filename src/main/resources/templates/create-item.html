@@ -1,6 +1,10 @@
 
 <!DOCTYPE html>
-<html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+
+<link rel="stylesheet" th:href="@{/css/navbar.css}" />
 <style>
 #mainTable {
 	width: 100%;
@@ -10,13 +14,13 @@
 }
 
 #mainTable>tbody>tr>td:first-child {
-	width: 50%;
+	width: 55%;
 	vertical-align: top;
 	padding: 16px;
 }
 
 #mainTable>tbody>tr>td:last-child {
-	width: 50%;
+	width: 45%;
 	vertical-align: top;
 	padding: 16px;
 }
@@ -51,30 +55,6 @@ input[type=text] {
 	padding: 12px;
 	margin: 10px 0;
 	box-sizing: border-box;
-}
-
-ul {
-	list-style-type: none;
-	margin: 0;
-	padding: 0;
-	overflow: hidden;
-	background-color: #006f5b;
-}
-
-ul li {
-	float: left;
-}
-
-ul li a {
-	display: block;
-	color: white;
-	text-align: center;
-	padding: 14px 16px;
-	text-decoration: none;
-}
-
-ul li a:hover {
-	background-color: #111111;
 }
 
 /* Base styling for the date input */
@@ -120,23 +100,11 @@ select {
 }
 </style>
 
+</head>
+
 <body>
 
-	<ul>
-		<li><a href="/"> Home </a>
-		<li><a href="/shipments/goToCreateShipmentPage">Create New
-				Shipment</a></li>
-		<li><a href="/shipments/">Show ALL Shipments</a></li>
-		<li><a href="/customers/goToCreateCustomerPage">Create New
-				Customer</a></li>
-		<li><a href="/customers/">Show ALL Customers</a></li>
-		<li><a href="/warehouses/goToCreateWarehousePage">Create New
-				Warehouse</a></li>
-		<li><a href="/warehouses/">Show ALL Warehouses</a></li>
-		<li><a href="/items/goToCreateItemPage" class="active-a-tag">Create
-				New Item</a></li>
-		<li><a href="/items/">Show ALL Items</a></li>
-	</ul>
+	<div th:replace="~{fragments/navbar :: navbar}"></div>
 
 	<p th:if="${msg}" id="msgBox"
 		th:style="'background:' + ${bgColor} + '; color:' + ${textColor} + '; padding:10px; border-radius:6px; position:relative; font-weight:bold;'">
@@ -144,7 +112,8 @@ select {
 		<span th:text="${itemId}"></span>
 
 		<!-- hyperlink to shipment page -->
-		&nbsp;&nbsp;<a th:href="@{'/items/showItemDetails/' + ${itemCustomerUomId}}">
+		&nbsp;&nbsp;<a
+			th:href="@{'/items/showItemDetails/' + ${itemCustomerUomId}}">
 			View Item Details</a>
 		<!-- ❌ Close button -->
 		<span onclick="this.parentElement.style.display='none'"
@@ -161,14 +130,12 @@ select {
 			<!-- ===== LEFT CELL — 50% — Update Form ===== -->
 			<td>
 				<form action="/items/createItem" method="post" id="itemForm">
-
-
 					<select name="customerId" id="customerId"
 						onchange="loadWarehouses(this.value)" required>
 						<option value="">-- Select Customer --</option>
 						<option th:each="c : ${customers}" th:value="${c.customerId}"
 							th:text="|${c.customerId} = ${c.customerName}|"></option>
-					</select> <br /> <br /> <a href="/customers/goToCreateCustomerPage">Customer
+					</select> <br /> <a href="/customers/goToCreateCustomerPage">Customer
 						Doesn't Exist ? Create a New Customer</a> <br /> <br /> <label
 						for="item_id">Item ID</label> <input type="text" name="itemId"
 						id="itemId" placeholder="enter item id"
@@ -178,12 +145,12 @@ select {
 						type="text" name="itemDescription" id="itemDescription"
 						placeholder="enter item description"
 						th:value="${itemDescriptionFromController != null} ? ${itemDescriptionFromController} : ''"
-						required> <br /> <label for="itemUom">Item Uom</label> <input
-						type="text" name="itemUom" id="itemUom"
-						placeholder="enter item uom"
-						th:value="${itemDescriptionFromController != null} ? ${itemDescriptionFromController} : ''"
-						required> <br /> <label for="item_status">Item
-						Status</label> <select name="itemStatus" required>
+						required> <br /> <label for="itemUom">Item Uom</label> <select
+						name="itemUom" id="itemUom" required>
+						<option value="">-- Select Item UOM --</option><option th:each="opt : ${itemUomsList}" th:value="${opt}"
+							th:text="${opt}"></option>
+					</select> <br /> <label for="item_status">Item Status</label> <select
+						name="itemStatus" required>
 						<option value="">-- Select Item Status --</option>
 						<option th:value="Active" th:text="Active"></option>
 						<option th:value="Disabled" th:text="Disabled"></option>

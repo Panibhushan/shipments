@@ -3,98 +3,129 @@
 
 <head>
   <style>
-    body,
-    html {
+    body, html {
       margin: 0;
       padding: 0;
       height: 100%;
       width: 100%;
-      text-align:center;
     }
 
-*, *::before, *::after {
-    box-sizing: border-box;
-}
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
 
-.grid-container {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    grid-template-rows: repeat(2, 1fr);
-    height: 100vh;
-    width: 100vw;
-}
+    .grid-container {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      grid-template-rows: repeat(2, 1fr);
+      height: 100vh;
+      width: 100vw;
+    }
 
+    /* ── Each cell is now the <a> tag itself ── */
     .grid-item {
-      border: 2px solid black;
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
-      font-size: 2rem;
-      font-family: sans-serif;
+      gap: 14px;
+      border: 2px solid rgba(255,255,255,0.3);
+      text-decoration: none;
+      cursor: pointer;
+      transition: filter 0.2s, transform 0.2s;
     }
 
-    .item1 { background: #d8f0b9; }
-    .item2 { background: #43dbcd; }
-    .item3 { background: #cb95aa; }
-    .item4 { background: #d7ccaa; }
-    .item5 { background: #cfffb6; }
-    .item6 { background: #b6c2ff; }
-    .item7 { background: #edb3e7; }
-    .item8 { background: #a3ad64; }
+    .grid-item:hover {
+      filter: brightness(0.88);
+      transform: scale(1.02);
+      z-index: 1;
+    }
+
+    .grid-item .icon {
+      font-size: 2.8rem;
+    }
+
+    .grid-item .label {
+      font-family: 'Segoe UI', sans-serif;
+      font-size: 1.05rem;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+    }
+
+    .grid-item .sublabel {
+      font-family: 'Segoe UI', sans-serif;
+      font-size: 0.72rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      opacity: 0.55;
+    }
+
+    /* ── Colors: light tile bg + dark text per category ── */
+    .item1 { background: #d6eaf8; color: #1a5276; }
+    .item2 { background: #d5f5e3; color: #145a32; }
+    .item3 { background: #fdebd0; color: #784212; }
+    .item4 { background: #e8daef; color: #4a235a; }
+    .item5 { background: #aed6f1; color: #1a5276; }
+    .item6 { background: #a9dfbf; color: #145a32; }
+    .item7 { background: #fad7a0; color: #784212; }
+    .item8 { background: #d2b4de; color: #4a235a; }
   </style>
 </head>
 
 <body>
   <div class="grid-container">
-    <div class="grid-item item1">
-      <a href="/shipments/goToCreateShipmentPage"
-        style="display: inline-block; background-color: #d5e6be; color: #24360c; font-weight: bold; padding: 10px 20px; text-decoration: none; border-radius: 6px;">
-        Create New Shipment
-      </a>
-    </div>
-    <div class="grid-item item3">
-      <a href="/customers/goToCreateCustomerPage"
-        style="display: inline-block; background-color: #e090b0; color: #4a2e39; font-weight: bold; padding: 10px 20px; text-decoration: none; border-radius: 6px;">
-        Create New Customer
-      </a>
-    </div>
-   
-    <div class="grid-item item5">
-      <a href="/warehouses/goToCreateWarehousePage"
-        style="display: inline-block; background-color: #bdf3ba; color: #4a2e39; font-weight: bold; padding: 10px 20px; text-decoration: none; border-radius: 6px;">
-        Create New Warehouse
-      </a>
-    </div>
-    <div class="grid-item item7">
-      <a href="/items/goToCreateItemPage"
-        style="display: inline-block; background-color: #de9dc9; color: #66635b; font-weight: bold; padding: 10px 20px; text-decoration: none; border-radius: 6px;">
-        Create Item
-      </a>
-    </div>       
-    <div class="grid-item item2">
-      <a href="/shipments/"
-        style="display: inline-block; background-color: #47eddf; color: #592a51; font-weight: bold; padding: 10px 20px; text-decoration: none; border-radius: 6px;">
-        Show ALL Shipments
-      </a>
-    </div>
-     <div class="grid-item item4">
-      <a href="/customers/"
-        style="display: inline-block; background-color: #e8dec3; color: #66635b; font-weight: bold; padding: 10px 20px; text-decoration: none; border-radius: 6px;">
-        Show ALL Customers
-      </a>
-    </div>
-    <div class="grid-item item6">
-      <a href="/warehouses/"
-        style="display: inline-block; background-color: #9da7de; color: #66635b; font-weight: bold; padding: 10px 20px; text-decoration: none; border-radius: 6px;">
-        Show ALL Warehouses
-      </a>
-    </div>
-    <div class="grid-item item8">
-      <a href="/items/"
-        style="display: inline-block; background-color: #bab57d; color: #66635b; font-weight: bold; padding: 10px 20px; text-decoration: none; border-radius: 6px;">
-        Show ALL Items
-      </a>
-    </div>    
+
+    <!-- Row 1 — CREATE actions -->
+    <a href="/shipments/goToCreateShipmentPage" class="grid-item item1">
+      <span class="icon">🚢</span>
+      <span class="label">Create New Shipment</span>
+      <span class="sublabel">Shipments</span>
+    </a>
+
+    <a href="/customers/goToCreateCustomerPage" class="grid-item item2">
+      <span class="icon">👤</span>
+      <span class="label">Create New Customer</span>
+      <span class="sublabel">Customers</span>
+    </a>
+
+    <a href="/warehouses/goToCreateWarehousePage" class="grid-item item3">
+      <span class="icon">🏭</span>
+      <span class="label">Create New Warehouse</span>
+      <span class="sublabel">Warehouses</span>
+    </a>
+
+    <a href="/items/goToCreateItemPage" class="grid-item item4">
+      <span class="icon">📦</span>
+      <span class="label">Create New Item</span>
+      <span class="sublabel">Items</span>
+    </a>
+
+    <!-- Row 2 — VIEW ALL actions -->
+    <a href="/shipments/" class="grid-item item5">
+      <span class="icon">📋</span>
+      <span class="label">Show ALL Shipments</span>
+      <span class="sublabel">Shipments</span>
+    </a>
+
+    <a href="/customers/" class="grid-item item6">
+      <span class="icon">👥</span>
+      <span class="label">Show ALL Customers</span>
+      <span class="sublabel">Customers</span>
+    </a>
+
+    <a href="/warehouses/" class="grid-item item7">
+      <span class="icon">🗂️</span>
+      <span class="label">Show ALL Warehouses</span>
+      <span class="sublabel">Warehouses</span>
+    </a>
+
+    <a href="/items/" class="grid-item item8">
+      <span class="icon">🗃️</span>
+      <span class="label">Show ALL Items</span>
+      <span class="sublabel">Items</span>
+    </a>
+
   </div>
 </body>
 
