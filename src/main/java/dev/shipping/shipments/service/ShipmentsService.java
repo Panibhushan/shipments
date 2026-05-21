@@ -2,6 +2,7 @@ package dev.shipping.shipments.service;
 
 import dev.shipping.shipments.model.CustomerWarehouses;
 import dev.shipping.shipments.model.Customers;
+import dev.shipping.shipments.model.Items;
 import dev.shipping.shipments.model.Shipments;
 import dev.shipping.shipments.model.Warehouses;
 import dev.shipping.shipments.repo.CustomerWarehousesRepository;
@@ -9,6 +10,7 @@ import dev.shipping.shipments.repo.CustomersRepository;
 import dev.shipping.shipments.repo.ShipmentsRepository;
 import dev.shipping.shipments.repo.WarehousesRepository;
 
+import org.jspecify.annotations.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -248,5 +250,14 @@ public class ShipmentsService {
 			return errorMessage.toString();
 		}
 	}
+
+		public List<Shipments> getShipmentsByCustomer(String customerId) {
+		return shipmentsRepo.findShipmentsByCustomer(customerId);
+	}
+	
+		public List<Shipments> getShipmentsByCustomerAndWarehouse(String customerId, String warehouseId) {
+			return shipmentsRepo.findShipmentsByCustomerAndWarehouse(customerId, warehouseId);
+		}
+		
 
 }

@@ -1,6 +1,7 @@
 package dev.shipping.shipments.controller;
 
 import dev.shipping.shipments.model.Shipments;
+import dev.shipping.shipments.service.CustomersService;
 import dev.shipping.shipments.service.ShipmentsService;
 
 import java.util.List;
@@ -18,9 +19,11 @@ import dev.shipping.shipments.model.Warehouses;
 public class ShipmentsController {
 
 	private final ShipmentsService shipmentsService;
+	private final CustomersService customersService;
 
-	public ShipmentsController(ShipmentsService shipmentsService) {
+	public ShipmentsController(ShipmentsService shipmentsService, CustomersService customersService) {
 		this.shipmentsService = shipmentsService;
+		this.customersService = customersService;
 	}
 
 	// ─────────────────────────────────────────────
@@ -35,8 +38,38 @@ public class ShipmentsController {
 	@GetMapping("/shipments/")
 	public String home(Model model) {
 		model.addAttribute("shipments", shipmentsService.getAllShipments());
-	    model.addAttribute("activePage", "allShipments");  // ←  this is show which dropdown is active in the navbar
+		model.addAttribute("activePage", "allShipments"); // ← this shows which dropdown is active in the navbar
+		model.addAttribute("selectedCustomer", "ALL");
+		model.addAttribute("customers", customersService.getAllCustomers());
 		return "show-all-shipments";
+	}
+
+	@PostMapping("/shipments/showShipmentsByCustomerAndWarehouse/{customerId}/{warehouseId}")
+	public String showShipmentsByCustomerAndWarehouse(@PathVariable String customerId, @PathVariable String warehouseId,
+			Model model) {
+
+		System.out.println("/shipments/showShipmentsByCustomerAndWarehouse/{customerId}/{warehouseId}: " + customerId
+				+ " / " + warehouseId);
+		if (customerId.equals("ALL") && warehouseId.equals("ALL")) { // Both customer & warehouses are selected as ALL
+			return "redirect:/shipments/";
+		} else if (warehouseId.equals("ALL")) { // Specific customer is selected but warehouses is selected as ALL
+			model.addAttribute("shipments", shipmentsService.getShipmentsByCustomer(customerId));
+		} else { // Both customer & warehouses are selected with specific values
+			model.addAttribute("shipments",
+					shipmentsService.getShipmentsByCustomerAndWarehouse(customerId, warehouseId));
+		}
+
+		//IF a specific customer is selected then loading the warehouses to display when the results are passed to show-all-shipments page
+		if (!customerId.equals("ALL")) {
+			model.addAttribute("warehouses", shipmentsService.getWarehousesByCustomer(customerId));
+		}
+		
+		model.addAttribute("selectedCustomer", customerId);
+		model.addAttribute("selectedWarehouse", warehouseId);
+		model.addAttribute("customers", customersService.getAllCustomers());
+		model.addAttribute("activePage", "allShipments"); // ← this shows which dropdown is active in the navbar
+		return "show-all-shipments";
+
 	}
 
 	// ─────────────────────────────────────────────
@@ -47,7 +80,7 @@ public class ShipmentsController {
 	public String addShipmentsPage(Model model) {
 		model.addAttribute("shipment", new Shipments());
 		model.addAttribute("customers", shipmentsService.getActiveAndValidCustomers());
-	    model.addAttribute("activePage", "createShipment");  // ←  this is show which dropdown is active in the navbar
+		model.addAttribute("activePage", "createShipment"); // ← this is show which dropdown is active in the navbar
 		return "create-shipment";
 	}
 
@@ -60,7 +93,8 @@ public class ShipmentsController {
 	public String saveShipments(@ModelAttribute Shipments shipment, @RequestParam String customerId,
 			@RequestParam String warehouseId, RedirectAttributes redirectAttributes) {
 
-		ShipmentsService.CreateShipmentResult result = shipmentsService.createShipment(shipment, customerId, warehouseId);
+		ShipmentsService.CreateShipmentResult result = shipmentsService.createShipment(shipment, customerId,
+				warehouseId);
 
 		if (result.isSuccess()) {
 			redirectAttributes.addFlashAttribute("msg", "New shipment created with ID: ");
@@ -100,12 +134,12 @@ public class ShipmentsController {
 	// ─────────────────────────────────────────────
 
 	@PostMapping("/shipments/cancelShipmentFromAllShipmentsPage")
-	public String cancelShipmentFromAllShipmentsPage(@RequestParam String shipmentId,
-			@RequestParam Integer shipStatus, @RequestParam String action,
-			@RequestParam String customerId, @RequestParam String warehouseId,
+	public String cancelShipmentFromAllShipmentsPage(@RequestParam String shipmentId, @RequestParam Integer shipStatus,
+			@RequestParam String action, @RequestParam String customerId, @RequestParam String warehouseId,
 			RedirectAttributes redirectAttributes) {
 
-		String response = shipmentsService.updateShipmentStatus(shipmentId, shipStatus, action, customerId, warehouseId);
+		String response = shipmentsService.updateShipmentStatus(shipmentId, shipStatus, action, customerId,
+				warehouseId);
 
 		if (!response.equals("SHIPMENT_STATUS_UPDATED_SUCCESSFULLY")) {
 			redirectAttributes.addFlashAttribute("msg", response);
@@ -120,11 +154,11 @@ public class ShipmentsController {
 
 	@PostMapping("/shipments/updateShipmentStatusFromInsideShipmentDetailsPage")
 	public String updateShipmentStatusFromInsideShipmentDetailsPage(@RequestParam String shipmentId,
-			@RequestParam Integer shipStatus, @RequestParam String action,
-			@RequestParam String customerId, @RequestParam String warehouseId,
-			RedirectAttributes redirectAttributes) {
+			@RequestParam Integer shipStatus, @RequestParam String action, @RequestParam String customerId,
+			@RequestParam String warehouseId, RedirectAttributes redirectAttributes) {
 
-		String response = shipmentsService.updateShipmentStatus(shipmentId, shipStatus, action, customerId, warehouseId);
+		String response = shipmentsService.updateShipmentStatus(shipmentId, shipStatus, action, customerId,
+				warehouseId);
 
 		if (!response.equals("SHIPMENT_STATUS_UPDATED_SUCCESSFULLY")) {
 			redirectAttributes.addFlashAttribute("msg", response);
@@ -140,12 +174,12 @@ public class ShipmentsController {
 
 	@PostMapping("/shipments/updateShipmentStatusFromInsideShipmentAuditDetailsPage")
 	public String updateShipmentStatusFromInsideShipmentAuditDetailsPage(@RequestParam String shipmentId,
-			@RequestParam Integer shipStatus, @RequestParam String action,
-			@RequestParam String customerId, @RequestParam String warehouseId,
-			RedirectAttributes redirectAttributes) {
+			@RequestParam Integer shipStatus, @RequestParam String action, @RequestParam String customerId,
+			@RequestParam String warehouseId, RedirectAttributes redirectAttributes) {
 
 		// ✅ Fixed: was calling the helper TWICE in the original — now called once
-		String response = shipmentsService.updateShipmentStatus(shipmentId, shipStatus, action, customerId, warehouseId);
+		String response = shipmentsService.updateShipmentStatus(shipmentId, shipStatus, action, customerId,
+				warehouseId);
 
 		if (!response.equals("SHIPMENT_STATUS_UPDATED_SUCCESSFULLY")) {
 			redirectAttributes.addFlashAttribute("msg", response);

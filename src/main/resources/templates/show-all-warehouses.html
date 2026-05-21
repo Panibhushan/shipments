@@ -2,8 +2,8 @@
 <html xmlns:th="http://www.thymeleaf.org">
 
 <head>
- 
-  <link rel="stylesheet" th:href="@{/css/navbar.css}" />
+
+<link rel="stylesheet" th:href="@{/css/navbar.css}" />
 <style>
 table {
 	width: 85%;
@@ -83,7 +83,6 @@ button:hover {
 	pointer-events: none;
 	border: 2px solid green;
 }
- 
 </style>
 
 
@@ -91,13 +90,13 @@ button:hover {
 
 <body>
 
-<div th:replace="~{fragments/navbar :: navbar}"></div>
+	<div th:replace="~{fragments/navbar :: navbar}"></div>
 
- 
 
-<!-- 	<h2>All Warehouses</h2>
+
+	<!-- 	<h2>All Warehouses</h2>
  -->
- <br />
+	<br />
 	<p th:if="${msg}" id="msgBox"
 		th:style="'background:' + ${bgColor} + '; color:' + ${textColor} + '; padding:10px; border-radius:6px; position:relative; font-weight:bold;'">
 		<span th:text="${msg}"></span>&nbsp;&nbsp;&nbsp;&nbsp;
@@ -125,7 +124,11 @@ button:hover {
 			</tr>
 		</thead>
 		<tr th:each="w : ${warehouses}">
-			<td th:text="${w.warehouseId}"></td>
+			<td><a
+				th:href="@{'/warehouses/viewOrEditWarehouse/' + ${w.warehouseId}}"
+				style="color: blue; font-weight: bold;  ">
+					<span th:text="${w.warehouseId}"></span>
+			</a></td>
 			<td th:text="${w.warehouseName}"></td>
 			<td th:text="${w.warehouseAddress}"></td>
 			<!-- 			<td th:text="${w.warehouseStatus}"></td>  -->
@@ -156,14 +159,13 @@ button:hover {
 	</table>
 
 	<!-- Show this if warehouse list is EMPTY -->
-	<div th:if="${#lists.isEmpty(warehouses)}"  
-	     style="text-align:center;  color:#888;">
-	    <p style="font-size:1.1rem; margin-bottom:10px;">No Warehouse records to display.</p><br />
-	    <a href="/warehouses/goToCreateWarehousePage"
-	       style="background:#4CAF50; color:white; padding:8px 18px; border-radius:6px;
-	              text-decoration:none; font-weight:bold;">
-	         Create New Warehouse
-	    </a>
+	<div th:if="${#lists.isEmpty(warehouses)}"
+		style="text-align: center; color: #888;">
+		<p style="font-size: 1.1rem; margin-bottom: 10px;">No Warehouse
+			records to display.</p>
+		<br /> <a href="/warehouses/goToCreateWarehousePage"
+			style="background: #4CAF50; color: white; padding: 8px 18px; border-radius: 6px; text-decoration: none; font-weight: bold;">
+			Create New Warehouse </a>
 	</div>
 
 	<script>

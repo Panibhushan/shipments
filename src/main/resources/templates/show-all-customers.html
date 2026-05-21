@@ -2,8 +2,8 @@
 <html xmlns:th="http://www.thymeleaf.org">
 
 <head>
- 
-  <link rel="stylesheet" th:href="@{/css/navbar.css}" />
+
+<link rel="stylesheet" th:href="@{/css/navbar.css}" />
 <style>
 table {
 	width: 90%;
@@ -82,16 +82,16 @@ button:hover {
 	color: white;
 	pointer-events: none;
 	border: 2px solid green;
-} 
+}
 </style>
 
 </head>
 
 <body>
 
-<div th:replace="~{fragments/navbar :: navbar}"></div>
+	<div th:replace="~{fragments/navbar :: navbar}"></div>
 
-<!-- 	<h2>All Customers</h2> -->
+	<!-- 	<h2>All Customers</h2> -->
 
 	<p th:if="${msg}" id="msgBox"
 		th:style="'background:' + ${bgColor} + '; color:' + ${textColor} + '; padding:10px; border-radius:6px; position:relative; font-weight:bold;'">
@@ -102,7 +102,7 @@ button:hover {
 			X </span>
 
 	</p>
-<br />
+	<br />
 	<a href="/customers/goToCreateCustomerPage"
 		style="display: inline-block; background-color: #4CAF50; color: #fcfaf5; font-weight: bold; padding: 10px 20px; text-decoration: none; border-radius: 6px;">Create
 		New Customer</a>
@@ -112,18 +112,19 @@ button:hover {
 			<tr>
 				<th>ID</th>
 				<th>Name</th>
-				<th>Created At</th>
-				<th>Modified At</th>
 				<th>Valid Up to</th>
 				<th>Status</th>
+				<th>Created At</th>
+				<th>Modified At</th>
 				<th colspan="2">Actions</th>
 			</tr>
 		</thead>
 		<tr th:each="c : ${customers}">
-			<td th:text="${c.customerId}"></td>
-			<td th:text="${c.customerName}"></td>
-			<td th:text="${c.createdAt}"></td>
-			<td th:text="${c.modifiedAt}"></td>
+			<td><a th:href="@{'/customers/editCustomer/' + ${c.customerId}}"
+				style="color: blue; font-weight: bold; ">
+					<span th:text="${c.customerId}"></span>
+			</a></td>
+ 			<td th:text="${c.customerName}"></td>
 			<td th:text="${c.validUpto}"></td>
 			<!-- <td th:text="${c.customerStatus}"></td> -->
 			<td><span th:text="${c.customerStatus}"
@@ -131,6 +132,8 @@ button:hover {
                     'background:#d4edda; color:#155724; padding:3px 10px; border-radius:12px; font-weight:bold;' : 
                     'background:#f8d7da; color:#721c24; padding:3px 10px; border-radius:12px; font-weight:bold;'">
 			</span></td>
+			<td th:text="${c.createdAt}"></td>
+			<td th:text="${c.modifiedAt}"></td>
 			<td><a th:href="@{'/customers/editCustomer/' + ${c.customerId}}"
 				style="display: inline-block; background-color: #6a73b2; color: #fcfaf5; font-weight: bold; padding: 10px 20px; font-size: 13px; text-decoration: none; border-radius: 6px; border-color: white; cursor: pointer;">View
 					/ Edit Customer</a></td>
@@ -147,14 +150,13 @@ button:hover {
 	</table>
 
 	<!-- Show this if customers list is EMPTY -->
-	<div th:if="${#lists.isEmpty(customers)}"  
-	     style="text-align:center;  color:#888;">
-	    <p style="font-size:1.1rem; margin-bottom:10px;">No Customers records to display.</p><br />
-	    <a href="/customers/goToCreateCustomerPage"
-	       style="background:#4CAF50; color:white; padding:8px 18px; border-radius:6px;
-	              text-decoration:none; font-weight:bold;">
-	         Create New Customer
-	    </a>
+	<div th:if="${#lists.isEmpty(customers)}"
+		style="text-align: center; color: #888;">
+		<p style="font-size: 1.1rem; margin-bottom: 10px;">No Customers
+			records to display.</p>
+		<br /> <a href="/customers/goToCreateCustomerPage"
+			style="background: #4CAF50; color: white; padding: 8px 18px; border-radius: 6px; text-decoration: none; font-weight: bold;">
+			Create New Customer </a>
 	</div>
 
 	<script>

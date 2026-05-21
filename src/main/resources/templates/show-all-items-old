@@ -34,6 +34,15 @@ td {
 	text-align: center;
 }
 
+/* tbody tr td:first-child {
+	border-top-left-radius: 8px;
+	border-bottom-left-radius: 8px;
+}
+
+tbody tr td:last-child {
+	border-top-right-radius: 8px;
+	border-bottom-right-radius: 8px;
+} */
 tbody tr:hover {
 	transform: scale(1.01);
 	transition: 0.2s;
@@ -140,54 +149,6 @@ button:hover {
 	background-color: #555fa0;
 	transform: translateY(-1px);
 }
-
-/* ── Disabled button ── */
-.filter-bar button:disabled {
-	background-color: #b0b5d8;
-	cursor: not-allowed;
-	transform: none;
-}
-
-/* ── Tooltip wrapper ── */
-.submit-btn-wrapper {
-	position: relative;
-	display: inline-block;
-}
-
-.submit-btn-wrapper .tooltip-text {
-	visibility: hidden;
-	opacity: 0;
-	width: 220px;
-	background-color: #4a4e8a;
-	color: #fff;
-	text-align: center;
-	border-radius: 6px;
-	padding: 7px 10px;
-	font-size: 0.78rem;
-	position: absolute;
-	bottom: 125%;
-	left: 50%;
-	transform: translateX(-50%);
-	transition: opacity 0.2s;
-	pointer-events: none;
-	z-index: 10;
-}
-
-.submit-btn-wrapper .tooltip-text::after {
-	content: '';
-	position: absolute;
-	top: 100%;
-	left: 50%;
-	transform: translateX(-50%);
-	border-width: 5px;
-	border-style: solid;
-	border-color: #4a4e8a transparent transparent transparent;
-}
-
-.submit-btn-wrapper:hover .tooltip-text.show-tooltip {
-	visibility: visible;
-	opacity: 1;
-}
 </style>
 
 </head>
@@ -196,10 +157,13 @@ button:hover {
 
 	<div th:replace="~{fragments/navbar :: navbar}"></div>
 
+	<!-- 	<h2>All Warehouses</h2>
+ -->
 	<br />
 	<p th:if="${msg}" id="msgBox"
 		th:style="'background:' + ${bgColor} + '; color:' + ${textColor} + '; padding:10px; border-radius:6px; position:relative; font-weight:bold;'">
 		<span th:text="${msg}"></span>&nbsp;&nbsp;&nbsp;&nbsp;
+		<!-- ❌ Close button -->
 		<span onclick="this.parentElement.style.display='none'"
 			style="position: absolute; margin: auto; right: 14px; cursor: pointer; font-weight: bold;">
 			X </span>
@@ -209,24 +173,19 @@ button:hover {
 		style="display: inline-block; background-color: #4CAF50; color: #fcfaf5; font-weight: bold; padding: 10px 20px; text-decoration: none; border-radius: 6px;">Create
 		New Item</a>
 	<br />
-
 	<div class="filter-bar">
-		<form id="customerForm" th:action="@{/items/showItemsByCustomer/ALL}" method="post">
-
-			<label for="customerId">Filter by Customer</label>
-			<select name="customerId" id="customerId" required>
-				<option value="ALL">— ALL —</option>
-				<option th:each="c : ${customers}"
-						th:value="${c.customerId}"
-						th:selected="${c.customerId == selectedCustomer}"
-						th:text="|${c.customerId} = ${c.customerName}|">
-				</option>
+		<!--  customer-id in form action will be dynamically updated in script -->
+		<form id="customerForm" th:action="@{/items/showItemsByCustomer/ALL}"
+			method="post">
+			<label for="customerId">Filter by Customer</label> <select
+				name="customerId" id="customerId" required
+				onchange="updateFormAction(this.value)">
+				<option value="ALL">— Show ALL —</option>
+				<option th:each="c : ${customers}" th:value="${c.customerId}"
+					th:selected="${c.customerId == selectedCustomer}"
+					th:text="|${c.customerId} = ${c.customerName}|"></option>
 			</select>
-
-			<div class="submit-btn-wrapper" id="submitBtnWrapper">
-				<button type="submit" id="applyFilterBtn">Apply Filter</button>
-			</div>
-
+			<button type="submit">Apply Filter</button>
 		</form>
 	</div>
 
@@ -244,9 +203,13 @@ button:hover {
 			</tr>
 		</thead>
 
+		<!--	<td th:text="${items}"></td>-->
+
+
 		<tr th:each="i : ${items}">
 			<input type="hidden" name="itemCustomerUomId"
 				th:value="${i.itemCustomerUomId}" />
+
 
 			<td><a target="_blank" style="color: blue; font: bold;"
 				th:href="@{'/customers/showCustomerDetails/' + ${i.customerId}}"
@@ -254,7 +217,8 @@ button:hover {
 			<td th:text="${i.itemId}"></td>
 			<td th:text="${i.itemDescription}"></td>
 			<td th:text="${i.itemUom}"></td>
-
+			<!-- 						<td th:text="${i.itemStatus}"></td> 
+ -->
 			<td><span th:text="${i.itemStatus}"
 				th:style="${i.itemStatus == 'Active'} ? 
                     'background:#d4edda; color:#155724; padding:3px 10px; border-radius:12px; font-weight:bold;' : 
@@ -284,49 +248,28 @@ button:hover {
 		style="text-align: center; color: #888;">
 		<p style="font-size: 1.1rem; margin-bottom: 10px;">No Items
 			records to display.</p>
-		<br />
-		<a href="/items/goToCreateItemPage"
+		<br /> <a href="/items/goToCreateItemPage"
 			style="background: #4CAF50; color: white; padding: 8px 18px; border-radius: 6px; text-decoration: none; font-weight: bold;">
-			Create New Item
-		</a>
+			Create New Item </a>
 	</div>
 
 	<script>
-		let filterChanged = false;
-
-		window.addEventListener("load", function () {
-
-			// disable button on page load
-			const btn = document.getElementById('applyFilterBtn');
-			btn.disabled = true;
-
-			// inject tooltip span into wrapper
-			const wrapper = document.getElementById('submitBtnWrapper');
-			const tooltip = document.createElement('span');
-			tooltip.className = 'tooltip-text show-tooltip';
-			tooltip.textContent = 'Make some changes to Customer to enable the button';
-			wrapper.appendChild(tooltip);
-
-			// msg box auto-hide after 10 seconds
+		window.addEventListener("load", function() {
 			var msg = document.getElementById("msgBox");
 			if (msg) {
-				setTimeout(function () { msg.style.display = "none"; }, 10000);
+				setTimeout(function() {
+					msg.style.display = "none";
+				}, 10000);
 			}
 		});
+		
 
-		// enable button when customer dropdown changes
-		document.getElementById('customerId').addEventListener('change', function () {
-			filterChanged = true;
-			document.getElementById('applyFilterBtn').disabled = false;
-			document.querySelector('.tooltip-text').classList.remove('show-tooltip'); // hide tooltip
-			updateFormAction(this.value);
-		});
-
-		// dynamically update the form action based on selected customer
-		function updateFormAction(customerId) {
-			document.getElementById('customerForm').action =
-				'/items/showItemsByCustomer/' + customerId;
-		}
+  // dynamically update the form-action based on the selected customer-id
+		    function updateFormAction(customerId) {
+		        document.getElementById('customerForm').action = 
+		            '/items/showItemsByCustomer/' + customerId;
+		    } 
+		
 	</script>
 
 </body>

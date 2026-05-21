@@ -2,8 +2,8 @@
 <html xmlns:th="http://www.thymeleaf.org">
 
 <head>
- 
-  <link rel="stylesheet" th:href="@{/css/navbar.css}" />
+
+<link rel="stylesheet" th:href="@{/css/navbar.css}" />
 
 <style>
 table {
@@ -90,61 +90,163 @@ button:hover {
 	border-radius: 6px;
 }
 
-.active-a-tag {
-	background-color: #4CAF50;
-	color: white;
-	pointer-events: none;
-	border: 2px solid green;
+/* ── Filter Bar ── */
+.filter-bar {
+	display: flex;
+	align-items: center;
+	margin: 16px 0 10px 0;
 }
- 
+
+.filter-bar form {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	background: #f0f4ff;
+	border: 1px solid #c5cff5;
+	border-radius: 10px;
+	padding: 10px 18px;
+}
+
+.filter-bar label {
+	font-family: Arial, sans-serif;
+	font-size: 0.82rem;
+	font-weight: 700;
+	color: #4a4e8a;
+	text-transform: uppercase;
+	letter-spacing: 0.06em;
+	white-space: nowrap;
+}
+
+.filter-bar select {
+	padding: 8px 14px;
+	border: 1.5px solid #b0baf5;
+	border-radius: 7px;
+	font-size: 0.92rem;
+	font-family: Arial, sans-serif;
+	color: #2c2f6b;
+	background: #ffffff;
+	cursor: pointer;
+	min-width: 220px;
+	outline: none;
+	transition: border-color 0.2s;
+}
+
+.filter-bar select:focus {
+	border-color: #6a73b2;
+}
+
+.filter-bar button {
+	padding: 8px 22px;
+	background-color: #6a73b2;
+	color: #ffffff;
+	font-weight: 700;
+	font-size: 0.88rem;
+	font-family: Arial, sans-serif;
+	border: none;
+	border-radius: 7px;
+	cursor: pointer;
+	letter-spacing: 0.04em;
+	transition: background-color 0.2s, transform 0.15s;
+	margin: 0;
+}
+
+.filter-bar button:hover {
+	background-color: #555fa0;
+	transform: translateY(-1px);
+}
+
+.filter-bar button:disabled {
+	background-color: #b0b5d8;
+	cursor: not-allowed;
+	transform: none;
+}
+
+.submit-btn-wrapper {
+	position: relative;
+	display: inline-block;
+}
+
+.submit-btn-wrapper .tooltip-text {
+	visibility: hidden;
+	opacity: 0;
+	width: 220px;
+	background-color: #4a4e8a;
+	color: #fff;
+	text-align: center;
+	border-radius: 6px;
+	padding: 7px 10px;
+	font-size: 0.78rem;
+	position: absolute;
+	bottom: 125%;
+	left: 50%;
+	transform: translateX(-50%);
+	transition: opacity 0.2s;
+	pointer-events: none;
+	z-index: 10;
+}
+
+.submit-btn-wrapper .tooltip-text::after {
+	content: '';
+	position: absolute;
+	top: 100%;
+	left: 50%;
+	transform: translateX(-50%);
+	border-width: 5px;
+	border-style: solid;
+	border-color: #4a4e8a transparent transparent transparent;
+}
+
+/* show tooltip only when button is disabled */
+.submit-btn-wrapper:hover .tooltip-text.show-tooltip {
+	visibility: visible;
+	opacity: 1;
+}
 </style>
 
 </head>
 
 <body>
 
-<div th:replace="~{fragments/navbar :: navbar}"></div>
+	<div th:replace="~{fragments/navbar :: navbar}"></div>
 
-<br />
+	<br />
 	<p th:if="${msg}" id="msgBox"
 		th:style="'background:' + ${bgColor} + '; color:' + ${textColor} + '; padding:10px; border-radius:6px; position:relative; font-weight:bold;'">
-		<span th:utext="${msg}" style="white-space: pre-wrap;"></span>
-
-		<!-- <a
-			th:href="@{'/customers/showCustomerDetails/' + ${customerId}}"
-			style="cursor: pointer; font-weight: bold; color: white; margin-right: 20px;">
-			View Customer: <span th:text="${customerId}"></span>
-		</a> 
-		<a th:href="@{'/warehouses/viewOrEditWarehouse/' + ${warehouseId}}"
-			style="cursor: pointer; font-weight: bold; color: white;"> View
-			Warehouse: <span th:text="${warehouseId}"></span>
-		</a>  -->
-		<span onclick="this.parentElement.style.display='none'"
+		<span th:utext="${msg}" style="white-space: pre-wrap;"></span><span
+			onclick="this.parentElement.style.display='none'"
 			style="position: absolute; margin: auto; right: 14px; top: 40%; cursor: pointer; font-weight: bold;">X</span>
 	</p>
-
-	<!-- <p th:if="${msg}" id="msgBox"
-		th:style="'background:' + ${bgColor} + '; color:' + ${textColor} + '; padding:10px; border-radius:6px; position:relative; font-weight:bold;'">
-	<span th:text="${msg}" style="white-space: pre-wrap;"></span> <span onclick="this.parentElement.style.display='none'"
-			style="position: absolute; margin: auto; right: 14px; cursor: pointer; font-weight: bold;">X</span>
-	</p> -->
-
-	<!-- <p th:if="${msg}" id="msgBox"
-		style="background: #d95f6c; color: #ffffff; padding: 10px; border-radius: 6px; position: relative;; font-weight: bold;">
-
-		<span th:text="${msg}"></span>
-
-		❌ Close button
-		<span onclick="this.parentElement.style.display='none'"
-			style="position: absolute; margin: auto; right: 10px; cursor: pointer; font-weight: bold;">
-			X </span>
-
-	</p> -->
-<!-- 	<h2>Shipments List</h2>
- -->
 	<a href="/shipments/goToCreateShipmentPage"
 		style="display: inline-block; background-color: #4CAF50; color: #fcfaf5; font-weight: bold; padding: 10px 20px; text-decoration: none; border-radius: 6px;">Create
 		New Shipment</a>
+
+	<br />
+	<div class="filter-bar">
+		<!--  customer-id in form action will be dynamically updated in script -->
+		<form id="customerAndWarehouseForm"
+			th:action="@{/shipments/showShipmentsByCustomerAndWarehouse/ALL/ALL}"
+			method="post">
+
+			<label for="customerId">Customer</label> <select name="customerId"
+				id="customerId" onchange="loadWarehouses(this.value)" required>
+				<option value="ALL">-- ALL --</option>
+				<option th:each="c : ${customers}" th:value="${c.customerId}"
+					th:selected="${c.customerId == selectedCustomer}"
+					th:text="|${c.customerId} = ${c.customerName}|"></option>
+			</select> <label for="warehouseId">Warehouse</label> <select
+				name="warehouseSelect" id="warehouseSelect" required>
+				<option value="ALL">-- ALL --</option>
+				<option th:each="w : ${warehouses}" th:value="${w.warehouseId}"
+					th:selected="${w.warehouseId == selectedWarehouse}"
+					th:text="|${w.warehouseId} = ${w.warehouseName}|"></option>
+			</select>
+
+			<div class="submit-btn-wrapper" id="submitBtnWrapper">
+				<button type="submit" id="applyFiltersBtn">Apply Filters</button>
+			</div>
+		</form>
+
+	</div>
 
 	<table border="1">
 
@@ -160,8 +262,8 @@ button:hover {
 		<tr th:each="s : ${shipments}">
 			<td><a
 				th:href="@{'/shipments/showShipmentDetails/' + ${s.shipmentId}}"
-				style="color: blue; font-weight: bold; text-decoration: none;">
-					<span th:text="${s.shipmentId}"></span>
+				style="color: blue; font-weight: bold;"> <span
+					th:text="${s.shipmentId}"></span>
 			</a></td>
 
 			<!-- 	<td th:text="${s.customerId}"></td>
@@ -213,71 +315,127 @@ button:hover {
 
 
 				</form>
-
 			</td>
-
-			<!-- <td>
-				<form th:action="@{/shipments/updateShipmentStatus}" method="post">
-
-					<input type="hidden" name="shipmentId" th:value="${s.shipmentId}" />
-					<input type="hidden" name="shipStatus" th:value="${s.shipStatus}" />
-
-					<button type="submit" name="action" value="PICK"
-						th:if="${s.shipStatus == 1100}"
-						style="background-color: #b4dcef; color: #5015b9; border: none; font-weight: bold;">Start
-						Picking</button>
-					<button type="submit" name="action" value="PACK"
-						th:if="${s.shipStatus == 1200}"
-						style="background-color: #ebe2a2; color: #422006; border: none; font-weight: bold;">Pack
-						the Shipment</button>
-					<button type="submit" name="action" value="SHIP"
-						th:if="${s.shipStatus == 1300}"
-						style="background-color: #a5e38f; color: #14532d; border: none; font-weight: bold;"
-						onclick="return confirmSubmit(event, 'SHIP')">Ship the
-						Shipment</button>
-					<button th:if="${!(s.shipStatus == 1400 || s.shipStatus == 9000)}"
-						type="submit" name="action" value="CANCEL"
-						style="background-color: #ed4758; color: #ffffff; border: none; font-weight: bold;"
-						onclick="return confirmSubmit(event, 'CANCEL')">CANCEL
-						the Shipment</button>
-				</form> 
-			</td> -->
 		</tr>
 	</table>
 
 	<!-- Show this if shipments list is EMPTY -->
 	<div th:if="${#lists.isEmpty(shipments)}"
-	     style="text-align:center;  color:#888;">
-	    <p style="font-size:1.1rem; margin-bottom:10px;">No shipment records to display.</p><br />
-	    <a href="/shipments/goToCreateShipmentPage"
-	       style="background:#4CAF50; color:white; padding:8px 18px; border-radius:6px;
-	              text-decoration:none; font-weight:bold;">
-	         Create New Shipment
-	    </a>
+		style="text-align: center; color: #888;">
+		<p style="font-size: 1.1rem; margin-bottom: 10px;">No shipment
+			records to display.</p>
+		<br /> <a href="/shipments/goToCreateShipmentPage"
+			style="background: #4CAF50; color: white; padding: 8px 18px; border-radius: 6px; text-decoration: none; font-weight: bold;">
+			Create New Shipment </a>
 	</div>
 
 	<script>
-		window.addEventListener("load", function() {
-			var msg = document.getElementById("msgBox");
-			if (msg) {
-				setTimeout(function() {
-					msg.style.display = "none";
-				}, 10000);
-			}
-		});
+    // ── track whether either dropdown has changed ──
+    let filtersChanged = false; 
+    
+    window.addEventListener("load", function () {
 
-		function confirmSubmit(event, eventType) {
-			const confirmed = confirm("Are you sure you want to " + eventType
-					+ " this shipment ?");
+        // disable submit on page load
+        const btn = document.getElementById('applyFiltersBtn');
+        btn.disabled = true;
 
-			if (!confirmed) {
-				event.preventDefault(); // stop form submission
-				return false;
-			}
+        // inject tooltip span
+        const wrapper = document.getElementById('submitBtnWrapper');
+        const tooltip = document.createElement('span');
+        tooltip.className = 'tooltip-text show-tooltip';
+        tooltip.textContent = 'Make some changes to Customer or Warehouse to enable the button';
+        wrapper.appendChild(tooltip);
 
-			return true;
-		}
-	</script>
+        // msg box auto-hide
+        var msg = document.getElementById("msgBox");
+        if (msg) {
+            setTimeout(function () { msg.style.display = "none"; }, 10000);
+        }
+    });
+
+    // enable button when customer dropdown changes
+    document.getElementById('customerId').addEventListener('change', function () {
+        filtersChanged = true;
+        document.getElementById('applyFiltersBtn').disabled = false;
+    });
+
+    // enable button when warehouse dropdown changes
+    document.getElementById('warehouseSelect').addEventListener('change', function () {
+        filtersChanged = true;
+        document.getElementById('applyFiltersBtn').disabled = false;
+    });
+
+    // confirmation before cancelling a shipment
+    function confirmSubmit(event, eventType) {
+        const confirmed = confirm("Are you sure you want to " + eventType + " this shipment?");
+        if (!confirmed) {
+            event.preventDefault();
+            return false;
+        }
+        return true;
+    }
+
+    // dynamically load warehouses based on selected customer
+    function loadWarehouses(customerId) {
+        const warehouseSelect = document.getElementById('warehouseSelect');
+        warehouseSelect.innerHTML = '<option value="ALL">-- ALL --</option>';
+
+        if (!customerId || customerId === 'ALL') return;
+
+        fetch(`/shipments/getWarehousesByCustomer?customerId=${customerId}`, {
+            method: 'GET',
+            headers: { 'Accept': 'application/json' }
+        })
+        .then(response => {
+            if (!response.ok) throw new Error('Failed to fetch warehouses');
+            return response.json();
+        })
+        .then(data => {
+            if (data && data.length > 0) {
+                data.forEach(w => {
+                    const option = document.createElement('option');
+                    option.value = w.warehouseId;
+                    option.textContent = `${w.warehouseId} = ${w.warehouseName}`;
+                    warehouseSelect.appendChild(option);
+                });
+            }
+        })
+        .catch(err => {
+            console.error('Error:', err);
+            warehouseSelect.innerHTML = '<option value="ALL">-- Error Loading Warehouses --</option>';
+        });
+    }
+
+    // dynamically update form action on submit
+    document.getElementById('customerAndWarehouseForm').addEventListener('submit', function (e) {
+        e.preventDefault();
+
+        if (!filtersChanged) {
+            alert('No changes were made — filters not applied.');
+            return;
+        }
+
+        const customerId  = document.getElementById('customerId').value;
+        const warehouseId = document.getElementById('warehouseSelect').value;
+        this.action = '/shipments/showShipmentsByCustomerAndWarehouse/' + customerId + '/' + warehouseId;
+        this.submit();
+    });
+    
+    
+    document.getElementById('customerId').addEventListener('change', function () {
+        filtersChanged = true;
+        document.getElementById('applyFiltersBtn').disabled = false;
+        document.querySelector('.tooltip-text').classList.remove('show-tooltip'); // hide tooltip
+    });
+
+    document.getElementById('warehouseSelect').addEventListener('change', function () {
+        filtersChanged = true;
+        document.getElementById('applyFiltersBtn').disabled = false;
+        document.querySelector('.tooltip-text').classList.remove('show-tooltip'); // hide tooltip
+    });
+    
+    
+</script>
 
 </body>
 

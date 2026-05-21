@@ -14,25 +14,49 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import dev.shipping.shipments.model.Items;
 import dev.shipping.shipments.model.Warehouses;
+import dev.shipping.shipments.service.CustomersService;
 import dev.shipping.shipments.service.ItemsService;
+import dev.shipping.shipments.service.ShipmentsService;
 import dev.shipping.shipments.service.WarehousesService;
 
 @Controller
 public class ItemsController {
 
 	private final ItemsService itemsService;
+	private final ShipmentsService shipmentsService;
+	private final CustomersService customersService;
 
 	List<String> itemUomsList = Arrays.asList("EACH", "MTR", "CMTR", "PAIR");
 
-	public ItemsController(ItemsService itemsService) {
+	public ItemsController(ItemsService itemsService, ShipmentsService shipmentsService,
+			CustomersService customersService) {
 		this.itemsService = itemsService;
+		this.shipmentsService = shipmentsService;
+		this.customersService = customersService;
 	}
 
 	@GetMapping("/items/")
 	public String showAllItems(Model model) {
 		model.addAttribute("items", itemsService.getAllItems());
+		model.addAttribute("selectedCustomer", "ALL");
+		model.addAttribute("customers", customersService.getAllCustomers());
 		model.addAttribute("activePage", "allItems"); // ← this is show which dropdown is active in the navbar
 		return "show-all-items";
+	}
+
+	@PostMapping("/items/showItemsByCustomer/{customerId}")
+	public String showItemsByCustomer(@PathVariable String customerId, Model model) {
+
+		System.out.println("/items/showItemsByCustomer/{customerId}: "+customerId);
+		if (customerId.equals("ALL")) {
+			return "redirect:/items/";
+		} else {
+			model.addAttribute("items", itemsService.getItemsByCustomer(customerId));
+			model.addAttribute("selectedCustomer", customerId);
+			model.addAttribute("customers", customersService.getAllCustomers());
+			model.addAttribute("activePage", "allItems"); // ← this is show which dropdown is active in the navbar
+			return "show-all-items";
+		}
 	}
 
 	@GetMapping("/items/goToCreateItemPage")
