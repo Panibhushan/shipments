@@ -13,10 +13,10 @@ import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 
 @Entity
-public class Items {
+public class Inventory {
 	@Id
-	@Column(name = "item_customer_uom_id")
-	private String itemCustomerUomId;
+	@Column(name = "item_customer_uom_warehouse_id")
+	private String itemCustomerUomWarehouseId;
 	
 	@Column(name = "item_id")
 	private String itemId;
@@ -24,8 +24,8 @@ public class Items {
 	@Column(name = "customer_id")
 	private String customerId;
 	
-	@Column(name = "item_description")
-	private String itemDescription;
+	@Column(name = "warehouse_id")
+	private String warehouseId;
 
 	@Column(name = "created_at")
 	private String createdAt;
@@ -33,8 +33,8 @@ public class Items {
 	@Column(name = "modified_at")
 	private String modifiedAt;
 
-	@Column(name = "item_status")
-	private String itemStatus;
+	@Column(name = "quantity")
+	private String quantity;
 	
 	@Column(name = "item_uom")
 	private String itemUom;
@@ -48,22 +48,18 @@ public class Items {
 		this.createdAt = istDateTime.format(createdFormat).toUpperCase(); 
 		this.modifiedAt = istDateTime.format(createdFormat).toUpperCase();
 		
-		this.itemCustomerUomId = itemId+"_"+customerId+"_"+itemUom;
+		this.itemCustomerUomWarehouseId = itemId+"_"+customerId+"_"+itemUom+"_"+warehouseId;
 	}
 
 	// Update modified date-time every time you make update to the table i.e., shipment status
 	@PreUpdate
 	public void setModifiedAt() {
-		// Format modified_at & created_at: DD-MON-YYYY HH:MM:SS  12hrs with AM & PM format 
+		// Format created_at: DD-MON-YYYY HH:MM:SS  12hrs with AM & PM format 
 		DateTimeFormatter createdFormat = DateTimeFormatter.ofPattern("dd-MMM-yyyy hh:mm:ss a", Locale.ENGLISH);
-        ZonedDateTime istDateTime = ZonedDateTime.now(ZoneId.of("Asia/Kolkata"));
+        ZonedDateTime istDateTime = ZonedDateTime.now(ZoneId.of("Asia/Kolkata")); 
 		this.modifiedAt = istDateTime.format(createdFormat).toUpperCase();
 	}
-	 
-	public String getItemCustomerUomId() {
-		return itemCustomerUomId;
-	}
-
+ 
 	public String getCreatedAt() {
 		return createdAt;
 	}
@@ -88,22 +84,6 @@ public class Items {
 		this.customerId = customerId;
 	}
 
-	public String getItemDescription() {
-		return itemDescription;
-	}
-
-	public void setItemDescription(String itemDescription) {
-		this.itemDescription = itemDescription;
-	}
-
-	public String getItemStatus() {
-		return itemStatus;
-	}
-
-	public void setItemStatus(String itemStatus) {
-		this.itemStatus = itemStatus;
-	}
-
 	public String getItemUom() {
 		return itemUom;
 	}
@@ -112,12 +92,31 @@ public class Items {
 		this.itemUom = itemUom;
 	}
 
-	@Override
-	public String toString() {
-		return "Items [itemCustomerUomId=" + itemCustomerUomId + ", itemId=" + itemId + ", customerId=" + customerId
-				+ ", itemDescription=" + itemDescription + ", createdAt=" + createdAt + ", modifiedAt=" + modifiedAt
-				+ ", itemStatus=" + itemStatus + ", itemUom=" + itemUom + "]";
+	public String getItemCustomerUomWarehouseId() {
+		return itemCustomerUomWarehouseId;
+	} 
+
+	public String getWarehouseId() {
+		return warehouseId;
 	}
 
+	public void setWarehouseId(String warehouseId) {
+		this.warehouseId = warehouseId;
+	}
+
+	public String getQuantity() {
+		return quantity;
+	}
+
+	public void setQuantity(String quantity) {
+		this.quantity = quantity;
+	}
+
+	@Override
+	public String toString() {
+		return "Inventory [itemCustomerUomWarehouseId=" + itemCustomerUomWarehouseId + ", itemId=" + itemId
+				+ ", customerId=" + customerId + ", warehouseId=" + warehouseId + ", createdAt=" + createdAt
+				+ ", modifiedAt=" + modifiedAt + ", quantity=" + quantity + ", itemUom=" + itemUom + "]";
+	}
   	
 }

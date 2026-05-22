@@ -1,7 +1,11 @@
 package dev.shipping.shipments.model;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Locale;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -31,19 +35,22 @@ public class Warehouses {
 
 	@PrePersist
 	public void generateFields() {
-		// Format created_at: DD-MON-YYYY HH:MM:SS
-		DateTimeFormatter createdFormat = DateTimeFormatter.ofPattern("dd-MMM-yyyy HH:mm:ss");
+		// Format modified_at & created_at: DD-MON-YYYY HH:MM:SS  12hrs with AM & PM format 
+		DateTimeFormatter createdFormat = DateTimeFormatter.ofPattern("dd-MMM-yyyy hh:mm:ss a", Locale.ENGLISH);
+        ZonedDateTime istDateTime = ZonedDateTime.now(ZoneId.of("Asia/Kolkata"));
 		// set createdAt & modifiedAt date-time at the time of first record creation
-		this.createdAt = LocalDateTime.now().format(createdFormat);
-		this.modifiedAt = LocalDateTime.now().format(createdFormat);
+		this.createdAt = istDateTime.format(createdFormat).toUpperCase(); 
+		this.modifiedAt = istDateTime.format(createdFormat).toUpperCase();
 	}
 
 	// Update modified date-time every time you make update to the table i.e.,
 	// shipment status
 	@PreUpdate
 	public void setModifiedAt() {
-		DateTimeFormatter createdFormat = DateTimeFormatter.ofPattern("dd-MMM-yyyy HH:mm:ss");
-		this.modifiedAt = LocalDateTime.now().format(createdFormat);
+		// Format modified_at  : DD-MON-YYYY HH:MM:SS  12hrs with AM & PM format 
+		DateTimeFormatter createdFormat = DateTimeFormatter.ofPattern("dd-MMM-yyyy hh:mm:ss a", Locale.ENGLISH);
+        ZonedDateTime istDateTime = ZonedDateTime.now(ZoneId.of("Asia/Kolkata")); 
+		this.modifiedAt = istDateTime.format(createdFormat).toUpperCase();
 	}
 
 	public String getWarehouseId() {
