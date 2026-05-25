@@ -43,7 +43,8 @@ public class WarehousesController {
 		String warehouseId = warehouse.getWarehouseId();
 
 		if (warehousesService.warehouseExists(warehouseId)) {
-			redirectAttributes.addFlashAttribute("msg", "Warehouse " + warehouseId + " already exists !!!");
+			redirectAttributes.addFlashAttribute("msg", "Warehouse " + warehouseId + " already exists !!!"+ "&nbsp;&nbsp;&nbsp;&nbsp;<a style='color:yellow;' href='/warehouses/showWarehouseDetails/" + warehouseId
+					+ "'>View " + warehouseId + "</a>");
 			redirectAttributes.addFlashAttribute("bgColor", "#d95f6c");
 			redirectAttributes.addFlashAttribute("textColor", "#ffffff");
 			return "redirect:/warehouses/goToCreateWarehousePage";

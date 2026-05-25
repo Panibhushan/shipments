@@ -38,10 +38,15 @@ public class ShipmentsApplication {
         // Temporary debug logs to verify correct values are loaded from .env
         // Helps confirm the app is reading the right file at runtime
         // Remove these lines once everything is working correctly
-        System.out.println(">>> DB_URL:  " + dotenv.get("DB_URL_CLOUD",      "NOT FOUND"));
-        System.out.println(">>> DB_USER: " + dotenv.get("DB_USERNAME_CLOUD", "NOT FOUND"));
-        System.out.println(">>> DB_PASS: " + dotenv.get("DB_PASSWORD_CLOUD", "NOT FOUND"));
-
+		/*
+		 * System.out.println(">>> DB_URL:  " + dotenv.get("DB_URL_CLOUD",
+		 * "NOT FOUND")); System.out.println(">>> DB_USER: " +
+		 * dotenv.get("DB_USERNAME_CLOUD", "NOT FOUND"));
+		 * System.out.println(">>> DB_PASS: " + dotenv.get("DB_PASSWORD_CLOUD",
+		 * "NOT FOUND"));
+		 */
+        
+        
         // Load all .env key-value pairs into Java System properties
         // This makes them available to Spring Boot as ${KEY} placeholders
         // in application.properties / application-devCloud.properties
