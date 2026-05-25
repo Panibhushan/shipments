@@ -18,7 +18,12 @@ public class ShipmentsApplication {
         dotenv.entries().forEach(entry ->
             System.setProperty(entry.getKey(), entry.getValue())
         );
-        
+
+		// Temporary debug - remove after fixing
+System.out.println(">>> DB_URL:  " + dotenv.get("DB_URL_CLOUD",      "NOT FOUND"));
+System.out.println(">>> DB_USER: " + dotenv.get("DB_USERNAME_CLOUD", "NOT FOUND"));
+System.out.println(">>> DB_PASS: " + dotenv.get("DB_PASSWORD_CLOUD", "NOT FOUND"));
+		
         /*
 		 * // Debug - print to confirm values loaded System.out.println("DB URL: " +
 		 * System.getProperty("DB_URL_LOCAL")); System.out.println("DB USER: " +
