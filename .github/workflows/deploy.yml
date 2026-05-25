@@ -10,18 +10,27 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. Checkout code
+      # ─────────────────────────────────────────
+      # STEP 1: Checkout the latest code from GitHub
+      # ─────────────────────────────────────────
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      # 2. Set up Java 21
+      # ─────────────────────────────────────────
+      # STEP 2: Set up Java 21 (Amazon Corretto)
+      # Must match the Java version used on EC2
+      # ─────────────────────────────────────────
       - name: Set up JDK 21
         uses: actions/setup-java@v4
         with:
           java-version: "21"
           distribution: "corretto"
 
-      # 3. Cache Maven dependencies
+      # ─────────────────────────────────────────
+      # STEP 3: Cache Maven dependencies
+      # Speeds up builds by reusing downloaded JARs
+      # Cache key changes only when pom.xml changes
+      # ─────────────────────────────────────────
       - name: Cache Maven Packages
         uses: actions/cache@v4
         with:
@@ -30,11 +39,19 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-
 
-      # 4. Build JAR
+      # ─────────────────────────────────────────
+      # STEP 4: Build the Spring Boot JAR
+      # -DskipTests → skips unit tests during build
+      # Output: target/*.jar
+      # ─────────────────────────────────────────
       - name: Build with Maven
         run: mvn clean package -DskipTests
 
-      # 5. Setup SSH Key
+      # ─────────────────────────────────────────
+      # STEP 5: Setup SSH key for EC2 access
+      # EC2_SSH_KEY → private key stored in GitHub Secrets
+      # EC2_HOST    → EC2 public IP stored in GitHub Secrets
+      # ─────────────────────────────────────────
       - name: Setup SSH Key
         run: |
           mkdir -p ~/.ssh
@@ -43,7 +60,11 @@ jobs:
           ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts 2>/dev/null
           echo "SSH setup done"
 
-      # 6. Create App Directory on EC2   ← NEW STEP ADDED
+      # ─────────────────────────────────────────
+      # STEP 6: Create the app directory on EC2
+      # /opt/myapp → where the JAR and .env live
+      # chown ensures ec2-user has write access
+      # ─────────────────────────────────────────
       - name: Create App Directory on EC2
         run: |
           ssh -i ~/.ssh/deploy_key.pem \
@@ -51,7 +72,11 @@ jobs:
             ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} \
             "sudo mkdir -p /opt/myapp && sudo chown ec2-user:ec2-user /opt/myapp"
 
-      # 7. Copy JAR to EC2
+      # ─────────────────────────────────────────
+      # STEP 7: Copy the built JAR to EC2
+      # Copies from GitHub Actions runner → EC2
+      # Renamed to app.jar for consistency
+      # ─────────────────────────────────────────
       - name: Copy JAR to EC2
         run: |
           scp -i ~/.ssh/deploy_key.pem \
@@ -59,8 +84,43 @@ jobs:
             target/*.jar \
             ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/opt/myapp/app.jar
 
-      # 8. Restart App on EC2
-      # 8. Restart App on EC2
+      # ─────────────────────────────────────────
+      # STEP 8: Create .env file on EC2
+      # Injects secrets from GitHub → /opt/myapp/.env
+      # These are read by dotenv at app startup
+      #
+      # Why printf instead of echo/heredoc?
+      # → Passwords with special chars like $ are
+      #   safely handled without shell expansion
+      #
+      # GitHub Secrets needed:
+      #   DB_URL_CLOUD      → RDS JDBC connection URL
+      #   DB_USERNAME_CLOUD → RDS master username
+      #   DB_PASSWORD_CLOUD → RDS master password
+      # ─────────────────────────────────────────
+      - name: Create .env file on EC2
+        run: |
+          ssh -i ~/.ssh/deploy_key.pem \
+            -o StrictHostKeyChecking=no \
+            ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} \
+            "printf '%s\n' \
+              'DB_URL_CLOUD=${{ secrets.DB_URL_CLOUD }}' \
+              'DB_USERNAME_CLOUD=${{ secrets.DB_USERNAME_CLOUD }}' \
+              'DB_PASSWORD_CLOUD=${{ secrets.DB_PASSWORD_CLOUD }}' \
+              > /opt/myapp/.env"
+
+      # ─────────────────────────────────────────
+      # STEP 9: Deploy and restart app on EC2
+      #
+      # Creates a systemd service file for the app
+      # Key setting: -Ddotenv.directory=/opt/myapp
+      #   → Tells the app to load .env from /opt/myapp
+      #   → Without this, dotenv defaults to "./" which
+      #     doesn't resolve correctly under systemd
+      #   → Locally, this JVM arg is NOT set, so dotenv
+      #     defaults to "./" (project root) where local
+      #     .env file exists — works for both environments
+      # ─────────────────────────────────────────
       - name: Restart Application
         run: |
           ssh -i ~/.ssh/deploy_key.pem \
@@ -75,7 +135,12 @@ jobs:
           [Service]
           User=ec2-user
           WorkingDirectory=/opt/myapp
-          ExecStart=/usr/bin/java -jar /opt/myapp/app.jar
+
+          # -Ddotenv.directory=/opt/myapp tells ShipmentsApplication.java
+          # to load the .env file from /opt/myapp instead of "./"
+          # This is the key fix for EC2 vs local environment difference
+          ExecStart=/usr/bin/java -Ddotenv.directory=/opt/myapp -jar /opt/myapp/app.jar
+
           SuccessExitStatus=143
           Restart=on-failure
           RestartSec=10
@@ -94,7 +159,11 @@ jobs:
           sudo systemctl status myapp --no-pager && \
           sudo journalctl -u myapp -n 20 --no-pager"
 
-      # 9. Cleanup SSH key
+      # ─────────────────────────────────────────
+      # STEP 10: Cleanup SSH key from runner
+      # Always runs even if previous steps fail
+      # Prevents key from being left on the runner
+      # ─────────────────────────────────────────
       - name: Cleanup
         if: always()
         run: rm -f ~/.ssh/deploy_key.pem
