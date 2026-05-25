@@ -59,7 +59,10 @@ public class WarehousesController {
 			redirectAttributes.addFlashAttribute("textColor", "#f5f0f1");
 		} else {
 			warehousesService.createWarehouse(warehouse);
-			redirectAttributes.addFlashAttribute("msg", "Created Warehouse: " + warehouseId + " !!!");
+			redirectAttributes.addFlashAttribute("msg", 
+					"Created Customer: " + warehouseId + " !!!"
+							+ "&nbsp;&nbsp;&nbsp;&nbsp;<a href='/warehouses/showWarehouseDetails/" + warehouseId
+							+ "'>View " + warehouseId + "</a>");
 			redirectAttributes.addFlashAttribute("bgColor", "#d1fae5;");
 			redirectAttributes.addFlashAttribute("textColor", "#45484d");
 		}
