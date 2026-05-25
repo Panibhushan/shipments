@@ -11,7 +11,7 @@ public class ShipmentsApplication {
         System.out.println("Working directory: " + System.getProperty("user.dir"));
 
         Dotenv dotenv = Dotenv.configure()
-                .directory("./")
+                .directory("/opt/myapp")  // ← absolute path, works everywhere inside ec2
                 .ignoreIfMissing()  // ← Will fetch data from .env when running in local, but when deployed in EC2, if the .env is not found then it won't crash if .env not found on EC2
                 .load();
 
