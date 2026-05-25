@@ -60,16 +60,17 @@ jobs:
             ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/opt/myapp/app.jar
 
       # 8. Create .env file on EC2 with secrets
+      #if you have $ symbol in your username or password, shell to consider it as variable and ignore it, to prevent it use single quotes around the variable & its value
       - name: Create .env file on EC2
         run: |
           ssh -i ~/.ssh/deploy_key.pem \
             -o StrictHostKeyChecking=no \
             ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} \
-            "cat > /opt/myapp/.env << 'EOF'
-          DB_URL_CLOUD=${{ secrets.DB_URL_CLOUD }}
-          DB_USERNAME_CLOUD=${{ secrets.DB_USERNAME_CLOUD }}
-          DB_PASSWORD_CLOUD=${{ secrets.DB_PASSWORD_CLOUD }}
-          EOF"
+            "printf '%s\n' \
+              'DB_URL_CLOUD=${{ secrets.DB_URL_CLOUD }}' \
+              'DB_USERNAME_CLOUD=${{ secrets.DB_USERNAME_CLOUD }}' \
+              'DB_PASSWORD_CLOUD=${{ secrets.DB_PASSWORD_CLOUD }}' \
+              > /opt/myapp/.env"
 
       # 9. Restart App on EC2
       - name: Restart Application
