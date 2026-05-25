@@ -43,7 +43,7 @@ jobs:
           ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts 2>/dev/null
           echo "SSH setup done"
 
-      # 6. Create App Directory on EC2   ← NEW STEP ADDED
+      # 6. Create App Directory on EC2
       - name: Create App Directory on EC2
         run: |
           ssh -i ~/.ssh/deploy_key.pem \
@@ -59,8 +59,19 @@ jobs:
             target/*.jar \
             ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/opt/myapp/app.jar
 
-      # 8. Restart App on EC2
-      # 8. Restart App on EC2
+      # 8. Create .env file on EC2 with secrets
+      - name: Create .env file on EC2
+        run: |
+          ssh -i ~/.ssh/deploy_key.pem \
+            -o StrictHostKeyChecking=no \
+            ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} \
+            "cat > /opt/myapp/.env << 'EOF'
+          DB_URL_CLOUD=${{ secrets.DB_URL_CLOUD }}
+          DB_USERNAME_CLOUD=${{ secrets.DB_USERNAME_CLOUD }}
+          DB_PASSWORD_CLOUD=${{ secrets.DB_PASSWORD_CLOUD }}
+          EOF"
+
+      # 9. Restart App on EC2
       - name: Restart Application
         run: |
           ssh -i ~/.ssh/deploy_key.pem \
@@ -94,7 +105,7 @@ jobs:
           sudo systemctl status myapp --no-pager && \
           sudo journalctl -u myapp -n 20 --no-pager"
 
-      # 9. Cleanup SSH key
+      # 10. Cleanup SSH key
       - name: Cleanup
         if: always()
         run: rm -f ~/.ssh/deploy_key.pem
