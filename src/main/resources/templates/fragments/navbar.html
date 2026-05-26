@@ -97,16 +97,15 @@
       <span class="nav-toggle">INVENTORY <span class="caret">▾</span></span>
       <ul class="dropdown-menu">
         <li>
-          <a th:href="${activePage == 'addInventory'} ? '#' : '/inventory/addInventory'"
-             th:classappend="${activePage == 'addInventory'} ? ' nav-active'"
-             th:onclick="${activePage == 'addInventory'} ? 'return false;' : ''">
-            Add Inventory
+          <a th:href="${activePage == 'addOrUpdateInventory'} ? '#' : '/inventory/goToAddOrUpdateInventoryPage'"
+             th:classappend="${activePage == 'addOrUpdateInventory'} ? ' nav-active'"
+             th:onclick="${activePage == 'addOrUpdateInventory'} ? 'return false;' : ''">
+            Add/Edit Inventory
           </a>
         </li>
         <li>
-          <a th:href="${activePage == 'allInventory'} ? '#' : '/inventory/'"
-             th:classappend="${activePage == 'allInventory'} ? ' nav-active'"
-             th:onclick="${activePage == 'allInventory'} ? 'return false;' : ''">
+          <a  href="/inventory/"
+             th:classappend="${activePage == 'allInventory'} ? ' nav-active'" >
             Show ALL Inventory
           </a>
         </li>

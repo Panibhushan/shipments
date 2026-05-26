@@ -1,265 +1,150 @@
-
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-
 <head>
-
-<link rel="stylesheet" th:href="@{/css/navbar.css}" />
-<style>
-#mainTable {
-	width: 100%;
-	/* 	border: 2px solid green;
- */
-	table-layout: fixed;
-}
-
-#mainTable>tbody>tr>td:first-child {
-	width: 55%;
-	vertical-align: top;
-	padding: 16px;
-}
-
-#mainTable>tbody>tr>td:last-child {
-	width: 45%;
-	vertical-align: top;
-	padding: 16px;
-}
-
-.href-styling {
-	display: inline-block;
-	font-weight: bold;
-	padding: 10px 20px;
-	text-decoration: none;
-	border-radius: 6px;
-}
-
-.active-a-tag {
-	background-color: #4CAF50;
-	color: white;
-	pointer-events: none;
-	border: 2px solid green;
-}
-
-form {
-	border-radius: 5px;
-	background-color: #f2f2f2;
-	padding: 20px;
-}
-
-label {
-	display: block;
-}
-
-input[type=text] {
-	width: 50%;
-	padding: 12px;
-	margin: 10px 0;
-	box-sizing: border-box;
-}
-
-/* Base styling for the date input */
-input[type="date"] {
-	font-family: Arial, sans-serif;
-	font-size: 16px;
-	padding: 8px 12px;
-	border: 1px solid;
-	border-radius: 6px;
-	background-color: #f9f9f9;
-	color: #333;
-	outline: none;
-	transition: border-color 0.3s, box-shadow 0.3s;
-}
-
-/* Conditions box — fills the full height of the right cell */
-.conditions-box {
-	border: 1px solid #ccc;
-	padding: 16px;
-	border-radius: 8px;
-	background: #f0f7f2;
-	height: 100%;
-	box-sizing: border-box;
-}
-
-.conditions-box h4 {
-	margin-top: 0;
-}
-
-.conditions-box ol {
-	line-height: 1.8;
-	padding-left: 20px;
-}
-
-select {
-	width: 50%;
-	padding: 12px;
-	margin: 8px 0;
-	display: inline-block;
-	border: 1px solid #ccc;
-	border-radius: 4px;
-	box-sizing: border-box;
-}
-</style>
-
+  <link rel="stylesheet" th:href="@{/css/navbar.css}" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    body { font-family: Arial, sans-serif; background: #f4f6f9; margin: 0; min-height: 100vh; }
+    #msgBox { margin: 8px 24px 0; padding: 8px 40px 8px 14px; border-radius: 8px; font-weight: bold; position: relative; }
+    .page-wrapper { display: flex; gap: 20px; padding: 14px 24px; align-items: flex-start; }
+    .form-section { width: 60%; }
+    .form-section h2 { font-size: 1rem; color: #1e293b; margin: 0 0 10px; font-weight: 700; }
+    .form-card { background: #fff; border-radius: 12px; padding: 20px 24px; box-shadow: 0 2px 12px rgba(0,0,0,0.07); }
+    .section-title { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #94a3b8; margin: 14px 0 8px; padding-bottom: 5px; border-bottom: 1px solid #e2e8f0; }
+    .section-title:first-child { margin-top: 0; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 24px; }
+    .full-span { grid-column: 1 / -1; }
+    label { display: block; font-size: 0.7rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.06em; margin-top: 10px; margin-bottom: 3px; }
+    input[type=text], select {
+      width: 100%; padding: 9px 12px; margin: 0 0 2px;
+      border: 1.5px solid #cbd5e1; border-radius: 8px;
+      font-size: 0.92rem; font-family: Arial, sans-serif;
+      background: #f8fafc; color: #1e293b; outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    input[type=text]:focus, select:focus { border-color: #6a73b2; box-shadow: 0 0 0 3px rgba(106,115,178,0.15); background: #fff; }
+    .helper-link { font-size: 0.78rem; color: #6a73b2; text-decoration: none; margin-top: 4px; display: inline-block; }
+    .helper-link:hover { text-decoration: underline; }
+    .button-row { margin-top: 18px; padding-top: 14px; border-top: 1px solid #e2e8f0; }
+    .btn-submit { background-color: #4CAF50; color: #fff; font-weight: 700; font-size: 0.9rem; padding: 10px 26px; border: none; border-radius: 8px; cursor: pointer; transition: background-color 0.2s, transform 0.15s; }
+    .btn-submit:hover { background-color: #3d9140; transform: translateY(-1px); }
+    .conditions-section { width: 40%; background: #f0f7f2; border: 1px solid #c8e0d0; border-radius: 12px; padding: 18px 22px; align-self: flex-start; margin-top: 30px; }
+    .conditions-section h4 { margin: 0 0 10px; font-size: 0.92rem; color: #2d5a3d; }
+    .conditions-section ol { padding-left: 18px; color: #374151; line-height: 2; margin: 0; font-size: 0.85rem; }
+  </style>
 </head>
-
 <body>
 
-	<div th:replace="~{fragments/navbar :: navbar}"></div>
+  <div th:replace="~{fragments/navbar :: navbar}"></div>
 
-	<p th:if="${msg}" id="msgBox"
-		th:style="'background:' + ${bgColor} + '; color:' + ${textColor} + '; padding:10px; border-radius:6px; position:relative; font-weight:bold;'">
-		<span th:text="${msg}" style="white-space: pre-wrap;"></span> <span></span>
-		<span th:text="${itemId}"></span>
+  <p th:if="${msg}" id="msgBox"
+     th:style="'background:' + ${bgColor} + '; color:' + ${textColor} + ';'">
+    <span th:text="${msg}" style="white-space:pre-wrap;"></span>
+    <span th:text="${itemId}"></span>&nbsp;&nbsp;
+    <a th:href="@{'/items/showItemDetails/' + ${itemCustomerUomId}}">View Item Details</a>
+    <span onclick="this.parentElement.style.display='none'"
+          style="position:absolute;right:14px;top:50%;transform:translateY(-50%);cursor:pointer;font-weight:bold;">✕</span>
+  </p>
 
-		<!-- hyperlink to shipment page -->
-		&nbsp;&nbsp;<a
-			th:href="@{'/items/showItemDetails/' + ${itemCustomerUomId}}">
-			View Item Details</a>
-		<!-- ❌ Close button -->
-		<span onclick="this.parentElement.style.display='none'"
-			style="position: absolute; margin: auto; right: 14px; cursor: pointer; font-weight: bold;">
-			X </span>
-	</p>
-	<!-- 
+  <div class="page-wrapper">
+    <div class="form-section">
+      <h2>📦 Create New Item</h2>
+      <div class="form-card">
+        <form action="/items/createItem" method="post" id="itemForm">
 
-	<h2>Create New Item</h2>
- 
- -->
-	<table id="mainTable">
-		<tr>
-			<!-- ===== LEFT CELL — 50% — Update Form ===== -->
-			<td>
-				<form action="/items/createItem" method="post" id="itemForm">
-					<select name="customerId" id="customerId"
-						onchange="loadWarehouses(this.value)" required>
-						<option value="">-- Select Customer --</option>
-						<option th:each="c : ${customers}" th:value="${c.customerId}"
-							th:text="|${c.customerId} = ${c.customerName}|"></option>
-					</select> <br /> <a href="/customers/goToCreateCustomerPage">Customer
-						Doesn't Exist ? Create a New Customer</a> <br /> <br /> <label
-						for="item_id">Item ID</label> <input type="text" name="itemId"
-						id="itemId" placeholder="enter item id"
-						th:value="${itemIdFromController != null} ? ${itemIdFromController} : ''"
-						oninput="this.value = this.value.toUpperCase()" required>
-					<label for="itemDescription">Item Description</label> <input
-						type="text" name="itemDescription" id="itemDescription"
-						placeholder="enter item description"
-						th:value="${itemDescriptionFromController != null} ? ${itemDescriptionFromController} : ''"
-						required> <br /> <label for="itemUom">Item Uom</label> <select
-						name="itemUom" id="itemUom" required>
-						<option value="">-- Select Item UOM --</option><option th:each="opt : ${itemUomsList}" th:value="${opt}"
-							th:text="${opt}"></option>
-					</select> <br /> <label for="item_status">Item Status</label> <select
-						name="itemStatus" required>
-						<option value="">-- Select Item Status --</option>
-						<option th:value="Active" th:text="Active"></option>
-						<option th:value="Disabled" th:text="Disabled"></option>
-					</select> <br /> <br />
-					<button type="submit"
-						style="display: inline-block; background-color: #4CAF50; color: #fcfaf5; font-weight: bold; padding: 10px 20px; text-decoration: none; border-radius: 6px; border-color: white; cursor: pointer;">
-						Create Item</button>
-				</form>
-			</td>
+          <div class="section-title">Customer</div>
+          <div>
+<!--             <label for="customerId">Customer</label>
+ -->            <select name="customerId" id="customerId" required>
+              <option value="">— Select Customer —</option>
+              <option th:each="c : ${customers}" th:value="${c.customerId}"
+                      th:text="|${c.customerId} = ${c.customerName}|"></option>
+            </select>
+            <a href="/customers/goToCreateCustomerPage" class="helper-link">＋ Customer doesn't exist? Create one</a>
+          </div>
 
+          <div class="section-title">Item Details</div>
+          <div class="form-grid">
+            <div>
+              <label for="itemId">Item ID</label>
+              <input type="text" name="itemId" id="itemId" placeholder="e.g. ITEM001"
+                     th:value="${itemIdFromController != null} ? ${itemIdFromController} : ''"
+                     oninput="this.value = this.value.toUpperCase()" required />
+            </div>
+            <div>
+              <label for="itemDescription">Item Description</label>
+              <input type="text" name="itemDescription" id="itemDescription"
+                     placeholder="Enter item description"
+                     th:value="${itemDescriptionFromController != null} ? ${itemDescriptionFromController} : ''"
+                     required />
+            </div>
+            <div>
+              <label for="itemUom">Item UOM</label>
+              <select name="itemUom" id="itemUom" required>
+                <option value="">— Select UOM —</option>
+                <option th:each="opt : ${itemUomsList}" th:value="${opt}" th:text="${opt}"></option>
+              </select>
+            </div>
+            <div>
+              <label for="itemStatus">Item Status</label>
+              <select name="itemStatus" id="itemStatus" required>
+                <option value="">— Select Status —</option>
+                <option value="Active">Active</option>
+                <option value="Disabled">Disabled</option>
+              </select>
+            </div>
+          </div>
 
-			<!-- ===== RIGHT CELL — 50% — Conditions ===== -->
-			<td>
-				<div class="conditions-box">
+          <div class="button-row">
+            <button type="submit" class="btn-submit">✔ Create Item</button>
+          </div>
 
-					<h4>📌 Conditions for Creating Item</h4>
-					<ol>
-						<li>Item ID must be in upper case.</li>
-						<li>Item ID cannot contain any white spaces (spaces, tabs,
-							next-line characters).</li>
-						<li>Item ID must be at least 5 characters long.</li>
-						<li>Item ID must be maximum 15 characters only.</li>
-						<li>Item Description must be at least 5 characters long.</li>
-						<li>Item Description must be maximum 30 characters only.</li>
-						<li>Item UOM must be at least 2 characters long.</li>
-						<li>Item UOM must be maximum 4 characters only.</li>
-						<li>Item Status: <strong>Active</strong> = Shipping is
-							allowed. <strong>Disabled</strong> = Shipping is not allowed.
-						</li>
+        </form>
+      </div>
+    </div>
 
-					</ol>
+    <div class="conditions-section">
+      <h4>📌 Conditions for creating item</h4>
+      <ol>
+        <li>Item ID must be in <strong>upper case</strong>.</li>
+        <li>Item ID cannot contain any white spaces.</li>
+        <li>Item ID must be at least 5 characters long.</li>
+        <li>Item ID must be maximum 15 characters only.</li>
+        <li>Item Description must be at least 5 characters long.</li>
+        <li>Item Description must be maximum 30 characters only.</li>
+        <li>Item UOM must be selected from the available options.</li>
+        <li><strong>Active</strong> = Shipping is allowed. <strong>Disabled</strong> = Not allowed.</li>
+      </ol>
+    </div>
+  </div>
 
-				</div>
-			</td>
-		</tr>
-	</table>
+  <script>
+    window.addEventListener("load", function () {
+      var msg = document.getElementById("msgBox");
+      if (msg) setTimeout(() => msg.style.display = "none", 10000);
+    });
 
+    document.getElementById("itemForm").addEventListener("submit", function (event) {
+      let itemId          = document.getElementById("itemId").value;
+      let itemDescription = document.getElementById("itemDescription").value;
+      let errorMessage = '', isError = false;
 
-	<script>
-		window.addEventListener("load", function() {
-			var msg = document.getElementById("msgBox");
-			if (msg) {
-				setTimeout(function() {
-					msg.style.display = "none";
-				}, 10000);
-			}
-		});
+      if (/\s/.test(itemId)) {
+        isError = true; errorMessage += "Item ID cannot contain whitespaces!\n";
+      } else if (itemId.length < 5) {
+        isError = true; errorMessage += "Item ID must be at least 5 characters!\n";
+      } else if (itemId.length > 15) {
+        isError = true; errorMessage += "Item ID must be maximum 15 characters!\n";
+      }
 
-		document
-				.getElementById("itemForm")
-				.addEventListener(
-						"submit",
-						function(event) {
+      if (itemDescription.trim().length < 5) {
+        isError = true; errorMessage += "Item Description must be at least 5 characters!\n";
+      } else if (itemDescription.trim().length > 30) {
+        isError = true; errorMessage += "Item Description must be maximum 30 characters!\n";
+      }
 
-							let customerId = document
-									.getElementById("customerId").value;
-							let itemId = document.getElementById("itemId").value;
-							let itemDescription = document
-									.getElementById("itemDescription").value;
-							let itemUom = document.getElementById("itemUom").value;
-
-							let errorMessage = '';
-							let isError = false;
-
-							if (/\s/.test(itemId)) {
-								isError = true;
-								errorMessage = "Item ID cannot contain any whitespaces (spaces, tabs, next-line characters)!!\\n";
-							} else {
-								if (itemId.length < 5) {
-									isError = true;
-									errorMessage = "Item ID must be atleast 5 characters long !!\n";
-								} else if (itemId.length > 15) {
-									isError = true;
-									errorMessage = errorMessage
-											+ "Item ID must be maximum 15 characters only !!\n";
-								}
-							}
-
-							if (itemUom.trim().length < 2) {
-								isError = true;
-								errorMessage = errorMessage
-										+ "Item UOM must be atleast 2 characters long !!\n";
-							} else if (itemUom.trim().length > 4) {
-								isError = true;
-								errorMessage = errorMessage
-										+ "Item UOM must be maximum 4 characters only !!";
-							}
-
-							if (itemDescription.trim().length < 5) {
-								isError = true;
-								errorMessage = errorMessage
-										+ "Item Description must be atleast 5 characters long !!\n";
-							} else if (itemDescription.trim().length > 30) {
-								isError = true;
-								errorMessage = errorMessage
-										+ "Item Description must be maximum 30 characters only !!";
-							}
-
-							if (isError) {
-								alert(errorMessage);
-								event.preventDefault(); // 🚫 stop form submission
-							}
-
-						});
-	</script>
-
+      if (isError) { alert(errorMessage); event.preventDefault(); }
+    });
+  </script>
 </body>
-
 </html>
-
-
-

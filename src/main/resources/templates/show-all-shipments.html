@@ -1,442 +1,257 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-
 <head>
+  <link rel="stylesheet" th:href="@{/css/navbar.css}" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    body { font-family: Arial, sans-serif; background: #f4f6f9; margin: 0; min-height: 100vh; }
 
-<link rel="stylesheet" th:href="@{/css/navbar.css}" />
+    #msgBox { margin: 8px 24px 0; padding: 8px 40px 8px 14px; border-radius: 8px; font-weight: bold; position: relative; }
 
-<style>
-table {
-	width: 90%;
-	border-collapse: separate;
-	border-spacing: 0 6px;
-	font-family: Arial, sans-serif;
-	border: none;
-	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
-}
+    .page-content { padding: 14px 24px; }
 
-thead th {
-	text-align: center;
-	padding: 6px;
-	color: #374151;
-	background: #ededb9;
-	border: 1px #e6e65c;
-}
+    .top-bar { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+    .top-bar h2 { margin: 0; font-size: 1rem; font-weight: 700; color: #1e293b; }
 
-tbody tr {
-	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
-	margin: auto auto;
-}
+    .btn-add { display: inline-block; background-color: #4CAF50; color: #fff; font-weight: 700; font-size: 0.88rem; padding: 9px 20px; text-decoration: none; border-radius: 8px; transition: background-color 0.2s, transform 0.15s; }
+    .btn-add:hover { background-color: #3d9140; transform: translateY(-1px); }
 
-td {
-	padding: 8px;
-	margin: auto auto;
-	text-align: center;
-}
+    /* ── FILTER BAR ── */
+    .filter-bar { display: flex; align-items: center; margin-bottom: 14px; }
+    .filter-bar form { display: flex; align-items: center; gap: 10px; background: #f0f4ff; border: 1px solid #c5cff5; border-radius: 10px; padding: 10px 18px; flex-wrap: wrap; }
+    .filter-bar label { font-size: 0.75rem; font-weight: 700; color: #4a4e8a; text-transform: uppercase; letter-spacing: 0.06em; white-space: nowrap; }
+    .filter-bar select { padding: 7px 12px; border: 1.5px solid #b0baf5; border-radius: 7px; font-size: 0.88rem; font-family: Arial, sans-serif; color: #2c2f6b; background: #fff; cursor: pointer; min-width: 180px; outline: none; transition: border-color 0.2s; }
+    .filter-bar select:focus { border-color: #6a73b2; }
+    .filter-bar .btn-filter { padding: 7px 20px; background-color: #6a73b2; color: #fff; font-weight: 700; font-size: 0.86rem; font-family: Arial, sans-serif; border: none; border-radius: 7px; cursor: pointer; letter-spacing: 0.03em; transition: background-color 0.2s, transform 0.15s; margin: 0; }
+    .filter-bar .btn-filter:hover:not(:disabled) { background-color: #555fa0; transform: translateY(-1px); }
+    .filter-bar .btn-filter:disabled { background-color: #b0b5d8; cursor: not-allowed; }
 
-/* tbody tr td:first-child {
-	border-top-left-radius: 8px;
-	border-bottom-left-radius: 8px;
-}
+    /* ── TOOLTIP ── */
+    .tooltip-wrapper { position: relative; display: inline-block; }
+    .tooltip-wrapper .tip { visibility: hidden; opacity: 0; width: 260px; background: #334155; color: #fff; text-align: center; border-radius: 7px; padding: 7px 12px; font-size: 0.76rem; position: absolute; bottom: 120%; left: 50%; transform: translateX(-50%); transition: opacity 0.2s; pointer-events: none; z-index: 20; line-height: 1.4; white-space: normal; }
+    .tooltip-wrapper .tip::after { content: ''; position: absolute; top: 100%; left: 50%; transform: translateX(-50%); border-width: 5px; border-style: solid; border-color: #334155 transparent transparent transparent; }
+    .tooltip-wrapper.show-tip:hover .tip { visibility: visible; opacity: 1; }
 
-tbody tr td:last-child {
-	border-top-right-radius: 8px;
-	border-bottom-right-radius: 8px;
-} */
-tbody tr:hover {
-	transform: scale(1.01);
-	transition: 0.2s;
-	/* background: #f4f4d9;   */
-	background: #efefef;
-}
+    /* ── TABLE ── */
+    .table-wrapper { background: #fff; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.07); overflow: hidden; }
+    table { width: 100%; border-collapse: collapse; font-family: Arial, sans-serif; font-size: 0.88rem; }
+    thead th { text-align: center; padding: 11px 14px; color: #374151; background: #f1f5f9; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.07em; border-bottom: 2px solid #e2e8f0; }
+    tbody tr { border-bottom: 1px solid #f1f5f9; cursor: pointer; transition: background 0.15s, transform 0.15s; }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: #eef2ff; transform: scale(1.005); }
+    td { padding: 10px 14px; text-align: center; color: #374151; }
 
-button {
-	margin: 3px 3px;
-	padding: 10px 10px;
-	cursor: pointer;
-}
+    /* ── CELL LINKS WITH TOOLTIP ── */
+    .cell-link { position: relative; display: inline-block; }
+    .cell-link a { color: #4a6fa5; font-weight: 700; text-decoration: none; border-bottom: 1px dashed #4a6fa5; }
+    .cell-link a:hover { color: #2c4a7c; }
+    .cell-link .cell-tip { visibility: hidden; opacity: 0; background: #1e293b; color: #fff; font-size: 0.72rem; padding: 5px 10px; border-radius: 5px; white-space: nowrap; position: absolute; bottom: 130%; left: 50%; transform: translateX(-50%); transition: opacity 0.18s; pointer-events: none; z-index: 10; }
+    .cell-link .cell-tip::after { content: ''; position: absolute; top: 100%; left: 50%; transform: translateX(-50%); border-width: 4px; border-style: solid; border-color: #1e293b transparent transparent transparent; }
+    .cell-link:hover .cell-tip { visibility: visible; opacity: 1; }
 
-button:hover {
-	transform: scale(1.01);
-	transition: 0.2s;
-}
+    /* ── VIEW DETAILS BUTTON ── */
+    .btn-view { display: inline-block; background-color: #6a73b2; color: #fff; font-weight: 700; font-size: 0.78rem; padding: 7px 14px; text-decoration: none; border-radius: 6px; white-space: nowrap; transition: background-color 0.2s; position: relative; }
+    .btn-view:hover { background-color: #555fa0; }
+    .btn-view .cell-tip { visibility: hidden; opacity: 0; background: #1e293b; color: #fff; font-size: 0.72rem; padding: 5px 10px; border-radius: 5px; white-space: nowrap; position: absolute; bottom: 130%; left: 50%; transform: translateX(-50%); transition: opacity 0.18s; pointer-events: none; z-index: 10; }
+    .btn-view .cell-tip::after { content: ''; position: absolute; top: 100%; left: 50%; transform: translateX(-50%); border-width: 4px; border-style: solid; border-color: #1e293b transparent transparent transparent; }
+    .btn-view:hover .cell-tip { visibility: visible; opacity: 1; }
 
-/* 	#viewShipmentDetails {
-		background-color: #b4dcef;
-		color: #5015b9;
-		font-weight: bold;
-		text-decoration: none;
-		margin: 3px 3px;
-		padding: 10px 10px;
-		cursor: pointer;
-	} */
-#viewShipmentDetails {
-	display: inline-block;
-	min-width: 140px;
-	text-align: center;
-	background-color: #b4dcef;
-	color: #5015b9;
-	font-weight: bold;
-	text-decoration: none;
-	padding: 10px 16px;
-	margin: 3px;
-}
+    /* ── CANCEL BUTTON ── */
+    .btn-cancel { background-color: #ed4758; color: #fff; font-weight: 700; font-size: 0.78rem; padding: 7px 14px; border: none; border-radius: 6px; cursor: pointer; transition: background-color 0.2s; white-space: nowrap; }
+    .btn-cancel:hover { background-color: #c73444; }
 
-.href-styling {
-	display: inline-block;
-	font-weight: bold;
-	padding: 10px 20px;
-	text-decoration: none;
-	border-radius: 6px;
-}
+    /* ── STATUS BADGES ── */
+    .badge { display: inline-block; padding: 4px 12px; border-radius: 12px; font-size: 0.78rem; font-weight: 700; }
+    .s-1100 { background: #e2e8f0; color: #374151; }
+    .s-1200 { background: #dbeafe; color: #1e40af; }
+    .s-1300 { background: #fef3c7; color: #92400e; }
+    .s-1400 { background: #d1fae5; color: #065f46; }
+    .s-9000 { background: #fee2e2; color: #991b1b; }
 
-/* ── Filter Bar ── */
-.filter-bar {
-	display: flex;
-	align-items: center;
-	margin: 16px 0 10px 0;
-}
-
-.filter-bar form {
-	display: flex;
-	align-items: center;
-	gap: 10px;
-	background: #f0f4ff;
-	border: 1px solid #c5cff5;
-	border-radius: 10px;
-	padding: 10px 18px;
-}
-
-.filter-bar label {
-	font-family: Arial, sans-serif;
-	font-size: 0.82rem;
-	font-weight: 700;
-	color: #4a4e8a;
-	text-transform: uppercase;
-	letter-spacing: 0.06em;
-	white-space: nowrap;
-}
-
-.filter-bar select {
-	padding: 8px 14px;
-	border: 1.5px solid #b0baf5;
-	border-radius: 7px;
-	font-size: 0.92rem;
-	font-family: Arial, sans-serif;
-	color: #2c2f6b;
-	background: #ffffff;
-	cursor: pointer;
-	min-width: 220px;
-	outline: none;
-	transition: border-color 0.2s;
-}
-
-.filter-bar select:focus {
-	border-color: #6a73b2;
-}
-
-.filter-bar button {
-	padding: 8px 22px;
-	background-color: #6a73b2;
-	color: #ffffff;
-	font-weight: 700;
-	font-size: 0.88rem;
-	font-family: Arial, sans-serif;
-	border: none;
-	border-radius: 7px;
-	cursor: pointer;
-	letter-spacing: 0.04em;
-	transition: background-color 0.2s, transform 0.15s;
-	margin: 0;
-}
-
-.filter-bar button:hover {
-	background-color: #555fa0;
-	transform: translateY(-1px);
-}
-
-.filter-bar button:disabled {
-	background-color: #b0b5d8;
-	cursor: not-allowed;
-	transform: none;
-}
-
-.submit-btn-wrapper {
-	position: relative;
-	display: inline-block;
-}
-
-.submit-btn-wrapper .tooltip-text {
-	visibility: hidden;
-	opacity: 0;
-	width: 220px;
-	background-color: #4a4e8a;
-	color: #fff;
-	text-align: center;
-	border-radius: 6px;
-	padding: 7px 10px;
-	font-size: 0.78rem;
-	position: absolute;
-	bottom: 125%;
-	left: 50%;
-	transform: translateX(-50%);
-	transition: opacity 0.2s;
-	pointer-events: none;
-	z-index: 10;
-}
-
-.submit-btn-wrapper .tooltip-text::after {
-	content: '';
-	position: absolute;
-	top: 100%;
-	left: 50%;
-	transform: translateX(-50%);
-	border-width: 5px;
-	border-style: solid;
-	border-color: #4a4e8a transparent transparent transparent;
-}
-
-/* show tooltip only when button is disabled */
-.submit-btn-wrapper:hover .tooltip-text.show-tooltip {
-	visibility: visible;
-	opacity: 1;
-}
-</style>
-
+    /* ── EMPTY STATE ── */
+    .empty-state { text-align: center; padding: 40px 20px; color: #94a3b8; }
+    .empty-state p { font-size: 1rem; margin-bottom: 14px; }
+  </style>
 </head>
-
 <body>
 
-	<div th:replace="~{fragments/navbar :: navbar}"></div>
+  <div th:replace="~{fragments/navbar :: navbar}"></div>
 
-	<br />
-	<p th:if="${msg}" id="msgBox"
-		th:style="'background:' + ${bgColor} + '; color:' + ${textColor} + '; padding:10px; border-radius:6px; position:relative; font-weight:bold;'">
-		<span th:utext="${msg}" style="white-space: pre-wrap;"></span><span
-			onclick="this.parentElement.style.display='none'"
-			style="position: absolute; margin: auto; right: 14px; top: 40%; cursor: pointer; font-weight: bold;">X</span>
-	</p>
-	<a href="/shipments/goToCreateShipmentPage"
-		style="display: inline-block; background-color: #4CAF50; color: #fcfaf5; font-weight: bold; padding: 10px 20px; text-decoration: none; border-radius: 6px;">Create
-		New Shipment</a>
+  <p th:if="${msg}" id="msgBox"
+     th:style="'background:' + ${bgColor} + '; color:' + ${textColor} + ';'">
+    <span th:utext="${msg}" style="white-space:pre-wrap;"></span>
+    <span onclick="this.parentElement.style.display='none'"
+          style="position:absolute;right:14px;top:50%;transform:translateY(-50%);cursor:pointer;font-weight:bold;">✕</span>
+  </p>
 
-	<br />
-	<div class="filter-bar">
-		<!--  customer-id in form action will be dynamically updated in script -->
-		<form id="customerAndWarehouseForm"
-			th:action="@{/shipments/showShipmentsByCustomerAndWarehouse/ALL/ALL}"
-			method="post">
+  <div class="page-content">
 
-			<label for="customerId">Customer</label> <select name="customerId"
-				id="customerId" onchange="loadWarehouses(this.value)" required>
-				<option value="ALL">-- ALL --</option>
-				<option th:each="c : ${customers}" th:value="${c.customerId}"
-					th:selected="${c.customerId == selectedCustomer}"
-					th:text="|${c.customerId} = ${c.customerName}|"></option>
-			</select> <label for="warehouseId">Warehouse</label> <select
-				name="warehouseSelect" id="warehouseSelect" required>
-				<option value="ALL">-- ALL --</option>
-				<option th:each="w : ${warehouses}" th:value="${w.warehouseId}"
-					th:selected="${w.warehouseId == selectedWarehouse}"
-					th:text="|${w.warehouseId} = ${w.warehouseName}|"></option>
-			</select>
+    <div class="top-bar">
+      <h2>🚢 Shipments</h2>
+      <a href="/shipments/goToCreateShipmentPage" class="btn-add">＋ Create New Shipment</a>
+    </div>
 
-			<div class="submit-btn-wrapper" id="submitBtnWrapper">
-				<button type="submit" id="applyFiltersBtn">Apply Filters</button>
-			</div>
-		</form>
+    <!-- FILTER BAR -->
+    <div class="filter-bar">
+      <form id="customerAndWarehouseForm"
+            th:action="@{/shipments/showShipmentsByCustomerAndWarehouse/ALL/ALL}"
+            method="post">
+        <label for="customerId">Customer</label>
+        <select name="customerId" id="customerId" onchange="loadWarehouses(this.value)" required>
+          <option value="ALL">— ALL —</option>
+          <option th:each="c : ${customers}" th:value="${c.customerId}"
+                  th:selected="${c.customerId == selectedCustomer}"
+                  th:text="|${c.customerId} = ${c.customerName}|"></option>
+        </select>
+        <label for="warehouseSelect">Warehouse</label>
+        <select name="warehouseSelect" id="warehouseSelect" required>
+          <option value="ALL">— ALL —</option>
+          <option th:each="w : ${warehouses}" th:value="${w.warehouseId}"
+                  th:selected="${w.warehouseId == selectedWarehouse}"
+                  th:text="|${w.warehouseId} = ${w.warehouseName}|"></option>
+        </select>
+        <div class="tooltip-wrapper show-tip" id="submitBtnWrapper">
+          <button type="submit" class="btn-filter" id="applyFiltersBtn" disabled>Apply Filters</button>
+          <span class="tip">Change Customer or Warehouse to enable filters</span>
+        </div>
+      </form>
+    </div>
 
-	</div>
+    <!-- TABLE -->
+    <div class="table-wrapper" th:if="${not #lists.isEmpty(shipments)}">
+      <table>
+        <thead>
+          <tr>
+            <th>Shipment ID</th>
+            <th>Customer</th>
+            <th>Warehouse</th>
+            <th>Status</th>
+            <th>Details</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr th:each="s : ${shipments}"
+              th:data-href="@{'/shipments/showShipmentDetails/' + ${s.shipmentId}}"
+              onclick="rowClick(event, this)">
 
-	<table border="1">
+            
 
-		<thead>
-			<tr>
-				<th>Shipment ID</th>
-				<th>Customer</th>
-				<th>Warehouse</th>
-				<th>Status</th>
-				<th colspan="2">Actions</th>
-			</tr>
-		</thead>
-		<tr th:each="s : ${shipments}">
-			<td><a
-				th:href="@{'/shipments/showShipmentDetails/' + ${s.shipmentId}}"
-				style="color: blue; font-weight: bold;"> <span
-					th:text="${s.shipmentId}"></span>
-			</a></td>
+            <!-- Col 2: Shipment ID -->
+            <td>
+              <span class="cell-link">
+                <a th:href="@{'/shipments/showShipmentDetails/' + ${s.shipmentId}}"
+                   th:text="${s.shipmentId}" onclick="event.stopPropagation()"></a>
+                <span class="cell-tip">View shipment details</span>
+              </span>
+            </td>
 
-			<!-- 	<td th:text="${s.customerId}"></td>
-			<td th:text="${s.warehouseId}"></td> -->
+            <!-- Col 3: Customer -->
+            <td>
+              <span class="cell-link">
+                <a target="_blank"
+                   th:href="@{'/customers/showCustomerDetails/' + ${s.customerId}}"
+                   th:text="${s.customerId}" onclick="event.stopPropagation()"></a>
+                <span class="cell-tip">View customer details</span>
+              </span>
+            </td>
 
-			<td><a target="_blank" style="color: blue; font-weight: bold;"
-				th:href="@{'/customers/showCustomerDetails/' + ${s.customerId}}"
-				th:text="${s.customerId}"> </a></td>
-			<td><a target="_blank" style="color: blue; font-weight: bold;"
-				th:href="@{'/warehouses/showWarehouseDetails/' + ${s.warehouseId}}"
-				th:text="${s.warehouseId}"> </a></td>
+            <!-- Col 4: Warehouse -->
+            <td>
+              <span class="cell-link">
+                <a target="_blank"
+                   th:href="@{'/warehouses/showWarehouseDetails/' + ${s.warehouseId}}"
+                   th:text="${s.warehouseId}" onclick="event.stopPropagation()"></a>
+                <span class="cell-tip">View warehouse details</span>
+              </span>
+            </td>
 
-			<!-- 	<td th:text="${s.shipStatus}"></td> -->
+            <!-- Col 5: Status badge -->
+            <td>
+              <span th:switch="${s.shipStatus}">
+                <span th:case="1100" class="badge s-1100">1100 — Created</span>
+                <span th:case="1200" class="badge s-1200">1200 — Picked</span>
+                <span th:case="1300" class="badge s-1300">1300 — Packed</span>
+                <span th:case="1400" class="badge s-1400">1400 — Shipped</span>
+                <span th:case="9000" class="badge s-9000">9000 — Cancelled</span>
+                <span th:case="*"    class="badge s-1100" th:text="|${s.shipStatus} — Unknown|"></span>
+              </span>
+            </td>
+            
+            <!-- Col 1: View Details -->
+            <td>
+              <a th:href="@{'/shipments/showShipmentDetails/' + ${s.shipmentId}}"
+                 class="btn-view" onclick="event.stopPropagation()"> ✏️ View / Process <span class="cell-tip">View / Process shipment details</span>
+              </a>
+            </td>
 
-			<td th:switch="${s.shipStatus}"><span th:case="1100"
-				style="background-color: #ddd8d8; color: #212021; border: none; font-weight: bold; padding: 6px 10px;">1100
-					- Created</span> <span th:case="1200"
-				style="background-color: #b4dcef; color: #5015b9; border: none; font-weight: bold; padding: 6px 10px;">1200
-					- Picked</span> <span th:case="1300"
-				style="background-color: #ebe2a2; color: #422006; border: none; font-weight: bold; padding: 6px 10px;">1300
-					- Packed</span> <span th:case="1400"
-				style="background-color: #a5e38f; color: #14532d; border: none; font-weight: bold; padding: 6px 10px;">1400
-					- Shipped</span> <span th:case="9000"
-				style="background-color: #ed4758; color: #ffffff; border: none; font-weight: bold; padding: 6px 10px;">9000
-					- Cancelled</span> <span th:case="*"> <span
-					th:text="|${s.shipStatus} - Unknown Status|"></span></span></td>
+            <!-- Col 6: Cancel button (only if < 1400) -->
+            <td>
+              <form th:if="${s.shipStatus < 1400}"
+                    th:action="@{/shipments/cancelShipmentFromAllShipmentsPage}"
+                    method="post" onclick="event.stopPropagation()">
+                <input type="hidden" name="shipmentId"  th:value="${s.shipmentId}" />
+                <input type="hidden" name="shipStatus"  th:value="${s.shipStatus}" />
+                <input type="hidden" name="customerId"  th:value="${s.customerId}" />
+                <input type="hidden" name="warehouseId" th:value="${s.warehouseId}" />
+                <button type="submit" class="btn-cancel" name="action" value="CANCEL"
+                        onclick="return confirmSubmit(event, 'CANCEL')">
+                  ✕ Cancel
+                </button>
+              </form>
+              <span th:if="${s.shipStatus >= 1400}" style="color:#94a3b8; font-size:0.78rem;">—</span>
+            </td>
 
-			<td style="text-align: center; vertical-align: middle;"><a
-				th:href="@{'/shipments/showShipmentDetails/' + ${s.shipmentId}}"
-				id="viewShipmentDetails"> View Details </a></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
 
-			<!-- show Cancel button only if the shipment status is below 1400, i.e., not shipped / cancelled -->
-			<td th:if="${(s.shipStatus < 1400)}"
-				style="text-align: center; vertical-align: middle;">
-				<form th:action="@{/shipments/cancelShipmentFromAllShipmentsPage}"
-					method="post">
+    <div th:if="${#lists.isEmpty(shipments)}" class="empty-state">
+      <p>No shipment records to display.</p>
+      <a href="/shipments/goToCreateShipmentPage"
+         style="background:#4CAF50;color:white;padding:9px 20px;border-radius:8px;text-decoration:none;font-weight:bold;">
+        ＋ Create New Shipment
+      </a>
+    </div>
 
-					<input type="hidden" name="shipmentId" th:value="${s.shipmentId}" />
-					<input type="hidden" name="shipStatus" th:value="${s.shipStatus}" />
-					<input type="hidden" name="customerId" th:value="${s.customerId}" />
-					<input type="hidden" name="warehouseId" th:value="${s.warehouseId}" />
+  </div>
 
-					<!-- show Cancel button only if the shipment status is below 1400, i.e., not shipped / cancelled -->
-					<button th:if="${(s.shipStatus < 1400)}" type="submit"
-						name="action" value="CANCEL"
-						style="background-color: #ed4758; color: #ffffff; border: none; font-weight: bold;"
-						onclick="return confirmSubmit(event, 'CANCEL')"
-						th:id="|button${s.shipmentId}|">CANCEL the Shipment</button>
-
-
-				</form>
-			</td>
-		</tr>
-	</table>
-
-	<!-- Show this if shipments list is EMPTY -->
-	<div th:if="${#lists.isEmpty(shipments)}"
-		style="text-align: center; color: #888;">
-		<p style="font-size: 1.1rem; margin-bottom: 10px;">No shipment
-			records to display.</p>
-		<br /> <a href="/shipments/goToCreateShipmentPage"
-			style="background: #4CAF50; color: white; padding: 8px 18px; border-radius: 6px; text-decoration: none; font-weight: bold;">
-			Create New Shipment </a>
-	</div>
-
-	<script>
-    // ── track whether either dropdown has changed ──
-    let filtersChanged = false; 
-    
+  <script>
+    let filtersChanged = false;
     window.addEventListener("load", function () {
-
-        // disable submit on page load
-        const btn = document.getElementById('applyFiltersBtn');
-        btn.disabled = true;
-
-        // inject tooltip span
-        const wrapper = document.getElementById('submitBtnWrapper');
-        const tooltip = document.createElement('span');
-        tooltip.className = 'tooltip-text show-tooltip';
-        tooltip.textContent = 'Make some changes to Customer or Warehouse to enable the button';
-        wrapper.appendChild(tooltip);
-
-        // msg box auto-hide
-        var msg = document.getElementById("msgBox");
-        if (msg) {
-            setTimeout(function () { msg.style.display = "none"; }, 10000);
-        }
+      var msg = document.getElementById("msgBox");
+      if (msg) setTimeout(() => msg.style.display = "none", 10000);
     });
-
-    // enable button when customer dropdown changes
-    document.getElementById('customerId').addEventListener('change', function () {
-        filtersChanged = true;
-        document.getElementById('applyFiltersBtn').disabled = false;
-    });
-
-    // enable button when warehouse dropdown changes
-    document.getElementById('warehouseSelect').addEventListener('change', function () {
-        filtersChanged = true;
-        document.getElementById('applyFiltersBtn').disabled = false;
-    });
-
-    // confirmation before cancelling a shipment
-    function confirmSubmit(event, eventType) {
-        const confirmed = confirm("Are you sure you want to " + eventType + " this shipment?");
-        if (!confirmed) {
-            event.preventDefault();
-            return false;
-        }
-        return true;
+    function rowClick(event, row) { window.location.href = row.getAttribute('data-href'); }
+    function enableFilter() {
+      filtersChanged = true;
+      document.getElementById('applyFiltersBtn').disabled = false;
+      document.getElementById('submitBtnWrapper').classList.remove('show-tip');
     }
-
-    // dynamically load warehouses based on selected customer
-    function loadWarehouses(customerId) {
-        const warehouseSelect = document.getElementById('warehouseSelect');
-        warehouseSelect.innerHTML = '<option value="ALL">-- ALL --</option>';
-
-        if (!customerId || customerId === 'ALL') return;
-
-        fetch(`/shipments/getWarehousesByCustomer?customerId=${customerId}`, {
-            method: 'GET',
-            headers: { 'Accept': 'application/json' }
-        })
-        .then(response => {
-            if (!response.ok) throw new Error('Failed to fetch warehouses');
-            return response.json();
-        })
-        .then(data => {
-            if (data && data.length > 0) {
-                data.forEach(w => {
-                    const option = document.createElement('option');
-                    option.value = w.warehouseId;
-                    option.textContent = `${w.warehouseId} = ${w.warehouseName}`;
-                    warehouseSelect.appendChild(option);
-                });
-            }
-        })
-        .catch(err => {
-            console.error('Error:', err);
-            warehouseSelect.innerHTML = '<option value="ALL">-- Error Loading Warehouses --</option>';
-        });
-    }
-
-    // dynamically update form action on submit
+    document.getElementById('customerId').addEventListener('change', function () { enableFilter(); loadWarehouses(this.value); });
+    document.getElementById('warehouseSelect').addEventListener('change', enableFilter);
     document.getElementById('customerAndWarehouseForm').addEventListener('submit', function (e) {
-        e.preventDefault();
-
-        if (!filtersChanged) {
-            alert('No changes were made — filters not applied.');
-            return;
-        }
-
-        const customerId  = document.getElementById('customerId').value;
-        const warehouseId = document.getElementById('warehouseSelect').value;
-        this.action = '/shipments/showShipmentsByCustomerAndWarehouse/' + customerId + '/' + warehouseId;
-        this.submit();
+      e.preventDefault();
+      if (!filtersChanged) return;
+      const c = document.getElementById('customerId').value;
+      const w = document.getElementById('warehouseSelect').value;
+      this.action = `/shipments/showShipmentsByCustomerAndWarehouse/${c}/${w}`;
+      this.submit();
     });
-    
-    
-    document.getElementById('customerId').addEventListener('change', function () {
-        filtersChanged = true;
-        document.getElementById('applyFiltersBtn').disabled = false;
-        document.querySelector('.tooltip-text').classList.remove('show-tooltip'); // hide tooltip
-    });
-
-    document.getElementById('warehouseSelect').addEventListener('change', function () {
-        filtersChanged = true;
-        document.getElementById('applyFiltersBtn').disabled = false;
-        document.querySelector('.tooltip-text').classList.remove('show-tooltip'); // hide tooltip
-    });
-    
-    
-</script>
-
+    function loadWarehouses(customerId) {
+      const ws = document.getElementById('warehouseSelect');
+      ws.innerHTML = '<option value="ALL">— ALL —</option>';
+      if (!customerId || customerId === 'ALL') return;
+      fetch(`/shipments/getWarehousesByCustomer?customerId=${customerId}`, { method: 'GET', headers: { 'Accept': 'application/json' } })
+        .then(r => { if (!r.ok) throw new Error(); return r.json(); })
+        .then(data => { if (data && data.length > 0) data.forEach(w => { const o = document.createElement('option'); o.value = w.warehouseId; o.textContent = `${w.warehouseId} = ${w.warehouseName}`; ws.appendChild(o); }); })
+        .catch(() => ws.innerHTML = '<option value="ALL">— Error Loading Warehouses —</option>');
+    }
+    function confirmSubmit(event, eventType) {
+      if (!confirm(`Are you sure you want to ${eventType} this shipment?`)) { event.preventDefault(); return false; }
+      return true;
+    }
+  </script>
 </body>
-
 </html>

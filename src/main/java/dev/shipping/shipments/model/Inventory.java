@@ -34,7 +34,7 @@ public class Inventory {
 	private String modifiedAt;
 
 	@Column(name = "quantity")
-	private String quantity;
+	private int quantity;
 	
 	@Column(name = "item_uom")
 	private String itemUom;
@@ -104,11 +104,11 @@ public class Inventory {
 		this.warehouseId = warehouseId;
 	}
 
-	public String getQuantity() {
+	public int getQuantity() {
 		return quantity;
 	}
 
-	public void setQuantity(String quantity) {
+	public void setQuantity(int quantity) {
 		this.quantity = quantity;
 	}
 

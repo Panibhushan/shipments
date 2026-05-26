@@ -229,7 +229,8 @@ select {
 
 		<!-- ══ SECTION 1 — FORM ══ -->
 		<div class="form-section">
-			<form action="/items/updateItem" method="post"
+			<form method="post"
+				th:action="@{'/items/updateItem' + ${item.itemCustomerUomId}}"
 				name="updateItemDetails" id="updateItemDetails">
 
 				<input type="hidden" name="itemCustomerUomId" th:value="${item.itemCustomerUomId}" />

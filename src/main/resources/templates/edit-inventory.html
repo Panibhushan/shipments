@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+<link rel="stylesheet" th:href="@{/css/navbar.css}" />
+<style>
+*, *::before, *::after {
+	box-sizing: border-box;
+}
+
+body {
+	font-family: Arial, sans-serif;
+	background: #f4f6f9;
+	margin: 0;
+	height: 100vh;
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
+}
+
+/* ── MSG BOX ── */
+#msgBox {
+	margin: 8px 24px 0;
+	padding: 15px 40px 15px 14px;
+	border-radius: 8px;
+	font-weight: bold;
+	position: relative;
+	flex-shrink: 0;
+}
+
+/* ── PAGE WRAPPER ── */
+.page-wrapper {
+	display: flex;
+	gap: 20px;
+	align-items: stretch;
+	padding: 14px 24px 14px;
+	flex: 1;
+	min-height: 0;
+}
+
+/* ── FORM SECTION (62%) ── */
+.form-section {
+	width: 62%;
+	display: flex;
+	flex-direction: column;
+	min-height: 0;
+}
+
+.form-section h2 {
+	font-size: 1rem;
+	color: #1e293b;
+	margin: 0 0 10px;
+	font-weight: 700;
+	flex-shrink: 0;
+}
+
+/* ── FORM CARD ── */
+.form-card {
+	background: #ffffff;
+	border-radius: 12px;
+	padding: 18px 22px;
+	box-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
+	display: flex;
+	flex-direction: column;
+	flex: 1;
+	min-height: 0;
+}
+
+/* ── SECTION DIVIDER ── */
+.section-title {
+	font-size: 0.68rem;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.1em;
+	color: #94a3b8;
+	margin: 12px 0 8px;
+	padding-bottom: 5px;
+	border-bottom: 1px solid #e2e8f0;
+	flex-shrink: 0;
+}
+
+.section-title:first-child {
+	margin-top: 0;
+}
+
+/* ── TWO-COLUMN GRID ── */
+.form-grid {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 0 28px;
+}
+
+.full-span {
+	grid-column: 1/-1;
+}
+
+/* ── LABELS ── */
+label {
+	display: block;
+	font-size: 0.7rem;
+	font-weight: 700;
+	color: #94a3b8;
+	text-transform: uppercase;
+	letter-spacing: 0.06em;
+	margin-top: 10px;
+	margin-bottom: 2px;
+}
+
+/* ── READ-ONLY VALUES ── */
+.readonly-value {
+	font-size: 1rem;
+	font-weight: 700;
+	color: #1e293b;
+	padding: 4px 0 6px;
+	border-bottom: 2px solid #e2e8f0;
+}
+
+/* ── INPUTS & SELECTS ── */
+input[type=number], select {
+	width: 100%;
+	padding: 9px 12px;
+	margin: 4px 0 4px;
+	border: 1.5px solid #cbd5e1;
+	border-radius: 8px;
+	font-size: 0.92rem;
+	font-family: Arial, sans-serif;
+	background: #f8fafc;
+	color: #1e293b;
+	outline: none;
+	transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+input[type=number]:focus, select:focus {
+	border-color: #6a73b2;
+	box-shadow: 0 0 0 3px rgba(106, 115, 178, 0.15);
+	background: #fff;
+}
+
+/* invalid state — red border */
+input[type=number].input-error {
+	border-color: #dc2626;
+	box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.12);
+}
+
+/* ── ERROR TEXT ── */
+.qty-error-text {
+	color: #dc2626;
+	font-size: 0.78rem;
+	font-weight: 600;
+	margin-top: 3px;
+	display: none;
+}
+
+/* ── BUTTON ROW ── */
+.button-row {
+	display: flex;
+	gap: 12px;
+	margin-top: auto;
+	padding-top: 14px;
+	border-top: 1px solid #e2e8f0;
+	flex-shrink: 0;
+	align-items: center;
+}
+
+.btn-update {
+	background-color: #4CAF50;
+	color: #ffffff;
+	font-weight: 700;
+	font-size: 0.9rem;
+	padding: 10px 26px;
+	border: none;
+	border-radius: 8px;
+	cursor: pointer;
+	transition: background-color 0.2s, transform 0.15s;
+	letter-spacing: 0.03em;
+}
+
+.btn-update:hover:not(:disabled) {
+	background-color: #3d9140;
+	transform: translateY(-1px);
+}
+
+.btn-update:disabled {
+	background-color: #b0b5b0;
+	cursor: not-allowed;
+	transform: none;
+}
+
+/* ── TOOLTIP WRAPPER ── */
+.tooltip-wrapper {
+	position: relative;
+	display: inline-block;
+}
+
+.tooltip-wrapper .tooltip-text {
+	visibility: hidden;
+	opacity: 0;
+	width: 260px;
+	background-color: #334155;
+	color: #fff;
+	text-align: center;
+	border-radius: 7px;
+	padding: 8px 12px;
+	font-size: 0.78rem;
+	position: absolute;
+	bottom: 120%;
+	left: 50%;
+	transform: translateX(-50%);
+	transition: opacity 0.2s;
+	pointer-events: none;
+	z-index: 10;
+	line-height: 1.4;
+}
+
+.tooltip-wrapper .tooltip-text::after {
+	content: '';
+	position: absolute;
+	top: 100%;
+	left: 50%;
+	transform: translateX(-50%);
+	border-width: 5px;
+	border-style: solid;
+	border-color: #334155 transparent transparent transparent;
+}
+
+.tooltip-wrapper.show-tip:hover .tooltip-text {
+	visibility: visible;
+	opacity: 1;
+}
+
+/* ── CONDITIONS SECTION (38%) ── */
+.conditions-section {
+	width: 38%;
+	background: #f0f7f2;
+	border: 1px solid #c8e0d0;
+	border-radius: 12px;
+	padding: 18px 22px;
+	align-self: flex-start;
+	margin-top: 30px;
+}
+
+.conditions-section h4 {
+	margin: 0 0 10px;
+	font-size: 0.92rem;
+	color: #2d5a3d;
+}
+
+.conditions-section ol {
+	padding-left: 18px;
+	color: #374151;
+	line-height: 2;
+	margin: 0;
+	font-size: 0.85rem;
+}
+</style>
+</head>
+
+<body>
+
+	<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+	<p th:if="${msg}" id="msgBox"
+		th:style="'background:' + ${bgColor} + '; color:' + ${textColor} + ';'">
+		<span th:text="${msg}" style="white-space: pre-wrap;"></span>
+		<span onclick="this.parentElement.style.display='none'"
+			style="position: absolute; right: 14px; top: 50%; transform: translateY(-50%); cursor: pointer; font-weight: bold;">✕</span>
+	</p>
+
+	<div class="page-wrapper">
+
+		<!-- ══ FORM SECTION ══ -->
+		<div class="form-section">
+			<h2>📦 Update Inventory</h2>
+
+			<form
+				th:action="@{'/inventory/updateInventory/' + ${inventory.itemCustomerUomWarehouseId}}"
+				method="post" id="updateInventoryDetails">
+
+				<div class="form-card">
+
+					<!-- ── READ-ONLY INFO ── -->
+					<div class="section-title">Inventory Details</div>
+
+					<div class="form-grid">
+
+						<!-- Column 1: Item ID, Customer, Warehouse, Quantity -->
+						<div>
+							<label>Item ID</label>
+							<div class="readonly-value" th:text="${inventory.itemId}">ITM-001</div>
+
+							<label>Customer</label>
+							<div class="readonly-value" th:text="${inventory.customerId}">CUST-042</div>
+
+							<label>Warehouse</label>
+							<div class="readonly-value" th:text="${inventory.warehouseId}">MUMWH</div>
+
+							<label>Current Quantity</label>
+							<div class="readonly-value" th:text="${inventory.quantity}">0</div>
+						</div>
+
+						<!-- Column 2: UOM, Created At, Modified At -->
+						<div>
+							<label>Item UOM</label>
+							<div class="readonly-value" th:text="${inventory.itemUom}">EACH</div>
+
+							<label>Created At</label>
+							<div class="readonly-value" th:text="${inventory.createdAt}">2024-01-01 10:00</div>
+
+							<label>Modified At</label>
+							<div class="readonly-value" th:text="${inventory.modifiedAt}">2024-06-15 14:30</div>
+						</div>
+
+					</div>
+
+					<!-- ── ADJUSTMENT ── -->
+					<div class="section-title">Adjustment</div>
+
+					<div class="form-grid">
+						<div>
+							<label for="adjustmentType">Adjustment Type</label>
+							<select name="adjustmentType" id="adjustmentType" required>
+								<option value="increaseBy">Increase By</option>
+								<option value="decreaseBy">Decrease By</option>
+							</select>
+						</div>
+
+						<div>
+							<label for="quantity">Quantity</label>
+							<input type="number"
+								   name="quantity"
+								   id="quantity"
+								   placeholder="Enter quantity"
+								   th:value="${quantityFromController != null} ? ${quantityFromController} : ''"
+								   required />
+							<span id="qtyError" class="qty-error-text">
+								⚠ Only positive whole numbers allowed (≥ 1). No decimals, letters or symbols.
+							</span>
+						</div>
+					</div>
+
+					<!-- ── BUTTON ── -->
+					<div class="button-row">
+						<div class="tooltip-wrapper" id="btnWrapper">
+							<button type="submit" class="btn-update" id="updateBtn" disabled>
+								✔ Update Inventory
+							</button>
+							<span id="update-button-tooltip" class="tooltip-text">
+								Make changes to inventory to enable the update button
+							</span>
+						</div>
+					</div>
+
+				</div>
+				<!-- /form-card -->
+			</form>
+		</div>
+
+		<!-- ══ CONDITIONS SECTION ══ -->
+		<div class="conditions-section">
+			<h4>📌 Conditions for updating inventory</h4>
+			<ol>
+				<li><strong>Increase By</strong> — adds quantity to current stock.</li>
+				<li><strong>Decrease By</strong> — subtracts quantity from current stock.</li>
+				<li>Quantity must be a positive whole number (≥ 1).</li>
+				<li>Decreasing below zero is not permitted.</li>
+			</ol>
+		</div>
+
+	</div>
+
+	<script>
+		const qtyInput  = document.getElementById("quantity");
+		const updateBtn = document.getElementById("updateBtn");
+		const btnWrapper = document.getElementById("btnWrapper");
+		const qtyError  = document.getElementById("qtyError");
+		const tooltip   = document.getElementById("update-button-tooltip");
+
+		// Store original value on page load
+		const originalQty = qtyInput.value.trim();
+
+		// ── Block decimal point, minus, plus, e/E, and all non-digit keys at source
+		qtyInput.addEventListener("keydown", function (e) {
+			const blocked = [".", "-", "+", "e", "E"];
+			if (blocked.includes(e.key)) {
+				e.preventDefault();
+			}
+		});
+
+		// ── Extra safety: strip any non-integer characters that sneak in (e.g. paste)
+		qtyInput.addEventListener("input", function () {
+			// Remove anything that is not a digit
+			const cleaned = qtyInput.value.replace(/[^0-9]/g, "");
+			if (qtyInput.value !== cleaned) {
+				qtyInput.value = cleaned;
+			}
+			evaluateButton();
+		});
+
+		function evaluateButton() {
+			const val = qtyInput.value.trim();
+			const num = Number(val);
+
+			const isEmpty   = val === "";
+			// isInvalid: non-empty but not a clean positive integer
+			const isInvalid = !isEmpty && (!/^\d+$/.test(val) || num < 1);
+			const isValid   = !isEmpty && /^\d+$/.test(val) && num >= 1;
+			const isChanged = val !== originalQty;
+			const canEnable = isValid && isChanged;
+
+			// ── Enable / Disable button
+			updateBtn.disabled = !canEnable;
+
+			// ── Red border on input
+			if (isInvalid) {
+				qtyInput.classList.add("input-error");
+			} else {
+				qtyInput.classList.remove("input-error");
+			}
+
+			// ── Show / Hide red error text
+			qtyError.style.display = isInvalid ? "block" : "none";
+
+			// ── Tooltip message
+			if (isInvalid) {
+				tooltip.innerText = "Invalid quantity — enter a positive whole number (≥ 1). No decimals or symbols.";
+			} else {
+				tooltip.innerText = "Make changes to inventory to enable the update button";
+			}
+
+			// ── Show tooltip only when button is disabled
+			btnWrapper.classList.toggle("show-tip", !canEnable);
+		}
+
+		document.getElementById("adjustmentType").addEventListener("change", evaluateButton);
+
+		// Run once on load
+		evaluateButton();
+
+		// Auto-hide msg box after 10s
+		window.addEventListener("load", function () {
+			var msg = document.getElementById("msgBox");
+			if (msg) {
+				setTimeout(function () { msg.style.display = "none"; }, 10000);
+			}
+		});
+	</script>
+
+</body>
+</html>

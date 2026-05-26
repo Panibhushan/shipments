@@ -167,8 +167,8 @@ public class ItemsController {
 		return "redirect:/items/";
 	}
 
-	@PostMapping("/items/updateItem")
-	public String updateWarehouses(@RequestParam String itemCustomerUomId, @RequestParam String itemStatus,
+	@PostMapping("/items/updateItem/{itemCustomerUomId}")
+	public String updateItem(@PathVariable String itemCustomerUomId, @RequestParam String itemStatus,
 			@RequestParam String itemUom, @RequestParam String itemDescription, RedirectAttributes redirectAttributes) {
 
 		String[] parts = itemCustomerUomId.split("_");
