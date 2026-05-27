@@ -2,6 +2,7 @@ package dev.shipping.shipments.service;
 
 import dev.shipping.shipments.model.CustomerWarehouses;
 import dev.shipping.shipments.model.Customers;
+import dev.shipping.shipments.model.Inventory;
 import dev.shipping.shipments.model.Items;
 import dev.shipping.shipments.model.Shipments;
 import dev.shipping.shipments.model.Warehouses;
@@ -9,21 +10,29 @@ import dev.shipping.shipments.repo.CustomerWarehousesRepository;
 import dev.shipping.shipments.repo.CustomersRepository;
 import dev.shipping.shipments.repo.ShipmentsRepository;
 import dev.shipping.shipments.repo.WarehousesRepository;
+import jakarta.persistence.TypedQuery;
 
 import org.jspecify.annotations.Nullable;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.TypedQuery;
 @Service
 public class ShipmentsService {
 
+	@Autowired
+    private EntityManager entityManager;
+	
 	private final ShipmentsRepository shipmentsRepo;
 	private final CustomersRepository customersRepo;
 	private final CustomerWarehousesRepository customerWarehousesRepo;
@@ -53,7 +62,8 @@ public class ShipmentsService {
 	}
 
 	/**
-	 * Returns null if not found — controller decides how to handle (redirect vs show).
+	 * Returns null if not found — controller decides how to handle (redirect vs
+	 * show).
 	 */
 	public Shipments getShipmentById(String shipmentId) {
 		return shipmentsRepo.findById(shipmentId).orElse(null);
@@ -80,8 +90,8 @@ public class ShipmentsService {
 	// ─────────────────────────────────────────────
 
 	/**
-	 * Result object returned to the controller so it knows what flash messages to set.
-	 * Avoids leaking business decisions (success/failure) into HTTP layer.
+	 * Result object returned to the controller so it knows what flash messages to
+	 * set. Avoids leaking business decisions (success/failure) into HTTP layer.
 	 */
 	public static class CreateShipmentResult {
 		private final boolean success;
@@ -102,9 +112,17 @@ public class ShipmentsService {
 			return new CreateShipmentResult(false, null, errorMessage);
 		}
 
-		public boolean isSuccess() { return success; }
-		public String getShipmentId() { return shipmentId; }
-		public String getErrorMessage() { return errorMessage; }
+		public boolean isSuccess() {
+			return success;
+		}
+
+		public String getShipmentId() {
+			return shipmentId;
+		}
+
+		public String getErrorMessage() {
+			return errorMessage;
+		}
 	}
 
 	/**
@@ -138,7 +156,8 @@ public class ShipmentsService {
 		Shipments savedShipment = shipmentsRepo.save(shipment);
 
 		if (savedShipment != null && savedShipment.getShipmentId() != null) {
-			snsService.publishShipmentStatus(savedShipment.getShipmentId(), "1100 - Created");
+			snsService.publishShipmentStatus(savedShipment.getShipmentId(), "1100 - Created", " ");
+			sqsService.sendShipmentStatus(savedShipment.getShipmentId(), "1100 - Created", " ");
 			return CreateShipmentResult.success(savedShipment.getShipmentId());
 		} else {
 			return CreateShipmentResult.failure("Failed to create shipment!");
@@ -150,18 +169,19 @@ public class ShipmentsService {
 	// ─────────────────────────────────────────────
 
 	/**
-	 * Validates all preconditions (customer active + contract valid, warehouse active,
-	 * customer-warehouse link exists), then applies the status transition and
-	 * pushes to SQS.
+	 * Validates all preconditions (customer active + contract valid, warehouse
+	 * active, customer-warehouse link exists), then applies the status transition
+	 * and pushes to SQS.
 	 *
 	 * Returns "SHIPMENT_STATUS_UPDATED_SUCCESSFULLY" on success, or a descriptive
 	 * error message (with HTML links) on failure.
 	 *
 	 * Used by all three update-status endpoints in the controller.
 	 */
+
 	@Transactional
-	public String updateShipmentStatus(String shipmentId, Integer shipStatus, String action,
-			String customerId, String warehouseId) {
+	public String updateShipmentStatus(String shipmentId, Integer shipStatus, String action, String customerId,
+			String warehouseId, String cancellationReason) {
 
 		Shipments shipment = shipmentsRepo.findById(shipmentId)
 				.orElseThrow(() -> new RuntimeException("Shipment not found"));
@@ -185,36 +205,35 @@ public class ShipmentsService {
 					&& customerStatus.equals("Active");
 		}
 
-		boolean allConditionsMet = singleCustomer.isPresent()
-				&& customerWarehouses.isPresent()
-				&& isWarehouseActive
+		boolean allConditionsMet = singleCustomer.isPresent() && customerWarehouses.isPresent() && isWarehouseActive
 				&& isCustomerActiveAndHasValidContract;
 
 		if (allConditionsMet) {
-			String shipmentStatusAndDesc;
+			String shipmentStatusAndDesc, reason = " ";
 
 			switch (action) {
-				case "PICK":
-					shipment.setShipStatus(1200);
-					shipmentStatusAndDesc = "1200 - Picked";
-					break;
-				case "PACK":
-					shipment.setShipStatus(1300);
-					shipmentStatusAndDesc = "1300 - Packed";
-					break;
-				case "SHIP":
-					shipment.setShipStatus(1400);
-					shipmentStatusAndDesc = "1400 - Shipped";
-					break;
-				case "CANCEL":
-					shipment.setShipStatus(9000);
-					shipmentStatusAndDesc = "9000 - Cancelled";
-					break;
-				default:
-					throw new RuntimeException("Invalid action: " + action);
+			case "PICK":
+				shipment.setShipStatus(1200);
+				shipmentStatusAndDesc = "1200 - Picked";
+				break;
+			case "PACK":
+				shipment.setShipStatus(1300);
+				shipmentStatusAndDesc = "1300 - Packed";
+				break;
+			case "SHIP":
+				shipment.setShipStatus(1400);
+				shipmentStatusAndDesc = "1400 - Shipped";
+				break;
+			case "CANCEL":
+				shipment.setShipStatus(9000);
+				shipmentStatusAndDesc = "9000 - Cancelled";
+				reason = cancellationReason; // setting cancellation reason in dynamodb
+				break;
+			default:
+				throw new RuntimeException("Invalid action: " + action);
 			}
 
-			sqsService.sendShipmentStatus(shipmentId, shipmentStatusAndDesc);
+			sqsService.sendShipmentStatus(shipmentId, shipmentStatusAndDesc, reason);
 			shipmentsRepo.save(shipment);
 			return "SHIPMENT_STATUS_UPDATED_SUCCESSFULLY";
 
@@ -242,8 +261,8 @@ public class ShipmentsService {
 			}
 
 			if (!isWarehouseActive) {
-				errorMessage.append("\nThe warehouse is Inactive/Disabled")
-						.append("&nbsp;&nbsp;&nbsp;&nbsp;<a style=\"color: #edff2b;\" href='/warehouses/viewOrEditWarehouse/")
+				errorMessage.append("\nThe warehouse is Inactive/Disabled").append(
+						"&nbsp;&nbsp;&nbsp;&nbsp;<a style=\"color: #edff2b;\" href='/warehouses/viewOrEditWarehouse/")
 						.append(warehouseId).append("'>View ").append(warehouseId).append("</a>");
 			}
 
@@ -251,13 +270,51 @@ public class ShipmentsService {
 		}
 	}
 
-		public List<Shipments> getShipmentsByCustomer(String customerId) {
+	public List<Shipments> getShipmentsByCustomer(String customerId) {
 		return shipmentsRepo.findShipmentsByCustomer(customerId);
 	}
+
+	public List<Shipments> getShipmentsByCustomerAndWarehouse(String customerId, String warehouseId) {
+		return shipmentsRepo.findShipmentsByCustomerAndWarehouse(customerId, warehouseId);
+	}
 	
-		public List<Shipments> getShipmentsByCustomerAndWarehouse(String customerId, String warehouseId) {
-			return shipmentsRepo.findShipmentsByCustomerAndWarehouse(customerId, warehouseId);
+	
+	//Dynamically setting the conditions and running a custom query in service instead of calling individual methods in Repo
+		@Transactional
+		public List<Shipments> getShipmentDetails(String customerId, String warehouseId, String shipStatus) {
+
+		    StringBuilder query = new StringBuilder("SELECT s FROM Shipments s");
+
+		    // Dynamically build WHERE clause
+		    List<String> conditions = new ArrayList<>();
+
+		    if (!customerId.equals("ALL")) conditions.add("s.customerId = :customerId");
+		    if (!warehouseId.equals("ALL")) conditions.add("s.warehouseId = :warehouseId");
+		    if (!shipStatus.equals("ALL")) conditions.add("s.shipStatus = :shipStatus");
+
+		    // Append WHERE + AND automatically
+		    if (!conditions.isEmpty()) {
+		        query.append(" WHERE ").append(String.join(" AND ", conditions));
+		    }
+
+		    // Create query
+		    TypedQuery<Shipments> typedQuery = entityManager.createQuery(query.toString(), Shipments.class);
+
+		    // Bind only non-null parameters
+		    if (!customerId.equals("ALL")) typedQuery.setParameter("customerId", customerId);
+		    if (!warehouseId.equals("ALL")) typedQuery.setParameter("warehouseId", warehouseId);
+		    if (!shipStatus.equals("ALL")) typedQuery.setParameter("shipStatus", shipStatus);
+
+ 		    
+		    List<Shipments> resultList =  typedQuery.getResultList();
+		    
+		    System.out.println("final Query: "+query.toString()+"\nresultList: "+resultList.toString());
+		    
+		    return resultList;
 		}
-		
+	
+	
+	
+	
 
 }

@@ -78,32 +78,6 @@ public class InventoryController {
 
 		inventoryService.createOrUpdateInventory(inventory, itemCustomerUomWarehouseId, quantity, adjustmentType);
 
-		/*
-		 * if (itemsService.itemExists(itemCustomerUomId)) {
-		 * redirectAttributes.addFlashAttribute("msg", "Item " + itemId +
-		 * " already exists for this customer: " + customerId + " & uom: " + itemUom +
-		 * " !!!"); redirectAttributes.addFlashAttribute("bgColor", "#d95f6c");
-		 * redirectAttributes.addFlashAttribute("textColor", "#ffffff"); return
-		 * "redirect:/items/goToCreateItemPage"; }
-		 * 
-		 * 
-		 * 
-		 * List<String> errors = itemsService.validateNewItem(item, itemUomsList);
-		 * 
-		 * if (!errors.isEmpty()) { redirectAttributes.addFlashAttribute("msg",
-		 * String.join("\n", errors));
-		 * redirectAttributes.addFlashAttribute("itemIdFromController", itemId);
-		 * redirectAttributes.addFlashAttribute("itemDescriptionFromController",
-		 * item.getItemDescription());
-		 * redirectAttributes.addFlashAttribute("itemUomFromController",
-		 * item.getItemUom()); redirectAttributes.addFlashAttribute("bgColor",
-		 * "#f03a5b"); redirectAttributes.addFlashAttribute("textColor", "#f5f0f1"); }
-		 * else { itemsService.createItem(item);
-		 * redirectAttributes.addFlashAttribute("msg", "Created Item: " + itemId +
-		 * " !!!"); redirectAttributes.addFlashAttribute("itemCustomerUomId",
-		 * itemCustomerUomId); redirectAttributes.addFlashAttribute("bgColor",
-		 * "#d1fae5;"); redirectAttributes.addFlashAttribute("textColor", "#45484d"); }
-		 */
 		redirectAttributes.addFlashAttribute("itemUomsList", itemUomsList);
 		model.addAttribute("activePage", "addOrUpdateInventory");
 		return "redirect:/inventory/goToAddOrUpdateInventoryPage";
@@ -150,6 +124,7 @@ public class InventoryController {
 		 * System.out.println("inventory: " + inventory + "\ninventory.get(): " +
 		 * inventory.get());
 		 */
+		
 		model.addAttribute("inventory", inventory.get());
 		return "edit-inventory";
 	}

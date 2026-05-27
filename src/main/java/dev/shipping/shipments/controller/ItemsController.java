@@ -44,17 +44,17 @@ public class ItemsController {
 		return "show-all-items";
 	}
 
-	@PostMapping("/items/showItemsByCustomer/{customerId}")
-	public String showItemsByCustomer(@PathVariable String customerId, Model model) {
+	@PostMapping("/items/showItemsByCustomerAndItem/{customerId}/{itemId}")
+	public String showItemsByCustomer(@PathVariable String customerId, @PathVariable String itemId,Model model) {
 
-		System.out.println("/items/showItemsByCustomer/{customerId}: "+customerId);
+		System.out.println("/items/showItemsByCustomerAndItem/{customerId}/{itemId}: "+customerId+" / "+itemId);
 		if (customerId.equals("ALL")) {
 			return "redirect:/items/";
 		} else {
-			model.addAttribute("items", itemsService.getItemsByCustomer(customerId));
+			model.addAttribute("items", itemsService.getItemsList(customerId, itemId));
 			model.addAttribute("selectedCustomer", customerId);
+			model.addAttribute("selectedItemId", itemId.equals("ALL") ? "" : itemId);
 			model.addAttribute("customers", customersService.getAllCustomers());
-			model.addAttribute("activePage", "allItems"); // ← this is show which dropdown is active in the navbar
 			return "show-all-items";
 		}
 	}
@@ -167,8 +167,8 @@ public class ItemsController {
 		return "redirect:/items/";
 	}
 
-	@PostMapping("/items/updateItem/{itemCustomerUomId}")
-	public String updateItem(@PathVariable String itemCustomerUomId, @RequestParam String itemStatus,
+	@PostMapping("/items/updateItem")
+	public String updateItem(@RequestParam String itemCustomerUomId, @RequestParam String itemStatus,
 			@RequestParam String itemUom, @RequestParam String itemDescription, RedirectAttributes redirectAttributes) {
 
 		String[] parts = itemCustomerUomId.split("_");

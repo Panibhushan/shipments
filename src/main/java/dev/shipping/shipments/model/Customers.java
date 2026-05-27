@@ -34,6 +34,9 @@ public class Customers {
 
 	@Column(name = "customer_status")
 	private String customerStatus;
+	
+	@Column(name = "customer_email")
+	private String customerEmail = "p1v2s3test@gmail.com" ;
 
 	// This field stays for DB mapping
 	@Column(name = "valid_upto")
@@ -124,12 +127,21 @@ public class Customers {
 		// returns "15-May-2026 00:00:00"
 	}
 
+	public String getCustomerEmail() {
+		return customerEmail;
+	}
+
+	public void setCustomerEmail(String customerEmail) {
+		this.customerEmail = customerEmail;
+	}
+
 	@Override
 	public String toString() {
 		return "Customers [customerId=" + customerId + ", customerName=" + customerName + ", createdAt=" + createdAt
-				+ ", modifiedAt=" + modifiedAt + ", customerStatus=" + customerStatus + ", validUpto=" + validUpto
-				+ "]";
+				+ ", modifiedAt=" + modifiedAt + ", customerStatus=" + customerStatus + ", customerEmail="
+				+ customerEmail + ", validUpto=" + validUpto + "]";
 	}
+
  
 
 }

@@ -7,6 +7,8 @@ import software.amazon.awssdk.services.sns.model.PublishResponse;
 import software.amazon.awssdk.services.sqs.SqsClient;
 import software.amazon.awssdk.services.sqs.model.SendMessageRequest;
 import software.amazon.awssdk.services.sqs.model.SendMessageResponse;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.node.ObjectNode;
 
 @Service
 public class SqsSenderService {
@@ -21,12 +23,23 @@ public class SqsSenderService {
         this.sqsClient = sqsClient;
     }
 
-    public void sendShipmentStatus(String shipmentId, String shipmentStatusAndDesc) {
+    public void sendShipmentStatus(String shipmentId, String shipmentStatusAndDesc, String reason) {
 
-        String message = "{"
-                + "\"shipmentId\":\"" + shipmentId + "\","
-                + "\"shipmentStatusAndDesc\":\"" + shipmentStatusAndDesc + "\""
-                + "}";
+		/*
+		 * String message = "{" + "\"shipmentId\":\"" + shipmentId + "\"," +
+		 * "\"shipmentStatusAndDesc\":\"" + shipmentStatusAndDesc + "\"," +
+		 * "\"reason\":\"" + reason + "\"" + "}";
+		 */
+    	
+    	//Building a JSON object to send to SQS
+    	ObjectMapper mapper = new ObjectMapper();
+
+    	ObjectNode json = mapper.createObjectNode();
+    	json.put("shipmentId", shipmentId);
+    	json.put("shipmentStatusAndDesc", shipmentStatusAndDesc);
+    		json.put("reason", reason); 
+
+    	String message = mapper.writeValueAsString(json);
 
         String queueUrl = "https://sqs.us-east-1.amazonaws.com/953158925887/ShippingSQS";
 

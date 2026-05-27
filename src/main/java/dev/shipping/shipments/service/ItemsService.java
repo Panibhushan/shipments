@@ -7,19 +7,27 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.jspecify.annotations.Nullable;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 
 import dev.shipping.shipments.model.Customers;
+import dev.shipping.shipments.model.Inventory;
 import dev.shipping.shipments.model.Items;
 import dev.shipping.shipments.model.Warehouses;
 import dev.shipping.shipments.repo.CustomersRepository;
 import dev.shipping.shipments.repo.ItemsRepository;
 import dev.shipping.shipments.repo.WarehousesRepository;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.TypedQuery;
 
 @Service
 public class ItemsService {
+
+	@Autowired
+	private EntityManager entityManager;
 
 	private final ItemsRepository itemsRepo;
 	private final CustomersRepository customersRepo;
@@ -121,7 +129,7 @@ public class ItemsService {
 		itemsRepo.deleteById(itemCustomerUomId);
 	}
 
-	public List<String> validateItemUpdate(String itemDescription, String itemStatus ) {
+	public List<String> validateItemUpdate(String itemDescription, String itemStatus) {
 		List<String> errors = new ArrayList<>();
 
 		// Item Description checks
@@ -150,11 +158,9 @@ public class ItemsService {
 
 	// ───────────────────────────────────────────── // WRITE //
 
-	
 	@Transactional
-	public void updateItem(String itemCustomerUomId, String itemDescription, String itemStatus,
-			String itemUom) {
-		Items item= itemsRepo.findById(itemCustomerUomId)
+	public void updateItem(String itemCustomerUomId, String itemDescription, String itemStatus, String itemUom) {
+		Items item = itemsRepo.findById(itemCustomerUomId)
 				.orElseThrow(() -> new RuntimeException("itemCustomerUomId not found: " + itemCustomerUomId));
 
 		item.setItemDescription(itemDescription);
@@ -162,11 +168,46 @@ public class ItemsService {
 		item.setItemStatus(itemStatus);
 
 		itemsRepo.save(item);
-	} 
+	}
 
 	public List<Items> getItemsByCustomer(String customerId) {
 		return itemsRepo.findItemsByCustomer(customerId);
 	}
 
+	// Dynamically setting the conditions and running a custom query in service
+	// instead of calling individual methods in Repo
+	@Transactional
+	public List<Items> getItemsList(String customerId, String itemId) {
+
+		StringBuilder query = new StringBuilder("SELECT i FROM Items i");
+
+		// Dynamically build WHERE clause
+		List<String> conditions = new ArrayList<>();
+
+		if (!customerId.equals("ALL"))
+			conditions.add("i.customerId = :customerId");
+		if (!itemId.equals("ALL"))
+			conditions.add("i.itemId = :itemId");
+
+		// Append WHERE + AND automatically
+		if (!conditions.isEmpty()) {
+			query.append(" WHERE ").append(String.join(" AND ", conditions));
+		}
+
+		// Create query
+		TypedQuery<Items> typedQuery = entityManager.createQuery(query.toString(), Items.class);
+
+		// Bind only non-null parameters
+		if (!customerId.equals("ALL"))
+			typedQuery.setParameter("customerId", customerId);
+		if (!itemId.equals("ALL"))
+			typedQuery.setParameter("itemId", itemId);
+
+		List<Items> resultList = typedQuery.getResultList();
+
+		System.out.println("final Query: " + query.toString() + "\nresultList: " + resultList.toString());
+
+		return resultList;
+	}
 
 }

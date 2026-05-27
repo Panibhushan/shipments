@@ -133,9 +133,6 @@
       <h2>🚢 Shipment Details</h2>
     </div>
 
-      <input type="hidden" id="shipmentId__1" th:value="${shipment.shipmentId}" />
-
-
     <!-- ── INFO CARD ── -->
     <div class="details-card">
       <div class="section-title">Shipment Information</div>
@@ -143,7 +140,7 @@
 
         <div class="info-field">
           <div class="field-label">Shipment ID</div>
-          <div class="field-value" th:text="${shipment.shipmentId}" >SHP-001</div>
+          <div class="field-value" th:text="${shipment.shipmentId}">SHP-001</div>
         </div>
 
         <div class="info-field">
@@ -377,67 +374,44 @@
     const shipmentId = /*[[${shipment.shipmentId}]]*/ '';
 
     function openAuditModal() {
+      openModal('auditModal');
+      const loading = document.getElementById('auditLoading');
+      const table   = document.getElementById('auditTable');
+      const tbody   = document.getElementById('auditTableBody');
 
-        openModal('auditModal');
+      loading.style.display = 'block';
+      table.style.display   = 'none';
+      tbody.innerHTML       = '';
 
-        const loading = document.getElementById('auditLoading');
-        const table   = document.getElementById('auditTable');
-        const tbody   = document.getElementById('auditTableBody');
-
-        loading.style.display = 'block';
-        loading.textContent   = 'Loading audit records...';
-
-        table.style.display = 'none';
-        tbody.innerHTML = '';
-
-        const shipmentId = document.getElementById('shipmentId__1').value;
-
-        fetch('/shipments/getShipmentAudit/' + shipmentId, {
-            method: 'GET',
-            headers: {
-                'Accept': 'application/json'
-            }
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Failed to fetch audit details');
-            }
-            return response.json();
-        })
-        .then(data => {
-
-            loading.style.display = 'none';
-
-            if (!data || data.length === 0) {
-                loading.style.display = 'block';
-                loading.textContent = 'No audit records found.';
-                return;
-            }
-
-            data.forEach(row => {
-
-                const status  = row.shipmentStatus || '—';
-                const dateTime = row.eventDate || '—';
-                const reason  = row.reason || '—';
-
-                tbody.innerHTML += `
-                    <tr>
-                        <td>${status}</td>
-                        <td>${dateTime}</td>
-                        <td>${reason}</td>
-                    </tr>
-                `;
-            });
-
-            table.style.display = 'table';
-        })
-        .catch(error => {
-
-            console.error(error);
-
-            loading.style.display = 'block';
-            loading.textContent = 'Error loading audit records.';
+      fetch(`/shipments/showShipmentAuditDetails/${shipmentId}`, {
+        method: 'GET', headers: { 'Accept': 'application/json' }
+      })
+      .then(r => { if (!r.ok) throw new Error('Failed'); return r.json(); })
+      .then(data => {
+        loading.style.display = 'none';
+        if (!data || data.length === 0) {
+          loading.style.display = 'block';
+          loading.textContent   = 'No audit records found.';
+          return;
+        }
+        const statusLabels = { 1100:'1100 — Created', 1200:'1200 — Picked', 1300:'1300 — Packed', 1400:'1400 — Shipped', 9000:'9000 — Cancelled' };
+        const statusClass  = { 1100:'s-1100', 1200:'s-1200', 1300:'s-1300', 1400:'s-1400', 9000:'s-9000' };
+        data.forEach(row => {
+          const label = statusLabels[row.shipStatus] || row.shipStatus;
+          const cls   = statusClass[row.shipStatus]  || 's-1100';
+          tbody.innerHTML += `
+            <tr>
+              <td><span class="badge ${cls}">${label}</span></td>
+              <td>${row.eventDateTime ?? '—'}</td>
+              <td>${row.reason ?? '—'}</td>
+            </tr>`;
         });
+        table.style.display = 'table';
+      })
+      .catch(() => {
+        loading.style.display = 'block';
+        loading.textContent   = 'Error loading audit records. Please try again.';
+      });
     }
 
     const auditBtn         = document.getElementById('openAuditModal');

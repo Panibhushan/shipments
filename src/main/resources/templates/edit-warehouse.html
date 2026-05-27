@@ -1,364 +1,139 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
-
 <head>
- 
   <link rel="stylesheet" th:href="@{/css/navbar.css}" />
-<style> 
-
-/* ── PAGE WRAPPER ── */
-.page-wrapper {
-	display: flex;
-	gap: 0;
-	align-items: flex-start;
-}
-
-/* ── SECTION 1 — 60% — Form ── */
-.form-section {
-	width: 60%;
-	padding: 20px 24px;
-	box-sizing: border-box;
-}
-
-/* ── SECTION 2 — 40% — Conditions ── */
-.conditions-section {
-	width: 40%;
-	padding: 20px 20px 24px;
-	box-sizing: border-box;
-	background: #f0f7f2;
-	border-left: 2px solid #c8e0d0;
-	border-radius: 8px;
-	align-self: flex-start;
-	margin-top: 20px;
-}
-.conditions-section h4 {
-	margin-top: 0;
-	font-size: 1rem;
-	color: #2d5a3d;
-}
-.conditions-section ol {
-	line-height: 1.9;
-	padding-left: 20px;
-	color: #333;
-}
-
-/* ── FORM CHROME ── */
-form#updateWarehouseDetails {
-	border-radius: 8px;
-	background-color: #f2f2f2;
-	padding: 20px 24px;
-}
-
-/* ── TWO-COLUMN GRID inside the form ── */
-.form-grid {
-	display: grid;
-	grid-template-columns: 1fr 1fr;
-	gap: 0 32px;
-}
-
-/* Full-width rows */
-.full-span {
-	grid-column: 1 / -1;
-}
-
-/* ── FIELD STYLING ── */
-label {
-	display: block;
-	font-weight: 400;
-	margin-top: 14px;
-	margin-bottom: 2px;
-	font-size: 0.82rem;
-	color: #888;
-	text-transform: uppercase;
-	letter-spacing: 0.04em;
-}
-
-/* Read-only display values — big & bold */
-.readonly-value {
-	padding: 6px 0 10px;
-	font-size: 1.25rem;
-	font-weight: 700;
-	color: #1a1a1a;
-	border-bottom: 2px solid #ccc;
-	margin-bottom: 10px;
-}
-
-input[type=text],
-input[type=date] {
-	width: 100%;
-	padding: 10px 12px;
-	margin: 4px 0 8px;
-	box-sizing: border-box;
-	border: 1px solid #ccc;
-	border-radius: 5px;
-	font-size: 0.95rem;
-	font-family: Arial, sans-serif;
-	background-color: #fff;
-	color: #333;
-}
-
-select {
-	width: 100%;
-	padding: 10px 12px;
-	margin: 4px 0 8px;
-	box-sizing: border-box;
-	border: 1px solid #ccc;
-	border-radius: 5px;
-	font-size: 0.95rem;
-	background: white;
-}
-
-/* ── Warehouse checkbox rows ── */
-.warehouse-label-row {
-	margin-top: 14px;
-}
-.warehouse-label-row label {
-	margin-bottom: 6px;
-}
-
-.tooltip-wrapper {
-	display: flex;
-	flex-wrap: wrap;
-	gap: 4px;
-	margin-top: 4px;
-}
-
-.tooltip-trigger {
-	position: relative;
-	cursor: pointer;
-	text-decoration: underline dotted;
-}
-
-.tooltip-box {
-	visibility: hidden;
-	opacity: 0;
-	background: #333;
-	color: #fff;
-	font-size: 0.8rem;
-	padding: 8px 12px;
-	border-radius: 4px;
-	line-height: 1.8;
-	white-space: nowrap;
-	position: absolute;
-	top: 100%;
-	left: 0;
-	z-index: 9999;
-	transition: opacity 0.2s;
-}
-.tooltip-trigger:hover .tooltip-box,
-.tooltip-box:hover {
-	visibility: visible;
-	opacity: 1;
-}
-.tooltip-box a {
-	display: block;
-	margin-top: 4px;
-	color: #90caf9;
-	text-decoration: underline;
-}
-
-/* ── BUTTONS ── */
-.button-row {
-	display: flex;
-	gap: 12px;
-	margin-top: 20px;
-}
-
-.btn-update {
-	display: inline-block;
-	background-color: #6a73b2;
-	color: #fcfaf5;
-	font-weight: bold;
-	padding: 10px 24px;
-	border: none;
-	border-radius: 6px;
-	cursor: pointer;
-	font-size: 0.95rem;
-}
-.btn-update:hover { background-color: #555fa0; }
-
-.btn-delete {
-	display: inline-block;
-	background-color: #ed4758;
-	color: #ffffff;
-	font-weight: bold;
-	padding: 10px 24px;
-	border: none;
-	border-radius: 6px;
-	cursor: pointer;
-	font-size: 0.95rem;
-}
-.btn-delete:hover { background-color: #c73444; }
-
-/* ── MSG BOX ── */
-#msgBox {
-	margin: 10px 16px;
-	padding: 10px 14px;
-	border-radius: 6px;
-	font-weight: bold;
-	position: relative;
-}
-</style>
-
-
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    body { font-family: Arial, sans-serif; background: #f4f6f9; margin: 0; min-height: 100vh; }
+    #msgBox { margin: 8px 24px 0; padding: 8px 40px 8px 14px; border-radius: 8px; font-weight: bold; position: relative; }
+    .page-wrapper { display: flex; gap: 20px; padding: 14px 24px; align-items: flex-start; }
+    .form-section { width: 62%; }
+    .form-section h2 { font-size: 1rem; color: #1e293b; margin: 0 0 10px; font-weight: 700; }
+    .form-card { background: #fff; border-radius: 12px; padding: 20px 24px; box-shadow: 0 2px 12px rgba(0,0,0,0.07); }
+    .section-title { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #94a3b8; margin: 14px 0 8px; padding-bottom: 5px; border-bottom: 1px solid #e2e8f0; }
+    .section-title:first-child { margin-top: 0; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 24px; }
+    .full-span { grid-column: 1 / -1; }
+    label { display: block; font-size: 0.7rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.06em; margin-top: 10px; margin-bottom: 3px; }
+    .readonly-value { font-size: 1rem; font-weight: 700; color: #1e293b; padding: 6px 0 8px; border-bottom: 2px solid #e2e8f0; margin-bottom: 4px; }
+    input[type=text], select {
+      width: 100%; padding: 9px 12px; margin: 0 0 2px;
+      border: 1.5px solid #cbd5e1; border-radius: 8px;
+      font-size: 0.92rem; font-family: Arial, sans-serif;
+      background: #f8fafc; color: #1e293b; outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    input:focus, select:focus { border-color: #6a73b2; box-shadow: 0 0 0 3px rgba(106,115,178,0.15); background: #fff; }
+    .button-row { margin-top: 18px; padding-top: 14px; border-top: 1px solid #e2e8f0; display: flex; gap: 10px; }
+    .btn-update { background-color: #6a73b2; color: #fff; font-weight: 700; font-size: 0.9rem; padding: 10px 26px; border: none; border-radius: 8px; cursor: pointer; transition: background-color 0.2s, transform 0.15s; }
+    .btn-update:hover { background-color: #555fa0; transform: translateY(-1px); }
+    .btn-delete { background-color: #ed4758; color: #fff; font-weight: 700; font-size: 0.9rem; padding: 10px 26px; border: none; border-radius: 8px; cursor: pointer; transition: background-color 0.2s, transform 0.15s; }
+    .btn-delete:hover { background-color: #c73444; transform: translateY(-1px); }
+    .conditions-section { width: 38%; background: #f0f7f2; border: 1px solid #c8e0d0; border-radius: 12px; padding: 18px 22px; align-self: flex-start; margin-top: 30px; }
+    .conditions-section h4 { margin: 0 0 10px; font-size: 0.92rem; color: #2d5a3d; }
+    .conditions-section ol { padding-left: 18px; color: #374151; line-height: 2; margin: 0; font-size: 0.85rem; }
+  </style>
 </head>
-
 <body>
+  <div th:replace="~{fragments/navbar :: navbar}"></div>
 
-<div th:replace="~{fragments/navbar :: navbar}"></div>
+  <p th:if="${msg}" id="msgBox" th:style="'background:' + ${bgColor} + '; color:' + ${textColor} + ';'">
+    <span th:utext="${msg}"></span>
+    <span onclick="this.parentElement.style.display='none'" style="position:absolute;right:14px;top:50%;transform:translateY(-50%);cursor:pointer;font-weight:bold;">✕</span>
+  </p>
 
-	<p th:if="${msg}" id="msgBox"
-		th:style="'background:' + ${bgColor} + '; color:' + ${textColor} + '; padding:10px; border-radius:6px; position:relative; font-weight:bold;'">
-		<span th:utext="${msg}"></span>&nbsp;&nbsp;&nbsp;&nbsp;		
-		<span onclick="this.parentElement.style.display='none'"
-			style="position:absolute; right:14px; cursor:pointer; font-weight:bold;">X</span>
-	</p>
+  <div class="page-wrapper">
+    <div class="form-section">
+      <h2>🏭 Edit Warehouse</h2>
+      <div class="form-card">
+        <form action="/warehouses/updateWarehouse" method="post"
+              name="updateWarehouseDetails" id="updateWarehouseDetails">
+          <input type="hidden" name="warehouseId" th:value="${warehouse.warehouseId}" />
 
-	<!-- ═══════════════════════════════════════════════ -->
-	<!--   PAGE WRAPPER: Section 1 (70%) + Section 2 (30%) -->
-	<!-- ═══════════════════════════════════════════════ -->
-	<div class="page-wrapper">
+          <div class="section-title">Warehouse Details</div>
+          <div class="form-grid">
+            <div>
+              <label>Warehouse ID</label>
+              <div class="readonly-value" th:text="${warehouse.warehouseId}">WH-001</div>
+              <label for="warehouseName">Warehouse Name</label>
+              <input type="text" name="warehouseName" id="warehouseName"
+                     placeholder="Enter warehouse name"
+                     th:value="${warehouse.warehouseName != null} ? ${warehouse.warehouseName} : ''" required />
+              <label for="warehouseStatus">Warehouse Status</label>
+              <select name="warehouseStatus" id="warehouseStatus" required>
+                <option th:each="opt : ${options}" th:value="${opt}" th:text="${opt}" th:selected="${opt == selectedStatus}"></option>
+              </select>
+            </div>
+            <div>
+              <label>Created At</label>
+              <div class="readonly-value" th:text="${warehouse.createdAt}">2024-01-01 10:00</div>
+              <label>Modified At</label>
+              <div class="readonly-value" th:text="${warehouse.modifiedAt}">2024-06-15 14:30</div>
+            </div>
+            <div class="full-span">
+              <label for="warehouseAddress">Warehouse Address</label>
+              <input type="text" name="warehouseAddress" id="warehouseAddress"
+                     placeholder="Enter warehouse address"
+                     th:value="${warehouse.warehouseAddress != null} ? ${warehouse.warehouseAddress} : ''" required />
+            </div>
+          </div>
 
-		<!-- ══ SECTION 1 — FORM (70%) ══ -->
-		<div class="form-section">
-			<form action="/warehouses/updateWarehouse" method="post"
-				name="updateWarehouseDetails" id="updateWarehouseDetails">
+          <div class="button-row">
+            <button type="button" class="btn-update" onclick="submitIfChanged(event)">✔ Update Warehouse</button>
+            <button type="button" class="btn-delete" onclick="confirmDelete()">🗑 Delete Warehouse</button>
+          </div>
+        </form>
 
-				<input type="hidden" name="warehouseId" th:value="${warehouse.warehouseId}" />
+        <form id="deleteWarehouseForm" th:action="@{'/warehouses/deleteWarehouse/' + ${warehouse.warehouseId}}" method="post" style="display:none;"></form>
+      </div>
+    </div>
 
-				<!-- TWO-COLUMN GRID -->
-				<div class="form-grid">
+    <div class="conditions-section">
+      <h4>📌 Conditions for updating warehouse</h4>
+      <ol>
+        <li>Warehouse Name must be at least 5 characters long.</li>
+        <li>Warehouse Name must be maximum 15 characters only.</li>
+        <li>Warehouse Address must be at least 10 characters long.</li>
+        <li>Warehouse Address must be maximum 50 characters only.</li>
+        <li><strong>Active</strong> = Shipping is allowed. <strong>Disabled</strong> = Not allowed.</li>
+      </ol>
+    </div>
+  </div>
 
-					<!-- ── Column 1: Warehouse Id, Name, Status ── -->
-					<div>
-						<label>Warehouse Id</label>
-						<div class="readonly-value" th:text="${warehouse.warehouseId}">WH-001</div>
+  <script>
+    window.addEventListener("load", function () {
+      var msg = document.getElementById("msgBox");
+      if (msg) setTimeout(() => msg.style.display = "none", 10000);
+    });
 
-						<label for="warehouseName">Warehouse Name</label>
-						<input type="text" name="warehouseName" id="warehouseName"
-							placeholder="Enter warehouse name"
-							th:value="${warehouse.warehouseName != null} ? ${warehouse.warehouseName} : ''"
-							required />
+    document.getElementById("updateWarehouseDetails").addEventListener("submit", function (event) {
+      let warehouseName    = document.getElementById("warehouseName").value;
+      let warehouseAddress = document.getElementById("warehouseAddress").value;
+      let errorMessage = '', isError = false;
+      if (warehouseName.trim().length < 5)  { isError = true; errorMessage += "Warehouse Name must be at least 5 characters!\n"; }
+      else if (warehouseName.trim().length > 15) { isError = true; errorMessage += "Warehouse Name must be maximum 15 characters!\n"; }
+      if (warehouseAddress.trim().length < 10) { isError = true; errorMessage += "Warehouse Address must be at least 10 characters!\n"; }
+      else if (warehouseAddress.trim().length > 50) { isError = true; errorMessage += "Warehouse Address must be maximum 50 characters!\n"; }
+      if (isError) { alert(errorMessage); event.preventDefault(); }
+    });
 
-						<label for="warehouseStatus">Warehouse Status</label>
-						<select name="warehouseStatus" id="warehouseStatus" required>
-							<option th:each="opt : ${options}" th:value="${opt}"
-								th:text="${opt}" th:selected="${opt == selectedStatus}">
-							</option>
-						</select>
-					</div>
+    const originalValues = {};
+    document.querySelectorAll("#updateWarehouseDetails input, #updateWarehouseDetails select").forEach(field => {
+      originalValues[field.name] = field.value;
+    });
 
-					<!-- ── Column 2: Created At, Modified At ── -->
-					<div>
-						<label>Created At</label>
-						<div class="readonly-value" th:text="${warehouse.createdAt}">2024-01-01 10:00</div>
+    function confirmDelete() {
+      if (confirm('Are you sure you want to delete this warehouse?')) document.getElementById("deleteWarehouseForm").submit();
+    }
 
-						<label>Modified At</label>
-						<div class="readonly-value" th:text="${warehouse.modifiedAt}">2024-06-15 14:30</div>
-					</div>
-
-					<!-- ── Full-width row: Warehouse Address ── -->
-					<div class="full-span">
-						<label for="warehouseAddress">Warehouse Address</label>
-						<input type="text" name="warehouseAddress" id="warehouseAddress"
-							placeholder="Enter warehouse address"
-							th:value="${warehouse.warehouseAddress != null} ? ${warehouse.warehouseAddress} : ''"
-							required />
-					</div>
-
-				</div><!-- /form-grid -->
-
-				<!-- Both buttons inside the colored form area -->
-				<div class="button-row" style="margin-top: 16px;">
-					<button type="button" class="btn-update" onclick="submitIfChanged(event)">
-						Update Warehouse
-					</button>
-					<form th:action="@{'/warehouses/deleteWarehouse/' + ${warehouse.warehouseId}}" method="post" style="display:inline; margin:0;">
-						<button type="submit" class="btn-delete"
-							onclick="return confirm('Are you sure you want to delete this warehouse?')">
-							Delete Warehouse
-						</button>
-					</form>
-				</div>
-
-			</form><!-- /updateWarehouseDetails -->
-		</div><!-- /form-section -->
-
-		<!-- ══ SECTION 2 — CONDITIONS (30%) ══ -->
-		<div class="conditions-section">
-			<h4>📌 Conditions for updating warehouse</h4>
-			<ol>
-				<li>Warehouse Name must be at least 5 characters long.</li>
-				<li>Warehouse Name must be maximum 15 characters only.</li>
-				<li>Warehouse Address must be at least 10 characters long.</li>
-				<li>Warehouse Address must be maximum 50 characters only.</li>
-				<li>Warehouse Status: <strong>Active</strong> = Shipping is allowed. <strong>Disabled</strong> = Shipping is not allowed.</li>
-			</ol>
-		</div><!-- /conditions-section -->
-
-	</div><!-- /page-wrapper -->
-
-
-	<script>
-		// Auto-hide msg box after 10s
-		window.addEventListener("load", function () {
-			var msg = document.getElementById("msgBox");
-			if (msg) {
-				setTimeout(function () {
-					msg.style.display = "none";
-				}, 10000);
-			}
-		});
-
-		// Client-side validation
-		document.getElementById("updateWarehouseDetails").addEventListener("submit", function (event) {
-			let warehouseName    = document.getElementById("warehouseName").value;
-			let warehouseAddress = document.getElementById("warehouseAddress").value;
-			let errorMessage = '';
-			let isError = false;
-
-			if (warehouseName.trim().length < 5) {
-				isError = true;
-				errorMessage += "Warehouse Name must be at least 5 characters long!\n";
-			} else if (warehouseName.trim().length > 15) {
-				isError = true;
-				errorMessage += "Warehouse Name must be maximum 15 characters only!\n";
-			}
-
-			if (warehouseAddress.trim().length < 10) {
-				isError = true;
-				errorMessage += "Warehouse Address must be at least 10 characters long!\n";
-			} else if (warehouseAddress.trim().length > 50) {
-				isError = true;
-				errorMessage += "Warehouse Address must be maximum 50 characters only!\n";
-			}
-
-			if (isError) {
-				alert(errorMessage);
-				event.preventDefault();
-			}
-		});
-
-		// Store original values on page load
-		const originalValues = {};
-		document.querySelectorAll("#updateWarehouseDetails input, #updateWarehouseDetails select").forEach(field => {
-			originalValues[field.name] = field.value;
-		});
-
-		function submitIfChanged(event) {
-			const hasChanges = Object.keys(originalValues).some(name => {
-				const field = document.querySelector(`#updateWarehouseDetails [name="${name}"]`);
-				return field && field.value !== originalValues[name];
-			});
-
-			if (!hasChanges) {
-				alert("No changes were made to warehouse details — not updating.");
-				event.preventDefault();
-				return false;
-			} else {
-				document.getElementById("updateWarehouseDetails").submit();
-			}
-		}
-	</script>
+    function submitIfChanged(event) {
+      const hasChanges = Object.keys(originalValues).some(name => {
+        const field = document.querySelector(`#updateWarehouseDetails [name="${name}"]`);
+        return field && field.value !== originalValues[name];
+      });
+      if (!hasChanges) { alert("No changes were made — not updating."); return false; }
+      document.getElementById("updateWarehouseDetails").submit();
+    }
+  </script>
 </body>
 </html>

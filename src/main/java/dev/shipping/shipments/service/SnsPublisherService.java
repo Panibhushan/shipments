@@ -4,6 +4,8 @@ import org.springframework.stereotype.Service;
 import software.amazon.awssdk.services.sns.SnsClient;
 import software.amazon.awssdk.services.sns.model.PublishRequest;
 import software.amazon.awssdk.services.sns.model.PublishResponse;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.node.ObjectNode;
 
 @Service
 public class SnsPublisherService {
@@ -18,18 +20,28 @@ public class SnsPublisherService {
         this.snsClient = snsClient;
     }
 
-    public void publishShipmentStatus(String shipmentId, String shipmentStatusAndDesc) {
+    public void publishShipmentStatus(String shipmentId, String shipmentStatusAndDesc, String reason) {
 
-        String message = "{"
-                + "\"shipmentId\":\"" + shipmentId + "\","
-                + "\"shipmentStatusAndDesc\":\"" + shipmentStatusAndDesc + "\""
-                + "}";
+    	/*
+		 * String message = "{" + "\"shipmentId\":\"" + shipmentId + "\"," +
+		 * "\"shipmentStatusAndDesc\":\"" + shipmentStatusAndDesc + "\"," +
+		 * "\"reason\":\"" + reason + "\"" + "}";
+		 */
+    	
+    	//Building a JSON object to send to SQS
+    	ObjectMapper mapper = new ObjectMapper();
+
+    	ObjectNode json = mapper.createObjectNode();
+    	json.put("shipmentId", shipmentId);
+    	json.put("shipmentStatusAndDesc", shipmentStatusAndDesc);
+		json.put("reason", reason);
+		
+		String message = mapper.writeValueAsString(json);
 
         PublishRequest request = PublishRequest.builder()
                 .topicArn(topicArn)
                 .message(message)
                 .build();
- 
         
         try {
             PublishResponse response = snsClient.publish(request);

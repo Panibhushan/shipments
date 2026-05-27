@@ -3,6 +3,7 @@ package dev.shipping.shipments.controller;
 import dev.shipping.shipments.model.Shipments;
 import dev.shipping.shipments.service.CustomersService;
 import dev.shipping.shipments.service.ShipmentsService;
+import dev.shipping.shipments.service.WarehousesService;
 
 import java.util.List;
 import java.util.Map;
@@ -20,10 +21,12 @@ public class ShipmentsController {
 
 	private final ShipmentsService shipmentsService;
 	private final CustomersService customersService;
-
-	public ShipmentsController(ShipmentsService shipmentsService, CustomersService customersService) {
+	private final WarehousesService warehousesService;
+	
+	public ShipmentsController(ShipmentsService shipmentsService, CustomersService customersService, WarehousesService warehousesService) {
 		this.shipmentsService = shipmentsService;
 		this.customersService = customersService;
+		this.warehousesService = warehousesService;
 	}
 
 	// ─────────────────────────────────────────────
@@ -41,36 +44,72 @@ public class ShipmentsController {
 		model.addAttribute("activePage", "allShipments"); // ← this shows which dropdown is active in the navbar
 		model.addAttribute("selectedCustomer", "ALL");
 		model.addAttribute("customers", customersService.getAllCustomers());
+		model.addAttribute("warehouses", warehousesService.getAllWarehouses());
 		return "show-all-shipments";
 	}
 
-	@PostMapping("/shipments/showShipmentsByCustomerAndWarehouse/{customerId}/{warehouseId}")
-	public String showShipmentsByCustomerAndWarehouse(@PathVariable String customerId, @PathVariable String warehouseId,
+	/*
+	 * @PostMapping(
+	 * "/shipments/showShipmentsByCustomerAndWarehouse/{customerId}/{warehouseId}")
+	 * public String showShipmentsByCustomerAndWarehouse(@PathVariable String
+	 * customerId, @PathVariable String warehouseId, Model model) {
+	 * 
+	 * System.out.
+	 * println("/shipments/showShipmentsByCustomerAndWarehouse/{customerId}/{warehouseId}: "
+	 * + customerId + " / " + warehouseId); if (customerId.equals("ALL") &&
+	 * warehouseId.equals("ALL")) { // Both customer & warehouses are selected as
+	 * ALL return "redirect:/shipments/"; } else if (warehouseId.equals("ALL")) { //
+	 * Specific customer is selected but warehouses is selected as ALL
+	 * model.addAttribute("shipments",
+	 * shipmentsService.getShipmentsByCustomer(customerId)); } else { // Both
+	 * customer & warehouses are selected with specific values
+	 * model.addAttribute("shipments",
+	 * shipmentsService.getShipmentsByCustomerAndWarehouse(customerId,
+	 * warehouseId)); }
+	 * 
+	 * // IF a specific customer is selected then loading the warehouses to display
+	 * // when the results are passed to show-all-shipments page if
+	 * (!customerId.equals("ALL")) { model.addAttribute("warehouses",
+	 * shipmentsService.getWarehousesByCustomer(customerId)); }else {
+	 * model.addAttribute("warehouses", warehousesService.getAllWarehouses()); }
+	 * 
+	 * model.addAttribute("selectedCustomer", customerId);
+	 * model.addAttribute("selectedWarehouse", warehouseId);
+	 * model.addAttribute("customers", customersService.getAllCustomers());
+	 * model.addAttribute("activePage", "allShipments"); // ← this shows which
+	 * dropdown is active in the navbar return "show-all-shipments";
+	 * 
+	 * }
+	 */
+	
+	
+	@PostMapping("/shipments/showShipmentsByCustomerAndWarehouseAndStatus/{customerId}/{warehouseId}/{status}")
+	public String showShipmentsByCustomerAndWarehouse(@PathVariable String customerId, @PathVariable String warehouseId, @PathVariable String status,
 			Model model) {
 
-		System.out.println("/shipments/showShipmentsByCustomerAndWarehouse/{customerId}/{warehouseId}: " + customerId
-				+ " / " + warehouseId);
-		if (customerId.equals("ALL") && warehouseId.equals("ALL")) { // Both customer & warehouses are selected as ALL
-			return "redirect:/shipments/";
-		} else if (warehouseId.equals("ALL")) { // Specific customer is selected but warehouses is selected as ALL
-			model.addAttribute("shipments", shipmentsService.getShipmentsByCustomer(customerId));
-		} else { // Both customer & warehouses are selected with specific values
-			model.addAttribute("shipments",
-					shipmentsService.getShipmentsByCustomerAndWarehouse(customerId, warehouseId));
-		}
+		System.out.println("/shipments/showShipmentsByCustomerAndWarehouseAndStatus/{customerId}/{warehouseId}: " + customerId
+				+ " / " + warehouseId + " / " + status);
 
-		//IF a specific customer is selected then loading the warehouses to display when the results are passed to show-all-shipments page
-		if (!customerId.equals("ALL")) {
+		model.addAttribute("shipments", shipmentsService.getShipmentDetails(customerId, warehouseId, status));
+		model.addAttribute("selectedCustomer", customerId);
+		model.addAttribute("selectedWarehouse", warehouseId);
+		model.addAttribute("selectedStatus", status.equals("ALL") ? "" : status);
+		model.addAttribute("customers", customersService.getAllCustomers());
+
+		if (customerId.equals("ALL")) {
+			model.addAttribute("warehouses", warehousesService.getAllWarehouses());
+		} else {
 			model.addAttribute("warehouses", shipmentsService.getWarehousesByCustomer(customerId));
 		}
 		
-		model.addAttribute("selectedCustomer", customerId);
-		model.addAttribute("selectedWarehouse", warehouseId);
-		model.addAttribute("customers", customersService.getAllCustomers());
-		model.addAttribute("activePage", "allShipments"); // ← this shows which dropdown is active in the navbar
 		return "show-all-shipments";
 
 	}
+	
+	
+	
+	
+	
 
 	// ─────────────────────────────────────────────
 	// CREATE SHIPMENT
@@ -138,8 +177,8 @@ public class ShipmentsController {
 			@RequestParam String action, @RequestParam String customerId, @RequestParam String warehouseId,
 			RedirectAttributes redirectAttributes) {
 
-		String response = shipmentsService.updateShipmentStatus(shipmentId, shipStatus, action, customerId,
-				warehouseId);
+		String response = shipmentsService.updateShipmentStatus(shipmentId, shipStatus, action, customerId, warehouseId,
+				"reason");
 
 		if (!response.equals("SHIPMENT_STATUS_UPDATED_SUCCESSFULLY")) {
 			redirectAttributes.addFlashAttribute("msg", response);
@@ -152,13 +191,86 @@ public class ShipmentsController {
 		return "redirect:/shipments/";
 	}
 
+	/*
+	 * @PostMapping("/shipments/updateShipmentStatusFromInsideShipmentDetailsPage")
+	 * public String updateShipmentStatusFromInsideShipmentDetailsPage(@RequestParam
+	 * String shipmentId,
+	 * 
+	 * @RequestParam Integer shipStatus, @RequestParam String action, @RequestParam
+	 * String customerId,
+	 * 
+	 * @RequestParam String warehouseId, RedirectAttributes redirectAttributes) {
+	 * 
+	 * String response = shipmentsService.updateShipmentStatus(shipmentId,
+	 * shipStatus, action, customerId, warehouseId);
+	 * 
+	 * if (!response.equals("SHIPMENT_STATUS_UPDATED_SUCCESSFULLY")) {
+	 * redirectAttributes.addFlashAttribute("msg", response);
+	 * redirectAttributes.addFlashAttribute("customerId", customerId);
+	 * redirectAttributes.addFlashAttribute("warehouseId", warehouseId);
+	 * redirectAttributes.addFlashAttribute("disableButtonActions", true);
+	 * redirectAttributes.addFlashAttribute("bgColor", "#d95f6c");
+	 * redirectAttributes.addFlashAttribute("textColor", "#ffffff"); }
+	 * 
+	 * return "redirect:/shipments/showShipmentDetails/" + shipmentId; }
+	 */
+
+	/*
+	 * @PostMapping(
+	 * "/shipments/updateShipmentStatusFromInsideShipmentAuditDetailsPage") public
+	 * String updateShipmentStatusFromInsideShipmentAuditDetailsPage(@RequestParam
+	 * String shipmentId,
+	 * 
+	 * @RequestParam Integer shipStatus, @RequestParam String action, @RequestParam
+	 * String customerId,
+	 * 
+	 * @RequestParam String warehouseId, RedirectAttributes redirectAttributes) {
+	 * 
+	 * // ✅ Fixed: was calling the helper TWICE in the original — now called once
+	 * String response = shipmentsService.updateShipmentStatus(shipmentId,
+	 * shipStatus, action, customerId, warehouseId);
+	 * 
+	 * if (!response.equals("SHIPMENT_STATUS_UPDATED_SUCCESSFULLY")) {
+	 * redirectAttributes.addFlashAttribute("msg", response);
+	 * redirectAttributes.addFlashAttribute("customerId", customerId);
+	 * redirectAttributes.addFlashAttribute("warehouseId", warehouseId);
+	 * redirectAttributes.addFlashAttribute("disableButtonActions", true);
+	 * redirectAttributes.addFlashAttribute("bgColor", "#d95f6c");
+	 * redirectAttributes.addFlashAttribute("textColor", "#ffffff"); }
+	 * 
+	 * return "redirect:/shipments/showShipmentAuditDetails/" + shipmentId; }
+	 */
+
+	// ─────────────────────────────────────────────
+	// SHIPMENT AUDIT
+	// ─────────────────────────────────────────────
+
+	/*
+	 * @GetMapping("/shipments/showShipmentAuditDetails/{shipmentId}") public String
+	 * showShipmentAuditDetails(@PathVariable String shipmentId, Model model,
+	 * RedirectAttributes redirectAttributes) {
+	 * 
+	 * Shipments shipment = shipmentsService.getShipmentById(shipmentId);
+	 * 
+	 * if (shipment != null) { model.addAttribute("shipment", shipment);
+	 * model.addAttribute("shipmentAudit",
+	 * shipmentsService.getShipmentAudit(shipmentId)); return "show-shipment-audit";
+	 * } else { redirectAttributes.addFlashAttribute("msg", "Shipment " + shipmentId
+	 * + " doesnt exist !!!"); return "redirect:/shipments/"; } }
+	 */
+
 	@PostMapping("/shipments/updateShipmentStatusFromInsideShipmentDetailsPage")
 	public String updateShipmentStatusFromInsideShipmentDetailsPage(@RequestParam String shipmentId,
 			@RequestParam Integer shipStatus, @RequestParam String action, @RequestParam String customerId,
-			@RequestParam String warehouseId, RedirectAttributes redirectAttributes) {
+			@RequestParam String warehouseId,
+			@RequestParam(required = false, defaultValue = "") String cancellationReason,
+			RedirectAttributes redirectAttributes) {
+		
+		System.out.println("/shipments/updateShipmentStatusFromInsideShipmentDetailsPage:: "+shipmentId+" --- "+shipStatus+" --- "+action+" --- "+customerId+" --- "+warehouseId+" --- "+cancellationReason);
 
-		String response = shipmentsService.updateShipmentStatus(shipmentId, shipStatus, action, customerId,
-				warehouseId);
+		// pass cancellationReason into your service as needed
+		String response = shipmentsService.updateShipmentStatus(shipmentId, shipStatus, action, customerId, warehouseId,
+				cancellationReason);
 
 		if (!response.equals("SHIPMENT_STATUS_UPDATED_SUCCESSFULLY")) {
 			redirectAttributes.addFlashAttribute("msg", response);
@@ -172,45 +284,16 @@ public class ShipmentsController {
 		return "redirect:/shipments/showShipmentDetails/" + shipmentId;
 	}
 
-	@PostMapping("/shipments/updateShipmentStatusFromInsideShipmentAuditDetailsPage")
-	public String updateShipmentStatusFromInsideShipmentAuditDetailsPage(@RequestParam String shipmentId,
-			@RequestParam Integer shipStatus, @RequestParam String action, @RequestParam String customerId,
-			@RequestParam String warehouseId, RedirectAttributes redirectAttributes) {
-
-		// ✅ Fixed: was calling the helper TWICE in the original — now called once
-		String response = shipmentsService.updateShipmentStatus(shipmentId, shipStatus, action, customerId,
-				warehouseId);
-
-		if (!response.equals("SHIPMENT_STATUS_UPDATED_SUCCESSFULLY")) {
-			redirectAttributes.addFlashAttribute("msg", response);
-			redirectAttributes.addFlashAttribute("customerId", customerId);
-			redirectAttributes.addFlashAttribute("warehouseId", warehouseId);
-			redirectAttributes.addFlashAttribute("disableButtonActions", true);
-			redirectAttributes.addFlashAttribute("bgColor", "#d95f6c");
-			redirectAttributes.addFlashAttribute("textColor", "#ffffff");
-		}
-
-		return "redirect:/shipments/showShipmentAuditDetails/" + shipmentId;
-	}
-
-	// ─────────────────────────────────────────────
-	// SHIPMENT AUDIT
-	// ─────────────────────────────────────────────
-
-	@GetMapping("/shipments/showShipmentAuditDetails/{shipmentId}")
-	public String showShipmentAuditDetails(@PathVariable String shipmentId, Model model,
-			RedirectAttributes redirectAttributes) {
-
-		Shipments shipment = shipmentsService.getShipmentById(shipmentId);
-
-		if (shipment != null) {
-			model.addAttribute("shipment", shipment);
-			model.addAttribute("shipmentAudit", shipmentsService.getShipmentAudit(shipmentId));
-			return "show-shipment-audit";
-		} else {
-			redirectAttributes.addFlashAttribute("msg", "Shipment " + shipmentId + " doesnt exist !!!");
-			return "redirect:/shipments/";
-		}
+	@GetMapping("/shipments/getShipmentAudit/{shipmentId}")
+	@ResponseBody
+	public List<Map<String, String>> getShipmentAudit(@PathVariable String shipmentId) {
+		
+		System.out.println("/shipments/getShipmentAudit/{shipmentId}: "+shipmentId);
+		
+		List<Map<String, String>> shipmentsAudit = shipmentsService.getShipmentAudit(shipmentId);
+		
+		System.out.println("/shipments/getShipmentAudit/{shipmentId}: shipmentsAudit: "+shipmentsAudit);
+		return shipmentsAudit;
 	}
 
 }
