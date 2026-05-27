@@ -5,8 +5,13 @@
 .navbar {
   list-style-type: none;
   margin: 0;
+<<<<<<< HEAD
   padding: 0 8px;
   background: linear-gradient(135deg, #3730a3 0%, #4f46e5 50%, #6a73b2 100%);
+=======
+  padding: 0;
+  background-color: #638ab5;
+>>>>>>> 8d2e94fbe2449b43bc8f36e3d45196022e2287f2
   display: flex;
   align-items: stretch;
   white-space: nowrap;
@@ -125,7 +130,13 @@
   padding-left: 24px;
 }
 
+<<<<<<< HEAD
 /* ── DIVIDER BETWEEN ITEMS ── */
 .dropdown-menu li + li {
   border-top: 1px solid rgba(255,255,255,0.08);
 }
+=======
+.navbar li:hover .dropdown-menu {
+  display: block;
+}
+>>>>>>> 8d2e94fbe2449b43bc8f36e3d45196022e2287f2
