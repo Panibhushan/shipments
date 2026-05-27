@@ -20,37 +20,39 @@ public class DynamoDbService {
 		this.dynamoDbClient = dynamoDbClient;
 	}
 
-	public List<Map<String, String>> getShipmentAudiyByShipmentIdAsPartitionKey(String tableName, String singleShipmentId) {
-		
-		// ShipmentId is partition-key in DDB, while singleShipmentId is the id of the shipment that we need the audit details 
+	public List<Map<String, String>> getShipmentAudiyByShipmentIdAsPartitionKey(String tableName,
+			String singleShipmentId) {
+
+		// ShipmentId is partition-key in DDB, while singleShipmentId is the id of the
+		// shipment that we need the audit details
 		QueryRequest request = QueryRequest.builder().tableName(tableName)
-				.keyConditionExpression("ShipmentId = :singleShipmentId")
-				.expressionAttributeValues(Map.of(":singleShipmentId", AttributeValue.builder().s(singleShipmentId).build()))
+				.keyConditionExpression("ShipmentId = :singleShipmentId").expressionAttributeValues(
+						Map.of(":singleShipmentId", AttributeValue.builder().s(singleShipmentId).build()))
 				.build();
 
 		QueryResponse response = dynamoDbClient.query(request);
-		
-		
+
 		// DynamoDb will send data in List<Map<String, AttributeValue>> format
-		List<Map<String, AttributeValue>> responseFromDynamoDb=  response.items();
-		
+		List<Map<String, AttributeValue>> responseFromDynamoDb = response.items();
+
 		System.out.println("responseFromDynamoDb inside Service: " + responseFromDynamoDb);
-		
-		//We convert it to List<Map<String, String>> for easy readabiliy and for passing to HTML		
+
+		// We convert it to List<Map<String, String>> for easy readabiliy and for
+		// passing to HTML
 		List<Map<String, String>> singleShipmentAuditDetails = new ArrayList<>();
 
-	    for (Map<String, AttributeValue> audit : responseFromDynamoDb) {
+		for (Map<String, AttributeValue> audit : responseFromDynamoDb) {
 
-	        Map<String, String> map = new HashMap<>();
+			Map<String, String> map = new HashMap<>();
 
-	        map.put("shipmentId", audit.get("ShipmentId").s());
-	        map.put("eventDate", audit.get("EventDate").s());
-	        map.put("shipmentStatus", audit.get("ShipmentStatus").s());
-	        map.put("reason", audit.get("Reason").s());
+			map.put("shipmentId", audit.get("ShipmentId").s());
+			map.put("eventDate", audit.get("EventDate").s());
+			map.put("shipmentStatus", audit.get("ShipmentStatus").s());
+			map.put("reason", audit.get("Reason").s());
 
-	        singleShipmentAuditDetails.add(map);
-	    }	
-		
+			singleShipmentAuditDetails.add(map);
+		}
+
 		return singleShipmentAuditDetails;
 	}
 
