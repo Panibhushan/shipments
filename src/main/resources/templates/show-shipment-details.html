@@ -204,7 +204,7 @@
 
         <!-- PICK -->
         <form th:if="${shipment.shipStatus == 1100}"
-              th:action="@{/shipments/updateShipmentStatusFromInsideShipmentDetailsPage}" method="post">
+              th:action="@{/shipments/updateShipmentStatus}" method="post">
           <input type="hidden" name="shipmentId"  th:value="${shipment.shipmentId}" />
           <input type="hidden" name="shipStatus"  th:value="${shipment.shipStatus}" />
           <input type="hidden" name="customerId"  th:value="${shipment.customerId}" />
@@ -214,7 +214,7 @@
 
         <!-- PACK -->
         <form th:if="${shipment.shipStatus == 1200}"
-              th:action="@{/shipments/updateShipmentStatusFromInsideShipmentDetailsPage}" method="post">
+              th:action="@{/shipments/updateShipmentStatus}" method="post">
           <input type="hidden" name="shipmentId"  th:value="${shipment.shipmentId}" />
           <input type="hidden" name="shipStatus"  th:value="${shipment.shipStatus}" />
           <input type="hidden" name="customerId"  th:value="${shipment.customerId}" />
@@ -224,7 +224,7 @@
 
         <!-- SHIP -->
         <form th:if="${shipment.shipStatus == 1300}"
-              th:action="@{/shipments/updateShipmentStatusFromInsideShipmentDetailsPage}" method="post">
+              th:action="@{/shipments/updateShipmentStatus}" method="post">
           <input type="hidden" name="shipmentId"  th:value="${shipment.shipmentId}" />
           <input type="hidden" name="shipStatus"  th:value="${shipment.shipStatus}" />
           <input type="hidden" name="customerId"  th:value="${shipment.customerId}" />
@@ -276,7 +276,7 @@
 
   <!-- hidden cancel form submitted by JS -->
   <form id="cancelForm"
-        th:action="@{/shipments/updateShipmentStatusFromInsideShipmentDetailsPage}"
+        th:action="@{/shipments/updateShipmentStatus}"
         method="post" style="display:none;">
     <input type="hidden" name="shipmentId"       th:value="${shipment.shipmentId}" />
     <input type="hidden" name="shipStatus"        th:value="${shipment.shipStatus}" />

@@ -418,7 +418,7 @@ td {
 		<!-- FILTER BAR -->
 		<div class="filter-bar">
 			<form id="customerAndWarehouseAndStatusForm"
-				th:action="@{/shipments/showShipmentsByCustomerAndWarehouseAndStatus/ALL/ALL/ALL}"
+				th:action="@{/shipments/showShipmentsByFilters/ALL/ALL/ALL}"
 				method="post">
 
 				<label for="customerId">Customer</label> <select name="customerId"
@@ -589,7 +589,7 @@ td {
 			const c = document.getElementById('customerId').value;
 			const w = document.getElementById('warehouseSelect').value;
 			const st = document.getElementById('statusSelect').value;
-			this.action = `/shipments/showShipmentsByCustomerAndWarehouseAndStatus/${c}/${w}/${st}`;
+			this.action = `/shipments/showShipmentsByFilters/${c}/${w}/${st}`;
 			this.submit();
 		});
 		function loadWarehouses(customerId) {

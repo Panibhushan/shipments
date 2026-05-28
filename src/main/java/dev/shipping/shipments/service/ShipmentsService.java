@@ -27,12 +27,13 @@ import java.util.Optional;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
+
 @Service
 public class ShipmentsService {
 
 	@Autowired
-    private EntityManager entityManager;
-	
+	private EntityManager entityManager;
+
 	private final ShipmentsRepository shipmentsRepo;
 	private final CustomersRepository customersRepo;
 	private final CustomerWarehousesRepository customerWarehousesRepo;
@@ -65,8 +66,8 @@ public class ShipmentsService {
 	 * Returns null if not found — controller decides how to handle (redirect vs
 	 * show).
 	 */
-	public Shipments getShipmentById(String shipmentId) {
-		return shipmentsRepo.findById(shipmentId).orElse(null);
+	public Optional<Shipments> getShipmentById(String shipmentId) {
+		return shipmentsRepo.findById(shipmentId) ;
 	}
 
 	/**
@@ -88,79 +89,59 @@ public class ShipmentsService {
 	// ─────────────────────────────────────────────
 	// CREATE
 	// ─────────────────────────────────────────────
-
-	/**
-	 * Result object returned to the controller so it knows what flash messages to
-	 * set. Avoids leaking business decisions (success/failure) into HTTP layer.
-	 */
-	public static class CreateShipmentResult {
-		private final boolean success;
-		private final String shipmentId;
-		private final String errorMessage;
-
-		private CreateShipmentResult(boolean success, String shipmentId, String errorMessage) {
-			this.success = success;
-			this.shipmentId = shipmentId;
-			this.errorMessage = errorMessage;
-		}
-
-		public static CreateShipmentResult success(String shipmentId) {
-			return new CreateShipmentResult(true, shipmentId, null);
-		}
-
-		public static CreateShipmentResult failure(String errorMessage) {
-			return new CreateShipmentResult(false, null, errorMessage);
-		}
-
-		public boolean isSuccess() {
-			return success;
-		}
-
-		public String getShipmentId() {
-			return shipmentId;
-		}
-
-		public String getErrorMessage() {
-			return errorMessage;
-		}
-	}
-
-	/**
+	/*
 	 * Validates customer and warehouse, saves shipment, publishes SNS notification.
 	 */
+
 	@Transactional
-	public CreateShipmentResult createShipment(Shipments shipment, String customerId, String warehouseId) {
+	public String[] createShipment(Shipments shipment, String customerId, String warehouseId) {
 		String errorMessage = "";
 		boolean hasError = false;
 
 		Optional<Customers> customer = customersRepo.findById(customerId);
 		if (customer.isEmpty()) {
-			hasError = true;
-			errorMessage += "Customer not found\n";
+			return new String[] { "FAILED", "Customer: " + customerId + " is not found\n" };
 		}
 
+		// Check customer active status and contract validity
+		boolean isCustomerActiveAndHasValidContract = false;
+		if (customer.isPresent()) {
+			DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MMM-yyyy HH:mm:ss");
+			LocalDateTime validUptoDateTime = LocalDateTime.parse(customer.get().getValidUpto(), formatter);
+			LocalDateTime startOfToday = LocalDate.now().atStartOfDay();
+			String customerStatus = customer.get().getCustomerStatus();
+			isCustomerActiveAndHasValidContract = validUptoDateTime.isAfter(startOfToday)
+					&& customerStatus.equals("Active");
+		}
+
+		if (!isCustomerActiveAndHasValidContract) {
+			return new String[] { "FAILED", "Customer: " + customerId
+					+ " is either Disabled or Contacrt has expired!! &nbsp;&nbsp; <a target=\"_blank\" style=\"color: #4580ed;\" href='/customers/showCustomerDetails/"
+					+ customerId + "'>View " + customerId + "</a>" };
+		}
+
+		//check if customer is configured with the selected warehouse
 		Optional<CustomerWarehouses> customerWarehouses = customerWarehousesRepo
 				.findById(customerId + "_" + warehouseId);
+
 		if (customerWarehouses.isEmpty()) {
-			hasError = true;
-			errorMessage += "Customer is not configured to ship from this warehouse";
+			return new String[] { "FAILED", "Customer: " + customerId + " is not configured to ship from " + warehouseId
+					+ " warehouse !! &nbsp;&nbsp; <a target=\"_blank\" style=\"color: #4580ed;\" href='/customers/showCustomerDetails/"
+					+ customerId + "'>View " + customerId + "</a>" };
 		}
 
-		if (hasError) {
-			return CreateShipmentResult.failure("Failed to create shipment!");
-		}
-
+		// If no errors are found, then proceed to save the shipment 
 		shipment.setCustomerId(customerId);
 		shipment.setWarehouseId(warehouseId);
 
 		Shipments savedShipment = shipmentsRepo.save(shipment);
 
 		if (savedShipment != null && savedShipment.getShipmentId() != null) {
-			snsService.publishShipmentStatus(savedShipment.getShipmentId(), "1100 - Created", " ");
-			sqsService.sendShipmentStatus(savedShipment.getShipmentId(), "1100 - Created", " ");
-			return CreateShipmentResult.success(savedShipment.getShipmentId());
+			snsService.publishShipmentStatus(savedShipment.getShipmentId(), "1100 - Created", "SHIPMENT_CREATED");
+			sqsService.sendShipmentStatus(savedShipment.getShipmentId(), "1100 - Created", "SHIPMENT_CREATED");
+			return new String[] { "SUCCESS", savedShipment.getShipmentId() };
 		} else {
-			return CreateShipmentResult.failure("Failed to create shipment!");
+			return new String[] { "FAILED", "Failed to create shipment!" };
 		}
 	}
 
@@ -175,8 +156,6 @@ public class ShipmentsService {
 	 *
 	 * Returns "SHIPMENT_STATUS_UPDATED_SUCCESSFULLY" on success, or a descriptive
 	 * error message (with HTML links) on failure.
-	 *
-	 * Used by all three update-status endpoints in the controller.
 	 */
 
 	@Transactional
@@ -209,25 +188,29 @@ public class ShipmentsService {
 				&& isCustomerActiveAndHasValidContract;
 
 		if (allConditionsMet) {
-			String shipmentStatusAndDesc, reason = " ";
+			String shipmentStatusAndDesc, reason, updatedStatus = "SHIPMENT_STATUS_UPDATED";
 
 			switch (action) {
 			case "PICK":
 				shipment.setShipStatus(1200);
-				shipmentStatusAndDesc = "1200 - Picked";
+				shipmentStatusAndDesc = "1200 - PICKED";
+				updatedStatus = reason = "SHIPMENT_PICKED";
 				break;
 			case "PACK":
 				shipment.setShipStatus(1300);
-				shipmentStatusAndDesc = "1300 - Packed";
+				shipmentStatusAndDesc = "1300 - PACKED";
+				updatedStatus = reason = "SHIPMENT_PACKED";
 				break;
 			case "SHIP":
 				shipment.setShipStatus(1400);
-				shipmentStatusAndDesc = "1400 - Shipped";
+				shipmentStatusAndDesc = "1400 - SHIPPED";
+				updatedStatus = reason = "SHIPMENT_SHIPPED";
 				break;
 			case "CANCEL":
 				shipment.setShipStatus(9000);
-				shipmentStatusAndDesc = "9000 - Cancelled";
-				reason = cancellationReason; // setting cancellation reason in dynamodb
+				shipmentStatusAndDesc = "9000 - CANCELLED";
+				updatedStatus = "SHIPMENT_CANCELLED";
+				reason = cancellationReason; // setting cancellation reason entered by user in dynamodb reason col
 				break;
 			default:
 				throw new RuntimeException("Invalid action: " + action);
@@ -235,7 +218,7 @@ public class ShipmentsService {
 
 			sqsService.sendShipmentStatus(shipmentId, shipmentStatusAndDesc, reason);
 			shipmentsRepo.save(shipment);
-			return "SHIPMENT_STATUS_UPDATED_SUCCESSFULLY";
+			return updatedStatus + "_SUCCESSFULLY";
 
 		} else {
 			// Build a specific error message for each failed condition
@@ -277,44 +260,45 @@ public class ShipmentsService {
 	public List<Shipments> getShipmentsByCustomerAndWarehouse(String customerId, String warehouseId) {
 		return shipmentsRepo.findShipmentsByCustomerAndWarehouse(customerId, warehouseId);
 	}
-	
-	
-	//Dynamically setting the conditions and running a custom query in service instead of calling individual methods in Repo
-		@Transactional
-		public List<Shipments> getShipmentDetails(String customerId, String warehouseId, String shipStatus) {
 
-		    StringBuilder query = new StringBuilder("SELECT s FROM Shipments s");
+	// Dynamically setting the conditions and running a custom query in service
+	// instead of calling individual methods in Repo
+	@Transactional
+	public List<Shipments> getShipmentDetails(String customerId, String warehouseId, String shipStatus) {
 
-		    // Dynamically build WHERE clause
-		    List<String> conditions = new ArrayList<>();
+		StringBuilder query = new StringBuilder("SELECT s FROM Shipments s");
 
-		    if (!customerId.equals("ALL")) conditions.add("s.customerId = :customerId");
-		    if (!warehouseId.equals("ALL")) conditions.add("s.warehouseId = :warehouseId");
-		    if (!shipStatus.equals("ALL")) conditions.add("s.shipStatus = :shipStatus");
+		// Dynamically build WHERE clause
+		List<String> conditions = new ArrayList<>();
 
-		    // Append WHERE + AND automatically
-		    if (!conditions.isEmpty()) {
-		        query.append(" WHERE ").append(String.join(" AND ", conditions));
-		    }
+		if (!customerId.equals("ALL"))
+			conditions.add("s.customerId = :customerId");
+		if (!warehouseId.equals("ALL"))
+			conditions.add("s.warehouseId = :warehouseId");
+		if (!shipStatus.equals("ALL"))
+			conditions.add("s.shipStatus = :shipStatus");
 
-		    // Create query
-		    TypedQuery<Shipments> typedQuery = entityManager.createQuery(query.toString(), Shipments.class);
-
-		    // Bind only non-null parameters
-		    if (!customerId.equals("ALL")) typedQuery.setParameter("customerId", customerId);
-		    if (!warehouseId.equals("ALL")) typedQuery.setParameter("warehouseId", warehouseId);
-		    if (!shipStatus.equals("ALL")) typedQuery.setParameter("shipStatus", shipStatus);
-
- 		    
-		    List<Shipments> resultList =  typedQuery.getResultList();
-		    
-		    System.out.println("final Query: "+query.toString()+"\nresultList: "+resultList.toString());
-		    
-		    return resultList;
+		// Append WHERE + AND automatically
+		if (!conditions.isEmpty()) {
+			query.append(" WHERE ").append(String.join(" AND ", conditions));
 		}
-	
-	
-	
-	
+
+		// Create query
+		TypedQuery<Shipments> typedQuery = entityManager.createQuery(query.toString(), Shipments.class);
+
+		// Bind only non-null parameters
+		if (!customerId.equals("ALL"))
+			typedQuery.setParameter("customerId", customerId);
+		if (!warehouseId.equals("ALL"))
+			typedQuery.setParameter("warehouseId", warehouseId);
+		if (!shipStatus.equals("ALL"))
+			typedQuery.setParameter("shipStatus", shipStatus);
+
+		List<Shipments> resultList = typedQuery.getResultList();
+
+		System.out.println("final Query: " + query.toString() + "\nresultList: " + resultList.toString());
+
+		return resultList;
+	}
 
 }
