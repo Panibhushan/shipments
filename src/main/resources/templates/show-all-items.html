@@ -443,9 +443,10 @@
 				<tbody>
 					<tr th:each="i : ${items}" th:data-href="@{'/items/viewOrEditItem/' + ${i.itemCustomerUomId}}"
 						onclick="rowClick(event, this)">
-
-						<td><span class="cell-link"> <a target="_blank"
-									th:href="@{'/items/showItemDetails/' + ${i.itemId}}" th:text="${i.itemId}"
+						
+<!-- 						 We are using itemCustomerUomId instead of itemId in the hyperlink, because items table's primary-key is a combination of item-cust-uom
+ -->						<td><span class="cell-link"> <a target="_blank"
+									th:href="@{'/items/showItemDetails/' + ${i.itemCustomerUomId}}" th:text="${i.itemId}"
 									onclick="event.stopPropagation()"></a> <span class="cell-tip">View item
 									details</span>
 							</span></td>

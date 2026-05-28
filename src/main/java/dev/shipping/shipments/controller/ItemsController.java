@@ -2,6 +2,7 @@ package dev.shipping.shipments.controller;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -18,6 +19,7 @@ import dev.shipping.shipments.service.CustomersService;
 import dev.shipping.shipments.service.ItemsService;
 import dev.shipping.shipments.service.ShipmentsService;
 import dev.shipping.shipments.service.WarehousesService;
+import dev.shipping.shipments.utils.MyResourceUtils;
 
 @Controller
 public class ItemsController {
@@ -45,9 +47,9 @@ public class ItemsController {
 	}
 
 	@PostMapping("/items/showItemsByCustomerAndItem/{customerId}/{itemId}")
-	public String showItemsByCustomer(@PathVariable String customerId, @PathVariable String itemId,Model model) {
+	public String showItemsByCustomer(@PathVariable String customerId, @PathVariable String itemId, Model model) {
 
-		System.out.println("/items/showItemsByCustomerAndItem/{customerId}/{itemId}: "+customerId+" / "+itemId);
+		System.out.println("/items/showItemsByCustomerAndItem/{customerId}/{itemId}: " + customerId + " / " + itemId);
 		if (customerId.equals("ALL")) {
 			return "redirect:/items/";
 		} else {
@@ -124,7 +126,9 @@ public class ItemsController {
 		String customerId = parts[1];
 		String itemUom = parts[2];
 
-		if (!itemsService.itemExists(itemCustomerUomId)) {
+		Optional<Items> item = itemsService.getItemById(itemCustomerUomId);
+
+		if (item.isEmpty()) {
 			redirectAttributes.addFlashAttribute("msg", "Item " + itemId + " doesnt exists for this customer: "
 					+ customerId + " & uom: " + itemUom + " !!!");
 			redirectAttributes.addFlashAttribute("bgColor", "#d95f6c");
@@ -132,8 +136,21 @@ public class ItemsController {
 			return "redirect:/items/";
 		}
 
-		itemsService.populateEditItemModel(itemCustomerUomId, model);
-		redirectAttributes.addFlashAttribute("itemUomsList", itemUomsList);
+		System.out.println("Created: " + item.get().getCreatedAt() + "\nModified: " + item.get().getModifiedAt()
+				+ "\n------------\nformattedCreatedAt: " + MyResourceUtils.getFormattedDateTime(item.get().getCreatedAt())
+				+ "\nformattedModifiedAt: " + MyResourceUtils.getFormattedDateTime(item.get().getModifiedAt()));
+
+		model.addAttribute("item", item.get());
+		model.addAttribute("formattedCreatedAt", MyResourceUtils.getFormattedDateTime(item.get().getCreatedAt()));
+		model.addAttribute("formattedModifiedAt", MyResourceUtils.getFormattedDateTime(item.get().getModifiedAt()));
+		model.addAttribute("options", List.of("Active", "Disabled"));
+		model.addAttribute("selectedItemStatus", item.get().getItemStatus());
+		model.addAttribute("selectedUom", item.get().getItemUom());
+
+		// itemsService.populateEditItemModel(itemCustomerUomId, model);
+
+		model.addAttribute("itemUomsList", itemUomsList);
+
 		return "edit-item";
 	}
 

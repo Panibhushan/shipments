@@ -6,6 +6,10 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 
+import org.springframework.format.annotation.DateTimeFormat;
+
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
@@ -17,58 +21,58 @@ public class Items {
 	@Id
 	@Column(name = "item_customer_uom_id")
 	private String itemCustomerUomId;
-	
+
 	@Column(name = "item_id")
 	private String itemId;
 
 	@Column(name = "customer_id")
 	private String customerId;
-	
+
 	@Column(name = "item_description")
 	private String itemDescription;
 
-	@Column(name = "created_at")
-	private String createdAt;
+	@Column(name = "created_at", updatable = false)
+	@DateTimeFormat(pattern = "dd-MMM-yyyy hh:mm:ss a z")
+	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MMM-yyyy hh:mm:ss a z", locale = "en")
+	private ZonedDateTime createdAt;
 
 	@Column(name = "modified_at")
-	private String modifiedAt;
+	@DateTimeFormat(pattern = "dd-MMM-yyyy hh:mm:ss a z")
+	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MMM-yyyy hh:mm:ss a z", locale = "en")
+	private ZonedDateTime modifiedAt;
 
 	@Column(name = "item_status")
 	private String itemStatus;
-	
+
 	@Column(name = "item_uom")
 	private String itemUom;
 
 	@PrePersist
 	public void generateFields() {
-		// Format modified_at & created_at: DD-MON-YYYY HH:MM:SS  12hrs with AM & PM format 
-		DateTimeFormatter createdFormat = DateTimeFormatter.ofPattern("dd-MMM-yyyy hh:mm:ss a", Locale.ENGLISH);
-        ZonedDateTime istDateTime = ZonedDateTime.now(ZoneId.of("Asia/Kolkata"));
-		// set createdAt & modifiedAt date-time at the time of first record creation
-		this.createdAt = istDateTime.format(createdFormat).toUpperCase(); 
-		this.modifiedAt = istDateTime.format(createdFormat).toUpperCase();
-		
-		this.itemCustomerUomId = itemId+"_"+customerId+"_"+itemUom;
+		ZonedDateTime istDateTime = ZonedDateTime.now(ZoneId.of("Asia/Kolkata"));
+		this.createdAt = istDateTime;
+		this.modifiedAt = istDateTime;
+		this.itemCustomerUomId = itemId + "_" + customerId + "_" + itemUom;
 	}
 
-	// Update modified date-time every time you make update to the table i.e., shipment status
+	// Update modified date-time every time you make update to the table i.e.,
+	// shipment status
 	@PreUpdate
 	public void setModifiedAt() {
-		// Format modified_at & created_at: DD-MON-YYYY HH:MM:SS  12hrs with AM & PM format 
-		DateTimeFormatter createdFormat = DateTimeFormatter.ofPattern("dd-MMM-yyyy hh:mm:ss a", Locale.ENGLISH);
-        ZonedDateTime istDateTime = ZonedDateTime.now(ZoneId.of("Asia/Kolkata"));
-		this.modifiedAt = istDateTime.format(createdFormat).toUpperCase();
+		// Format modified_at & created_at: DD-MON-YYYY HH:MM:SS 12hrs with AM & PM and timezone visible as IST 
+		ZonedDateTime istDateTime = ZonedDateTime.now(ZoneId.of("Asia/Kolkata"));
+		this.modifiedAt = istDateTime;
 	}
-	 
+
 	public String getItemCustomerUomId() {
 		return itemCustomerUomId;
 	}
 
-	public String getCreatedAt() {
+	public ZonedDateTime getCreatedAt() {
 		return createdAt;
 	}
 
-	public String getModifiedAt() {
+	public ZonedDateTime getModifiedAt() {
 		return modifiedAt;
 	}
 
@@ -119,5 +123,4 @@ public class Items {
 				+ ", itemStatus=" + itemStatus + ", itemUom=" + itemUom + "]";
 	}
 
-  	
 }

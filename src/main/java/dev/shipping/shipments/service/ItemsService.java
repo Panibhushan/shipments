@@ -5,6 +5,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +20,7 @@ import dev.shipping.shipments.model.Warehouses;
 import dev.shipping.shipments.repo.CustomersRepository;
 import dev.shipping.shipments.repo.ItemsRepository;
 import dev.shipping.shipments.repo.WarehousesRepository;
+import dev.shipping.shipments.utils.MyResourceUtils;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
@@ -44,8 +46,13 @@ public class ItemsService {
 	// ─────────────────────────────────────────────
 
 	public boolean itemExists(String itemCustomerUomId) {
-		System.out.println("ItemsService:: itemCustomerUomId: " + itemCustomerUomId);
+		System.out.println("ItemsService::itemExists(): itemCustomerUomId: " + itemCustomerUomId);
 		return itemsRepo.findById(itemCustomerUomId).isPresent();
+	}
+	
+	public Optional<Items> getItemById(String itemCustomerUomId) {
+		System.out.println("ItemsService::getItemById(): itemCustomerUomId: " + itemCustomerUomId);
+		return itemsRepo.findById(itemCustomerUomId);
 	}
 
 	public List<Items> getAllItems() {
@@ -64,21 +71,18 @@ public class ItemsService {
 
 	public void populateEditItemModel(String itemId, Model model) {
 		Items item = itemsRepo.findById(itemId).orElseThrow(() -> new RuntimeException("Item not found: " + itemId));
-
+				
 		model.addAttribute("item", item);
+		model.addAttribute("formattedCreatedAt", MyResourceUtils.getFormattedDateTime(item.getCreatedAt()));
+		model.addAttribute("formattedModifiedAt", MyResourceUtils.getFormattedDateTime(item.getModifiedAt()));
 		model.addAttribute("options", List.of("Active", "Disabled"));
 		model.addAttribute("selectedItemStatus", item.getItemStatus());
-		model.addAttribute("selectedUom", item.getItemUom());
-
+		model.addAttribute("selectedUom", item.getItemUom());			
 	}
 
-	/**
-	 * Populates all model attributes needed for the edit-warehouse page. Called
-	 * only after confirming the warehouse exists.
-	 */
 	// VALIDATION //
 	/*
-	 * Validates fields when creating a new warehouse. Returns a list of error
+	 * Validates fields when creating a new item. Returns a list of error
 	 * messages; empty list means no errors.
 	 */
 
@@ -100,12 +104,6 @@ public class ItemsService {
 		}
 
 		// Item UOM checks
-		/*
-		 * if (itemUom.trim().length() < 2) { errors.add("Cannot update Item UOM to \""
-		 * + itemUom + "\"\nItem UOM must be atleast 2 characters long !!"); } else if
-		 * (itemUom.trim().length() > 15) { errors.add("Cannot update Item UOM to \"" +
-		 * itemUom + "\"\nItem UOM must be maximum 4 characters only !!"); }
-		 */
 
 		boolean uomExists = itemUomsList.contains(itemUom); // returns true
 		if (!uomExists) {

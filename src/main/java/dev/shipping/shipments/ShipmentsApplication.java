@@ -1,11 +1,16 @@
 package dev.shipping.shipments;
 
 import io.github.cdimascio.dotenv.Dotenv;
+import jakarta.annotation.PostConstruct;
+
+import java.util.TimeZone;
+
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
 public class ShipmentsApplication {
+
     public static void main(String[] args) {
 
         // Print the current working directory at runtime
