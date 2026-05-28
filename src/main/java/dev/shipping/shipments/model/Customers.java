@@ -26,57 +26,35 @@ public class Customers {
 	@Column(name = "customer_name")
 	private String customerName;
 
-	@Column(name = "created_at")
-	private String createdAt;
+	// Store as LocalDateTime in DB (no timezone conversion by Hibernate)
+	@Column(name = "created_at", updatable = false, columnDefinition = "DATETIME(6)")
+	private LocalDateTime createdAt;
 
-	@Column(name = "modified_at")
-	private String modifiedAt;
+	// Store as LocalDateTime in DB (no timezone conversion by Hibernate)
+	@Column(name = "modified_at", columnDefinition = "DATETIME(6)")
+	private LocalDateTime modifiedAt;
 
 	@Column(name = "customer_status")
 	private String customerStatus;
-	
+
 	@Column(name = "customer_email")
-	private String customerEmail = "p1v2s3test@gmail.com" ;
+	private String customerEmail = "p1v2s3test@gmail.com";
 
 	// This field stays for DB mapping
 	@Column(name = "valid_upto")
 	private LocalDateTime validUpto;
 
-	/*
-	 * @JsonFormat(pattern = "dd-MMM-yyyy HH:mm:ss")
-	 * 
-	 * @Column(name = "valid_upto") private LocalDateTime validUpto;
-	 * 
-	 * @JsonFormat(pattern = "dd-MMM-yyyy HH:mm:ss") public LocalDateTime
-	 * getValidUpto() { return validUpto; } * 
-	 * 
-	 * 
-	 * //Updating valid up to to always have time as 00.00.00
-	 * 
-	 * @JsonProperty("validUpto") public void setValidUpto(String dateStr) {
-	 * LocalDate date = LocalDate.parse(dateStr,
-	 * DateTimeFormatter.ofPattern("yyyy-MM-dd")); this.validUpto =
-	 * date.atStartOfDay(); // always 00:00:00 }
-	 */
-
 	@PrePersist
 	public void generateFields() {
-		// Format created_at: DD-MON-YYYY HH:MM:SS  12hrs with AM & PM format 
-		DateTimeFormatter createdFormat = DateTimeFormatter.ofPattern("dd-MMM-yyyy hh:mm:ss a", Locale.ENGLISH);
-        ZonedDateTime istDateTime = ZonedDateTime.now(ZoneId.of("Asia/Kolkata"));
-		// set createdAt & modifiedAt date-time at the time of first record creation
-		this.createdAt = istDateTime.format(createdFormat).toUpperCase(); 
-		this.modifiedAt = istDateTime.format(createdFormat).toUpperCase();
+		// Get current IST time as LocalDateTime (no timezone stored, but value is IST)
+		this.createdAt = LocalDateTime.now(ZoneId.of("Asia/Kolkata"));
+		this.modifiedAt = LocalDateTime.now(ZoneId.of("Asia/Kolkata"));
 	}
 
-	// Update modified date-time every time you make update to the table i.e.,
-	// shipment status
+	// Update modified date-time every time you make update to customer
 	@PreUpdate
 	public void setModifiedAt() {
-		DateTimeFormatter createdFormat = DateTimeFormatter.ofPattern("dd-MMM-yyyy hh:mm:ss a", Locale.ENGLISH);
-        ZonedDateTime istDateTime = ZonedDateTime.now(ZoneId.of("Asia/Kolkata"));
-		// set createdAt & modifiedAt date-time at the time of first record creation
-		this.modifiedAt = istDateTime.format(createdFormat).toUpperCase();
+		this.modifiedAt = LocalDateTime.now(ZoneId.of("Asia/Kolkata"));
 	}
 
 	public String getCustomerId() {
@@ -95,12 +73,20 @@ public class Customers {
 		this.customerName = customerName;
 	}
 
+	// Returning string for createdAt in DD-MMM-YYYY hh:mm:ss AM/PM IST format
 	public String getCreatedAt() {
-		return createdAt;
+		if (createdAt == null)
+			return null;
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MMM-yyyy hh:mm:ss a");
+		return createdAt.format(formatter).toUpperCase() + " IST";
 	}
 
+	// Returning string for modifiedAt in DD-MMM-YYYY hh:mm:ss AM/PM IST format
 	public String getModifiedAt() {
-		return modifiedAt;
+		if (modifiedAt == null)
+			return null;
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MMM-yyyy hh:mm:ss a");
+		return modifiedAt.format(formatter).toUpperCase() + " IST";
 	}
 
 	public String getCustomerStatus() {
@@ -110,7 +96,7 @@ public class Customers {
 	public void setCustomerStatus(String customerStatus) {
 		this.customerStatus = customerStatus;
 	}
-	
+
 	// Setter — accepts yyyy-MM-dd from HTML
 	@JsonProperty("validUpto")
 	public void setValidUpto(String dateStr) {
@@ -141,7 +127,5 @@ public class Customers {
 				+ ", modifiedAt=" + modifiedAt + ", customerStatus=" + customerStatus + ", customerEmail="
 				+ customerEmail + ", validUpto=" + validUpto + "]";
 	}
-
- 
 
 }

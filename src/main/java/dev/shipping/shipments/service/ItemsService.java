@@ -69,15 +69,25 @@ public class ItemsService {
 		return customersRepo.findByCustomerStatusAndValidUpto("Active", startOfToday);
 	}
 
+	
+	/**
+	 * Populates all model attributes needed for the edit-item page.
+	 * Called only after confirming the item exists.
+	 */
 	public void populateEditItemModel(String itemId, Model model) {
+		
 		Items item = itemsRepo.findById(itemId).orElseThrow(() -> new RuntimeException("Item not found: " + itemId));
 				
 		model.addAttribute("item", item);
-		model.addAttribute("formattedCreatedAt", MyResourceUtils.getFormattedDateTime(item.getCreatedAt()));
-		model.addAttribute("formattedModifiedAt", MyResourceUtils.getFormattedDateTime(item.getModifiedAt()));
+		/*
+		 * model.addAttribute("formattedCreatedAt",
+		 * MyResourceUtils.getFormattedDateTime(item.getCreatedAt()));
+		 * model.addAttribute("formattedModifiedAt",
+		 * MyResourceUtils.getFormattedDateTime(item.getModifiedAt()));
+		 */
 		model.addAttribute("options", List.of("Active", "Disabled"));
 		model.addAttribute("selectedItemStatus", item.getItemStatus());
-		model.addAttribute("selectedUom", item.getItemUom());			
+		model.addAttribute("selectedUom", item.getItemUom());
 	}
 
 	// VALIDATION //

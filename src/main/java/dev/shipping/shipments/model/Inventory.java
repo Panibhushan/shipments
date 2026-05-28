@@ -17,55 +17,58 @@ public class Inventory {
 	@Id
 	@Column(name = "item_customer_uom_warehouse_id")
 	private String itemCustomerUomWarehouseId;
-	
+
 	@Column(name = "item_id")
 	private String itemId;
 
 	@Column(name = "customer_id")
 	private String customerId;
-	
+
 	@Column(name = "warehouse_id")
 	private String warehouseId;
 
-	@Column(name = "created_at")
-	private String createdAt;
+	// Store as LocalDateTime in DB (no timezone conversion by Hibernate)
+	@Column(name = "created_at", updatable = false, columnDefinition = "DATETIME(6)")
+	private LocalDateTime createdAt;
 
-	@Column(name = "modified_at")
-	private String modifiedAt;
+	// Store as LocalDateTime in DB (no timezone conversion by Hibernate)
+	@Column(name = "modified_at", columnDefinition = "DATETIME(6)")
+	private LocalDateTime modifiedAt;
 
 	@Column(name = "quantity")
 	private int quantity;
-	
+
 	@Column(name = "item_uom")
 	private String itemUom;
 
 	@PrePersist
 	public void generateFields() {
-		// Format modified_at & created_at: DD-MON-YYYY HH:MM:SS  12hrs with AM & PM format 
-		DateTimeFormatter createdFormat = DateTimeFormatter.ofPattern("dd-MMM-yyyy hh:mm:ss a", Locale.ENGLISH);
-        ZonedDateTime istDateTime = ZonedDateTime.now(ZoneId.of("Asia/Kolkata"));
-		// set createdAt & modifiedAt date-time at the time of first record creation
-		this.createdAt = istDateTime.format(createdFormat).toUpperCase(); 
-		this.modifiedAt = istDateTime.format(createdFormat).toUpperCase();
-		
-		this.itemCustomerUomWarehouseId = itemId+"_"+customerId+"_"+itemUom+"_"+warehouseId;
+		// Get current IST time as LocalDateTime (no timezone stored, but value is IST)
+		this.createdAt = LocalDateTime.now(ZoneId.of("Asia/Kolkata"));
+		this.modifiedAt = LocalDateTime.now(ZoneId.of("Asia/Kolkata"));
+		this.itemCustomerUomWarehouseId = itemId + "_" + customerId + "_" + itemUom + "_" + warehouseId;
 	}
 
-	// Update modified date-time every time you make update to the table i.e., shipment status
+	// Update modified date-time every time you make update to the inventory
 	@PreUpdate
 	public void setModifiedAt() {
-		// Format created_at: DD-MON-YYYY HH:MM:SS  12hrs with AM & PM format 
-		DateTimeFormatter createdFormat = DateTimeFormatter.ofPattern("dd-MMM-yyyy hh:mm:ss a", Locale.ENGLISH);
-        ZonedDateTime istDateTime = ZonedDateTime.now(ZoneId.of("Asia/Kolkata")); 
-		this.modifiedAt = istDateTime.format(createdFormat).toUpperCase();
-	}
- 
-	public String getCreatedAt() {
-		return createdAt;
+		this.modifiedAt = LocalDateTime.now(ZoneId.of("Asia/Kolkata"));
 	}
 
+	// Returning string for createdAt in DD-MMM-YYYY hh:mm:ss AM/PM IST format
+	public String getCreatedAt() {
+		if (createdAt == null)
+			return null;
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MMM-yyyy hh:mm:ss a");
+		return createdAt.format(formatter).toUpperCase() + " IST";
+	}
+
+	// Returning string for modifiedAt in DD-MMM-YYYY hh:mm:ss AM/PM IST format
 	public String getModifiedAt() {
-		return modifiedAt;
+		if (modifiedAt == null)
+			return null;
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MMM-yyyy hh:mm:ss a");
+		return modifiedAt.format(formatter).toUpperCase() + " IST";
 	}
 
 	public String getItemId() {
@@ -94,7 +97,7 @@ public class Inventory {
 
 	public String getItemCustomerUomWarehouseId() {
 		return itemCustomerUomWarehouseId;
-	} 
+	}
 
 	public String getWarehouseId() {
 		return warehouseId;
@@ -118,5 +121,5 @@ public class Inventory {
 				+ ", customerId=" + customerId + ", warehouseId=" + warehouseId + ", createdAt=" + createdAt
 				+ ", modifiedAt=" + modifiedAt + ", quantity=" + quantity + ", itemUom=" + itemUom + "]";
 	}
-  	
+
 }

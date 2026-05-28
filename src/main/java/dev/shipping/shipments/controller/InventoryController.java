@@ -60,7 +60,7 @@ public class InventoryController {
 		model.addAttribute("activePage", "addOrUpdateInventory"); // ← this is show which dropdown is active in the
 																	// navbar
 		model.addAttribute("itemUomsList", itemUomsList);
-		return "add-or-update-inventory";
+		return "create-or-update-inventory";
 	}
 
 	@PostMapping("/inventory/addOrUpdateInventory")
@@ -71,15 +71,30 @@ public class InventoryController {
 		String customerId = inventory.getCustomerId();
 		String itemUom = inventory.getItemUom();
 		String warehouse_Id = inventory.getWarehouseId();
+		String itemCustomerUomId = itemId + "_" + customerId + "_" + itemUom;
 		String itemCustomerUomWarehouseId = itemId + "_" + customerId + "_" + itemUom + "_" + warehouse_Id;
 		int quantity = inventory.getQuantity();
 		System.out.println("itemCustomerUomWarehouseId: " + itemCustomerUomWarehouseId + " -- quantity: " + quantity
 				+ " -- adjustmentType: " + adjustmentType);
 
-		inventoryService.createOrUpdateInventory(inventory, itemCustomerUomWarehouseId, quantity, adjustmentType);
+		String result = inventoryService.createOrUpdateInventory(inventory, itemCustomerUomId,
+				itemCustomerUomWarehouseId, quantity, adjustmentType);
+
+		if (result.equals("ITEM_NOT_FOUND")) {
+			redirectAttributes.addFlashAttribute("msg", "This combination doesnt exist!!\nItem: "+itemId+", Customer: "+customerId+", UOM: "+itemUom);
+			redirectAttributes.addFlashAttribute("bgColor", "#f8d7da");
+			redirectAttributes.addFlashAttribute("textColor", "#721c24");
+		} else {
+			redirectAttributes.addFlashAttribute("msg",
+					"Inventory has been updated !! &nbsp;&nbsp;&nbsp;&nbsp;<a style='color: #3474eb;' href='/inventory/showInventoryDetails/"
+							+ itemCustomerUomWarehouseId + "'>View Details</a>");
+			redirectAttributes.addFlashAttribute("bgColor", "#d1fae5;");
+			redirectAttributes.addFlashAttribute("textColor", "#45484d");
+		}
 
 		redirectAttributes.addFlashAttribute("itemUomsList", itemUomsList);
 		model.addAttribute("activePage", "addOrUpdateInventory");
+
 		return "redirect:/inventory/goToAddOrUpdateInventoryPage";
 	}
 
@@ -120,22 +135,35 @@ public class InventoryController {
 
 		Optional<Inventory> inventory = inventoryService
 				.getInventoryByItemCustomerUomWarehouseId(itemCustomerUomWarehouseId);
+		
 		/*
 		 * System.out.println("inventory: " + inventory + "\ninventory.get(): " +
 		 * inventory.get());
 		 */
+		 
 		
+		if(inventory.isEmpty()) {
+			redirectAttributes.addFlashAttribute("msg", "Requested inventory combination doesnt exist or cannot be created!!");
+			redirectAttributes.addFlashAttribute("bgColor", "#f8d7da");
+			redirectAttributes.addFlashAttribute("textColor", "#721c24");
+			return "redirect:/inventory/";
+		}
+
 		model.addAttribute("inventory", inventory.get());
 		return "edit-inventory";
 	}
 
 	@PostMapping("/inventory/updateInventory/{itemCustomerUomWarehouseId}")
 	public String updateInventory(@PathVariable String itemCustomerUomWarehouseId, @RequestParam String adjustmentType,
-			@RequestParam int quantity, RedirectAttributes redirectAttributes, Model model) {
+			@RequestParam int quantity, @RequestParam String itemId, @RequestParam String customerId,
+			@RequestParam String itemUom, RedirectAttributes redirectAttributes, Model model) {
 		System.out.println("/inventory/updateInventory: " + itemCustomerUomWarehouseId + " -- adjustmentType: "
 				+ adjustmentType + " -- Qty: " + quantity);
 
-		inventoryService.createOrUpdateInventory(new Inventory(), itemCustomerUomWarehouseId, quantity, adjustmentType);
+		String itemCustomerUomId = itemId + "_" + customerId + "_" + itemUom;
+
+		inventoryService.createOrUpdateInventory(new Inventory(), itemCustomerUomId, itemCustomerUomWarehouseId,
+				quantity, adjustmentType);
 
 		Optional<Inventory> inventory = inventoryService
 				.getInventoryByItemCustomerUomWarehouseId(itemCustomerUomWarehouseId);

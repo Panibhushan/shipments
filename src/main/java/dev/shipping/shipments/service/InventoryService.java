@@ -45,7 +45,7 @@ public class InventoryService {
 		}
 	
 	public List<Inventory> getAllInventory() {
-		return inventoryRepo.findAll();
+		return inventoryRepo.getValidInventory();
 	}
 	
 	public Optional<Inventory> getInventoryByItemCustomerUomWarehouseId(String itemCustomerUomWarehouseId) {
@@ -53,8 +53,12 @@ public class InventoryService {
 	}
 	
 	@Transactional
-	public void createOrUpdateInventory(Inventory inventory, String itemCustomerUomWarehouseId, int quantity, String adjustmentType) {
+	public String createOrUpdateInventory(Inventory inventory, String itemCustomerUomId, String itemCustomerUomWarehouseId, int quantity, String adjustmentType) {
 
+		if(itemsRepo.findById(itemCustomerUomId).isEmpty()) {
+			return "ITEM_NOT_FOUND";
+		}
+		
 	    Optional<Inventory> existing = inventoryRepo.findById(itemCustomerUomWarehouseId);
 
 	    if (existing.isPresent()) {
@@ -68,6 +72,8 @@ public class InventoryService {
 	        // New record — save the passed-in entity
 	        inventoryRepo.save(inventory);
 	    }
+	    
+	    return "INVENTORY_UPDATED";
  
 	}
 	

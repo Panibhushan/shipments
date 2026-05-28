@@ -31,15 +31,13 @@ public class Items {
 	@Column(name = "item_description")
 	private String itemDescription;
 
-	@Column(name = "created_at", updatable = false)
-	@DateTimeFormat(pattern = "dd-MMM-yyyy hh:mm:ss a z")
-	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MMM-yyyy hh:mm:ss a z", locale = "en")
-	private ZonedDateTime createdAt;
+	// Store as LocalDateTime in DB (no timezone conversion by Hibernate)
+	@Column(name = "created_at", updatable = false, columnDefinition = "DATETIME(6)")
+	private LocalDateTime createdAt;
 
-	@Column(name = "modified_at")
-	@DateTimeFormat(pattern = "dd-MMM-yyyy hh:mm:ss a z")
-	@JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd-MMM-yyyy hh:mm:ss a z", locale = "en")
-	private ZonedDateTime modifiedAt;
+	// Store as LocalDateTime in DB (no timezone conversion by Hibernate)
+	@Column(name = "modified_at", columnDefinition = "DATETIME(6)")
+	private LocalDateTime modifiedAt;
 
 	@Column(name = "item_status")
 	private String itemStatus;
@@ -49,31 +47,36 @@ public class Items {
 
 	@PrePersist
 	public void generateFields() {
-		ZonedDateTime istDateTime = ZonedDateTime.now(ZoneId.of("Asia/Kolkata"));
-		this.createdAt = istDateTime;
-		this.modifiedAt = istDateTime;
+		// Get current IST time as LocalDateTime (no timezone stored, but value is IST)
+		this.createdAt = LocalDateTime.now(ZoneId.of("Asia/Kolkata"));
+		this.modifiedAt = LocalDateTime.now(ZoneId.of("Asia/Kolkata"));
 		this.itemCustomerUomId = itemId + "_" + customerId + "_" + itemUom;
 	}
 
-	// Update modified date-time every time you make update to the table i.e.,
-	// shipment status
+	// Update modified date-time every time you make update to the item
 	@PreUpdate
 	public void setModifiedAt() {
-		// Format modified_at & created_at: DD-MON-YYYY HH:MM:SS 12hrs with AM & PM and timezone visible as IST 
-		ZonedDateTime istDateTime = ZonedDateTime.now(ZoneId.of("Asia/Kolkata"));
-		this.modifiedAt = istDateTime;
+		this.modifiedAt = LocalDateTime.now(ZoneId.of("Asia/Kolkata"));
 	}
 
 	public String getItemCustomerUomId() {
 		return itemCustomerUomId;
 	}
 
-	public ZonedDateTime getCreatedAt() {
-		return createdAt;
+	// Returning string for createdAt in DD-MMM-YYYY hh:mm:ss AM/PM IST format
+	public String getCreatedAt() {
+		if (createdAt == null)
+			return null;
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MMM-yyyy hh:mm:ss a");
+		return createdAt.format(formatter).toUpperCase() + " IST";
 	}
 
-	public ZonedDateTime getModifiedAt() {
-		return modifiedAt;
+	// Returning string for modifiedAt in DD-MMM-YYYY hh:mm:ss AM/PM IST format
+	public String getModifiedAt() {
+		if (modifiedAt == null)
+			return null;
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MMM-yyyy hh:mm:ss a");
+		return modifiedAt.format(formatter).toUpperCase() + " IST";
 	}
 
 	public String getItemId() {

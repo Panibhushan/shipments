@@ -261,8 +261,8 @@ input[type=number].input-error {
 
 	<p th:if="${msg}" id="msgBox"
 		th:style="'background:' + ${bgColor} + '; color:' + ${textColor} + ';'">
-		<span th:text="${msg}" style="white-space: pre-wrap;"></span>
-		<span onclick="this.parentElement.style.display='none'"
+		<span th:text="${msg}" style="white-space: pre-wrap;"></span> <span
+			onclick="this.parentElement.style.display='none'"
 			style="position: absolute; right: 14px; top: 50%; transform: translateY(-50%); cursor: pointer; font-weight: bold;">✕</span>
 	</p>
 
@@ -282,6 +282,16 @@ input[type=number].input-error {
 					<div class="section-title">Inventory Details</div>
 
 					<div class="form-grid">
+						
+						<!-- Data ro pass for @RequestMapping -->
+						<input type="hidden" th:value="${inventory.itemId}" name="itemId"
+							id="itemId" /> <input type="hidden"
+							th:value="${inventory.itemUom}" name="itemUom" id="itemUom" /> <input
+							type="hidden" th:value="${inventory.customerId}"
+							name="customerId" id="customerId" /> <input type="hidden"
+							th:value="${inventory.warehouseId}" name="warehouseId"
+							id="warehouseId" />
+
 
 						<!-- Column 1: Item ID, Customer, Warehouse, Quantity -->
 						<div>
@@ -301,13 +311,16 @@ input[type=number].input-error {
 						<!-- Column 2: UOM, Created At, Modified At -->
 						<div>
 							<label>Item UOM</label>
-							<div class="readonly-value" th:text="${inventory.itemUom}">EACH</div>
+							<div class="readonly-value" th:text="${inventory.itemUom}"
+								id="itemUom">EACH</div>
 
 							<label>Created At</label>
-							<div class="readonly-value" th:text="${inventory.createdAt}">2024-01-01 10:00</div>
+							<div class="readonly-value" th:text="${inventory.createdAt}">2024-01-01
+								10:00</div>
 
 							<label>Modified At</label>
-							<div class="readonly-value" th:text="${inventory.modifiedAt}">2024-06-15 14:30</div>
+							<div class="readonly-value" th:text="${inventory.modifiedAt}">2024-06-15
+								14:30</div>
 						</div>
 
 					</div>
@@ -317,24 +330,20 @@ input[type=number].input-error {
 
 					<div class="form-grid">
 						<div>
-							<label for="adjustmentType">Adjustment Type</label>
-							<select name="adjustmentType" id="adjustmentType" required>
+							<label for="adjustmentType">Adjustment Type</label> <select
+								name="adjustmentType" id="adjustmentType" required>
 								<option value="increaseBy">Increase By</option>
 								<option value="decreaseBy">Decrease By</option>
 							</select>
 						</div>
 
 						<div>
-							<label for="quantity">Quantity</label>
-							<input type="number"
-								   name="quantity"
-								   id="quantity"
-								   placeholder="Enter quantity"
-								   th:value="${quantityFromController != null} ? ${quantityFromController} : ''"
-								   required />
-							<span id="qtyError" class="qty-error-text">
-								⚠ Only positive whole numbers allowed (≥ 1). No decimals, letters or symbols.
-							</span>
+							<label for="quantity">Quantity</label> <input type="number"
+								name="quantity" id="quantity" placeholder="Enter quantity"
+								th:value="${quantityFromController != null} ? ${quantityFromController} : ''"
+								required /> <span id="qtyError" class="qty-error-text">
+								⚠ Only positive whole numbers allowed (≥ 1). No decimals,
+								letters or symbols. </span>
 						</div>
 					</div>
 
@@ -342,11 +351,9 @@ input[type=number].input-error {
 					<div class="button-row">
 						<div class="tooltip-wrapper" id="btnWrapper">
 							<button type="submit" class="btn-update" id="updateBtn" disabled>
-								✔ Update Inventory
-							</button>
+								✔ Update Inventory</button>
 							<span id="update-button-tooltip" class="tooltip-text">
-								Make changes to inventory to enable the update button
-							</span>
+								Make changes to quantity to enable the update button </span>
 						</div>
 					</div>
 
@@ -359,8 +366,10 @@ input[type=number].input-error {
 		<div class="conditions-section">
 			<h4>📌 Conditions for updating inventory</h4>
 			<ol>
-				<li><strong>Increase By</strong> — adds quantity to current stock.</li>
-				<li><strong>Decrease By</strong> — subtracts quantity from current stock.</li>
+				<li><strong>Increase By</strong> — adds quantity to current
+					stock.</li>
+				<li><strong>Decrease By</strong> — subtracts quantity from
+					current stock.</li>
 				<li>Quantity must be a positive whole number (≥ 1).</li>
 				<li>Decreasing below zero is not permitted.</li>
 			</ol>
@@ -369,25 +378,25 @@ input[type=number].input-error {
 	</div>
 
 	<script>
-		const qtyInput  = document.getElementById("quantity");
+		const qtyInput = document.getElementById("quantity");
 		const updateBtn = document.getElementById("updateBtn");
 		const btnWrapper = document.getElementById("btnWrapper");
-		const qtyError  = document.getElementById("qtyError");
-		const tooltip   = document.getElementById("update-button-tooltip");
+		const qtyError = document.getElementById("qtyError");
+		const tooltip = document.getElementById("update-button-tooltip");
 
 		// Store original value on page load
 		const originalQty = qtyInput.value.trim();
 
 		// ── Block decimal point, minus, plus, e/E, and all non-digit keys at source
-		qtyInput.addEventListener("keydown", function (e) {
-			const blocked = [".", "-", "+", "e", "E"];
+		qtyInput.addEventListener("keydown", function(e) {
+			const blocked = [ ".", "-", "+", "e", "E" ];
 			if (blocked.includes(e.key)) {
 				e.preventDefault();
 			}
 		});
 
 		// ── Extra safety: strip any non-integer characters that sneak in (e.g. paste)
-		qtyInput.addEventListener("input", function () {
+		qtyInput.addEventListener("input", function() {
 			// Remove anything that is not a digit
 			const cleaned = qtyInput.value.replace(/[^0-9]/g, "");
 			if (qtyInput.value !== cleaned) {
@@ -400,10 +409,10 @@ input[type=number].input-error {
 			const val = qtyInput.value.trim();
 			const num = Number(val);
 
-			const isEmpty   = val === "";
+			const isEmpty = val === "";
 			// isInvalid: non-empty but not a clean positive integer
 			const isInvalid = !isEmpty && (!/^\d+$/.test(val) || num < 1);
-			const isValid   = !isEmpty && /^\d+$/.test(val) && num >= 1;
+			const isValid = !isEmpty && /^\d+$/.test(val) && num >= 1;
 			const isChanged = val !== originalQty;
 			const canEnable = isValid && isChanged;
 
@@ -431,16 +440,19 @@ input[type=number].input-error {
 			btnWrapper.classList.toggle("show-tip", !canEnable);
 		}
 
-		document.getElementById("adjustmentType").addEventListener("change", evaluateButton);
+		document.getElementById("adjustmentType").addEventListener("change",
+				evaluateButton);
 
 		// Run once on load
 		evaluateButton();
 
 		// Auto-hide msg box after 10s
-		window.addEventListener("load", function () {
+		window.addEventListener("load", function() {
 			var msg = document.getElementById("msgBox");
 			if (msg) {
-				setTimeout(function () { msg.style.display = "none"; }, 10000);
+				setTimeout(function() {
+					msg.style.display = "none";
+				}, 10000);
 			}
 		});
 	</script>

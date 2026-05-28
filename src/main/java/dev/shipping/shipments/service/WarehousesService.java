@@ -9,6 +9,7 @@ import org.springframework.ui.Model;
 
 import dev.shipping.shipments.model.Warehouses;
 import dev.shipping.shipments.repo.WarehousesRepository;
+import dev.shipping.shipments.utils.MyResourceUtils;
 
 @Service
 public class WarehousesService {
@@ -40,6 +41,8 @@ public class WarehousesService {
 				.orElseThrow(() -> new RuntimeException("Warehouse not found: " + warehouseId));
 
 		model.addAttribute("warehouse", warehouse);
+		// model.addAttribute("formattedCreatedAt", MyResourceUtils.getFormattedDateTime(warehouse.getCreatedAt()));
+		// model.addAttribute("formattedModifiedAt", MyResourceUtils.getFormattedDateTime(warehouse.getModifiedAt()));
 		model.addAttribute("options", List.of("Active", "Disabled"));
 		model.addAttribute("selectedStatus", warehouse.getWarehouseStatus());
 	}

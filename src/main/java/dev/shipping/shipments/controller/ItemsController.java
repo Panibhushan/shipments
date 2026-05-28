@@ -136,18 +136,16 @@ public class ItemsController {
 			return "redirect:/items/";
 		}
 
-		System.out.println("Created: " + item.get().getCreatedAt() + "\nModified: " + item.get().getModifiedAt()
-				+ "\n------------\nformattedCreatedAt: " + MyResourceUtils.getFormattedDateTime(item.get().getCreatedAt())
-				+ "\nformattedModifiedAt: " + MyResourceUtils.getFormattedDateTime(item.get().getModifiedAt()));
+		/*
+		 * System.out.println("\n------------\nCreated: " + item.get().getCreatedAt() +
+		 * "\nModified: " + item.get().getModifiedAt() +
+		 * "\n------------\nformattedCreatedAt: " +
+		 * MyResourceUtils.getFormattedDateTime(item.get().getCreatedAt()) +
+		 * "\nformattedModifiedAt: " +
+		 * MyResourceUtils.getFormattedDateTime(item.get().getModifiedAt()));
+		 */
 
-		model.addAttribute("item", item.get());
-		model.addAttribute("formattedCreatedAt", MyResourceUtils.getFormattedDateTime(item.get().getCreatedAt()));
-		model.addAttribute("formattedModifiedAt", MyResourceUtils.getFormattedDateTime(item.get().getModifiedAt()));
-		model.addAttribute("options", List.of("Active", "Disabled"));
-		model.addAttribute("selectedItemStatus", item.get().getItemStatus());
-		model.addAttribute("selectedUom", item.get().getItemUom());
-
-		// itemsService.populateEditItemModel(itemCustomerUomId, model);
+		itemsService.populateEditItemModel(itemCustomerUomId, model);
 
 		model.addAttribute("itemUomsList", itemUomsList);
 

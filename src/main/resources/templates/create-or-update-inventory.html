@@ -212,8 +212,7 @@
 
   <p th:if="${msg}" id="msgBox"
      th:style="'background:' + ${bgColor} + '; color:' + ${textColor} + ';'">
-    <span th:text="${msg}" style="white-space: pre-wrap;"></span>
-    <span th:text="${itemId}"></span>
+    <span th:utext="${msg}" style="white-space: pre-wrap;"></span>
     <span onclick="this.parentElement.style.display='none'"
           style="position:absolute; right:14px; top:50%; transform:translateY(-50%); cursor:pointer; font-weight:bold;">✕</span>
   </p>

@@ -1,6 +1,7 @@
 package dev.shipping.shipments.controller;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -13,6 +14,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import dev.shipping.shipments.model.Warehouses;
 import dev.shipping.shipments.service.WarehousesService;
+import dev.shipping.shipments.utils.MyResourceUtils;
 
 @Controller
 public class WarehousesController {
@@ -25,6 +27,13 @@ public class WarehousesController {
 
 	@GetMapping("/warehouses/")
 	public String showAllWarehouses(Model model) {
+		
+		List<Warehouses> warehouses = warehousesService.getAllWarehouses();
+		
+		/*
+		 * for(Warehouses w : warehouses) {  
+		 * System.out.println("w.getCreatedAt: "+w.getCreatedAt()); }
+		 */
 		model.addAttribute("warehouses", warehousesService.getAllWarehouses());
 		model.addAttribute("activePage", "allWarehouses");  // ←  this is show which dropdown is active in the navbar
 		return "show-all-warehouses";
@@ -96,8 +105,9 @@ public class WarehousesController {
 	@GetMapping("/warehouses/viewOrEditWarehouse/{warehouseId}")
 	public String viewOrEditWarehousesPage(@PathVariable String warehouseId, Model model,
 			RedirectAttributes redirectAttributes) {
-
-		model.addAttribute("warehouse", new Warehouses());
+		/*
+		 * model.addAttribute("warehouse", new Warehouses());
+		 */
 
 		if (!warehousesService.warehouseExists(warehouseId)) {
 			redirectAttributes.addFlashAttribute("msg", "Warehouse " + warehouseId + " doesn't exists !!!");

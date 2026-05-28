@@ -210,7 +210,7 @@ public class ShipmentsService {
 				shipment.setShipStatus(9000);
 				shipmentStatusAndDesc = "9000 - CANCELLED";
 				updatedStatus = "SHIPMENT_CANCELLED";
-				reason = cancellationReason; // setting cancellation reason entered by user in dynamodb reason col
+				reason = "SHIPMENT_CANCELLED with reason: "+cancellationReason; // setting cancellation reason entered by user in dynamodb reason col
 				break;
 			default:
 				throw new RuntimeException("Invalid action: " + action);
@@ -264,7 +264,7 @@ public class ShipmentsService {
 	// Dynamically setting the conditions and running a custom query in service
 	// instead of calling individual methods in Repo
 	@Transactional
-	public List<Shipments> getShipmentDetails(String customerId, String warehouseId, String shipStatus) {
+	public List<Shipments> getShipmentList(String customerId, String warehouseId, String shipStatus) {
 
 		StringBuilder query = new StringBuilder("SELECT s FROM Shipments s");
 

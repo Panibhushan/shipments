@@ -1,5 +1,5 @@
 package dev.shipping.shipments.model;
- 
+
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -12,7 +12,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
 
-@Entity 
+@Entity
 public class CustomerWarehouses {
 
 	@Id
@@ -21,28 +21,29 @@ public class CustomerWarehouses {
 
 	@Column(name = "warehouse_id")
 	private String warehouseId;
-	
+
 	@Column(name = "customer_id")
 	private String customerId;
 
-	@Column(name = "created_at")
-	private String createdAt;
-
+	// Store as LocalDateTime in DB (no timezone conversion by Hibernate)
+	@Column(name = "created_at", updatable = false, columnDefinition = "DATETIME(6)")
+	private LocalDateTime createdAt;
 
 	@PrePersist
 	public void generateFields() {
-		// Format  created_at: DD-MON-YYYY HH:MM:SS  12hrs with AM & PM format 
-		DateTimeFormatter createdFormat = DateTimeFormatter.ofPattern("dd-MMM-yyyy hh:mm:ss a", Locale.ENGLISH);
-        ZonedDateTime istDateTime = ZonedDateTime.now(ZoneId.of("Asia/Kolkata"));
-		// set createdAt & modifiedAt date-time at the time of first record creation
-		this.createdAt = istDateTime.format(createdFormat).toUpperCase(); 
- 				
+		// Get current IST time as LocalDateTime (no timezone stored, but value is IST)
+		this.createdAt = LocalDateTime.now(ZoneId.of("Asia/Kolkata"));
+
 		// setting customerWarehouseId as combination of customerId & warehouseId
-		this.customerWarehouseId = customerId+"_"+warehouseId;		
- 	}
- 
+		this.customerWarehouseId = customerId + "_" + warehouseId;
+	}
+
+	// Returning string for createdAt in DD-MMM-YYYY hh:mm:ss AM/PM IST format
 	public String getCreatedAt() {
-		return createdAt;
+		if (createdAt == null)
+			return null;
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MMM-yyyy hh:mm:ss a");
+		return createdAt.format(formatter).toUpperCase() + " IST";
 	}
 
 	public String getCustomerWarehouseId() {

@@ -58,8 +58,10 @@ public class ShipmentsController {
 
 		System.out.println("/shipments/showShipmentsByFilters/{customerId}/{warehouseId}: "
 				+ customerId + " / " + warehouseId + " / " + status);
-
-		model.addAttribute("shipments", shipmentsService.getShipmentDetails(customerId, warehouseId, status));
+		
+		List<Shipments> shipmentsList = shipmentsService.getShipmentList(customerId, warehouseId, status);
+		
+		model.addAttribute("shipments", shipmentsList);
 		model.addAttribute("selectedCustomer", customerId);
 		model.addAttribute("selectedWarehouse", warehouseId);
 		model.addAttribute("selectedStatus", status.equals("ALL") ? "" : status);
@@ -130,7 +132,7 @@ public class ShipmentsController {
 		Optional<Shipments> shipment = shipmentsService.getShipmentById(shipmentId);
 
 		if (shipment.isPresent()) {
-			model.addAttribute("shipment", shipment);
+			model.addAttribute("shipment", shipment.get());
 			return "show-shipment-details";
 		} else {
 			redirectAttributes.addFlashAttribute("msg", "Shipment " + shipmentId + " doesnt exist !!!");
