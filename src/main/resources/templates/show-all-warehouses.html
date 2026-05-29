@@ -273,15 +273,20 @@ td {
 		</div>
 
 		<div class="table-wrapper" th:if="${not #lists.isEmpty(warehouses)}">
-			<table>
+			<table id="warehousesTable">
 				<thead>
 					<tr>
-						<th>ID</th>
-						<th>Name</th>
-						<th>Address</th>
-						<th>Status</th>
-						<th>Created At</th>
-						<th>Modified At</th>
+						<th class="sortable" data-col="0">ID<span class="sort-arrow">⇅</span></th>
+						<th class="sortable" data-col="1">Name<span
+							class="sort-arrow">⇅</span></th>
+						<th class="sortable" data-col="2">Address<span
+							class="sort-arrow">⇅</span></th>
+						<th class="sortable" data-col="3">Status<span
+							class="sort-arrow">⇅</span></th>
+						<th class="sortable" data-col="4">Created At<span
+							class="sort-arrow">⇅</span></th>
+						<th class="sortable" data-col="5">Modified At<span
+							class="sort-arrow">⇅</span></th>
 						<th>Details</th>
 						<th>Delete</th>
 					</tr>
@@ -346,6 +351,60 @@ td {
       var msg = document.getElementById("msgBox");
       if (msg) setTimeout(() => msg.style.display = "none", 10000);
     });
+    
+    
+    /* ══ TABLE SORT ══ */
+	
+	function rowClick(event, row) { window.location.href = row.getAttribute('data-href'); }
+	
+    (function () {
+      let sortState = { col: -1, asc: true };
+
+      document.querySelectorAll('thead th.sortable').forEach(th => {
+        th.addEventListener('click', function () {
+          const col = parseInt(this.dataset.col, 10);
+          sortState.col === col ? (sortState.asc = !sortState.asc) : (sortState.col = col, sortState.asc = true);
+
+          document.querySelectorAll('thead th.sortable').forEach(h => {
+            h.classList.remove('sort-asc', 'sort-desc');
+            h.querySelector('.sort-arrow').textContent = '⇅';
+          });
+          this.classList.add(sortState.asc ? 'sort-asc' : 'sort-desc');
+          this.querySelector('.sort-arrow').textContent = sortState.asc ? '↑' : '↓';
+
+          const tbody = document.querySelector('#itemsTable tbody');
+          const rows  = Array.from(tbody.querySelectorAll('tr'));
+
+          rows.sort((a, b) => {
+            const cellA = getCellText(a, col);
+            const cellB = getCellText(b, col);
+            let cmp;
+
+         if (col === 4 || col === 5) {
+              // replace space with T for cross-browser ISO parsing
+              const dA = new Date(cellA.trim().replace(' ', 'T'));
+              const dB = new Date(cellB.trim().replace(' ', 'T'));
+              cmp = (isNaN(dA) || isNaN(dB)) ? cellA.localeCompare(cellB) : dA - dB;
+            } else {
+              cmp = cellA.localeCompare(cellB, undefined, { numeric: true, sensitivity: 'base' });
+            }
+            return sortState.asc ? cmp : -cmp;
+          });
+
+          rows.forEach(r => tbody.appendChild(r)); 
+        });
+      });
+
+      function getCellText(row, col) {
+        const cell = row.querySelectorAll('td')[col];
+        if (!cell) return '';
+        if ((col === 4 || col === 5) && cell.dataset.sort) return cell.dataset.sort;
+        const link = cell.querySelector('a');
+        return (link ? link.textContent : cell.textContent).trim();
+      }
+    })();
+    
+    
   </script>
 </body>
 </html>

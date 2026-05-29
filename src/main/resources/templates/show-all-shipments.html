@@ -108,6 +108,7 @@ body {
 	margin-bottom: 4px;
 }
 
+.filter-group input,
 .filter-group select {
 	width: 100%;
 	padding: 7px 10px;
@@ -507,6 +508,7 @@ thead th.sort-asc .sort-arrow, thead th.sort-desc .sort-arrow {
 	opacity: 0.5;
 }
 </style>
+
 </head>
 <body>
 
@@ -535,9 +537,15 @@ thead th.sort-asc .sort-arrow, thead th.sort-desc .sort-arrow {
 				<p class="filter-hint">💡 Changing Customer reloads Warehouses.</p>
 
 				<form id="customerAndWarehouseAndStatusForm"
-					th:action="@{/shipments/showShipmentsByFilters/ALL/ALL/ALL}"
+					th:action="@{/shipments/showShipmentsByFilters/ALL/ALL/ALL/ALL}"
 					method="post">
 
+<!-- Shipment Id -->
+					<div class="filter-group">
+						<label>Shipment ID</label> <input type="text" name="shipmentId"
+							id="shipmentId" placeholder="Enter shipment-id. e.g. BLDRT1"
+							th:value="${selectedShipmentId != null} ? ${selectedShipmentId} : ''" />
+					</div>
 					<!-- Customer -->
 					<div class="filter-group">
 						<label for="customerId">Customer</label> <select name="customerId"
@@ -697,11 +705,13 @@ thead th.sort-asc .sort-arrow, thead th.sort-desc .sort-arrow {
 
     /* ── clear filter link state ── */
     function evaluateClearLink() {
+      const s  = document.getElementById('shipmentId').value;
+
       const c  = document.getElementById('customerId').value;
       const w  = document.getElementById('warehouseSelect').value;
       const st = document.getElementById('statusSelect').value;
       const lnk = document.getElementById('clearFiltersLink');
-      (c === 'ALL' && w === 'ALL' && st === 'ALL')
+      (s === '' && c === 'ALL' && w === 'ALL' && st === 'ALL')
         ? lnk.classList.add('disabled-link')
         : lnk.classList.remove('disabled-link');
     }
@@ -716,14 +726,16 @@ thead th.sort-asc .sort-arrow, thead th.sort-desc .sort-arrow {
     document.getElementById('customerId').addEventListener('change', function () { enableFilter(); loadWarehouses(this.value); });
     document.getElementById('warehouseSelect').addEventListener('change', enableFilter);
     document.getElementById('statusSelect').addEventListener('change', enableFilter);
-
+    document.getElementById('shipmentId').addEventListener('change', enableFilter);
+    
     document.getElementById('customerAndWarehouseAndStatusForm').addEventListener('submit', function (e) {
       e.preventDefault();
       if (!filtersChanged) return;
+      const s  = document.getElementById('shipmentId').value;
       const c  = document.getElementById('customerId').value;
       const w  = document.getElementById('warehouseSelect').value;
       const st = document.getElementById('statusSelect').value;
-      this.action = `/shipments/showShipmentsByFilters/${c}/${w}/${st}`;
+      this.action = `/shipments/showShipmentsByFilters/${s}/${c}/${w}/${st}`;
       this.submit();
     });
 

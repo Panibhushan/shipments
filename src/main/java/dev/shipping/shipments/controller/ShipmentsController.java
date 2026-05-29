@@ -89,14 +89,14 @@ public class ShipmentsController {
 	}
 
 	// SHOW SHIPMENTS LIST BASED ON INPUT ADVANCED FILTERS
-	@PostMapping("/shipments/showShipmentsByAdvancedFilters/{customerId}/{warehouseId}/{statusFrom}/{statusTo}/{dateFrom}/{dateTo}/{itemId}")
-	public String filter(@PathVariable String customerId, @PathVariable String warehouseId,
+	@PostMapping("/shipments/showShipmentsByAdvancedFilters/{shipmentId}/{customerId}/{warehouseId}/{statusFrom}/{statusTo}/{dateFrom}/{dateTo}/{itemId}")
+	public String filter(@PathVariable String shipmentId,@PathVariable String customerId, @PathVariable String warehouseId,
 			@PathVariable String statusFrom, @PathVariable String statusTo, @PathVariable String dateFrom,
 			@PathVariable String dateTo, @PathVariable String itemId, Model model) {
 
 		System.out.println(
-				"/shipments/showShipmentsByAdvancedFilters/{customerId}/{warehouseId}/{statusFrom}/{statusTo}/{dateFrom}/{dateTo}/{itemId}: "
-						+ customerId + " / " + warehouseId + " / " + statusFrom + " / " + statusTo + " / " + dateFrom
+				"/shipments/showShipmentsByAdvancedFilters/{shipmentId}/{customerId}/{warehouseId}/{statusFrom}/{statusTo}/{dateFrom}/{dateTo}/{itemId}: "
+						+ shipmentId + " / "	+ customerId + " / " + warehouseId + " / " + statusFrom + " / " + statusTo + " / " + dateFrom
 						+ " / " + dateTo+ " / " + itemId);
 
 	//	List<Shipments> shipmentsList = shipmentsService.getShipmentList(customerId, warehouseId, statusFrom);

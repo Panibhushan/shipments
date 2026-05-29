@@ -109,7 +109,7 @@ public class Customers {
 	public String getValidUpto() {
 		if (validUpto == null)
 			return null;
-		return validUpto.format(DateTimeFormatter.ofPattern("dd-MMM-yyyy HH:mm:ss")).toUpperCase();
+		return validUpto.format(DateTimeFormatter.ofPattern("dd-MMM-yyyy 23:59:59"))  ;
 		// returns "15-MAY-2026 00:00:00"
 	}
 

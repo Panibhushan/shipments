@@ -121,6 +121,7 @@ public class CustomersService {
 		 * errors.add("Valid Upto date cannot be older than tomorrow!"); }
 		 */
 
+		System.out.println("validateNewCustomer: "+validUpto);
 		if (validUpto != null && !validUpto.isEmpty()) {
 			try {
 				// Parse — throws exception if date is invalid (e.g. April 31)
@@ -137,6 +138,7 @@ public class CustomersService {
 			} catch (DateTimeParseException e) {
 				// Catches invalid dates like April 31, February 30 etc.
 				errors.add("Invalid date! Please enter a valid date.");
+				System.out.println("DateTimeParseException: "+e.getMessage());
 			}
 		}
 
