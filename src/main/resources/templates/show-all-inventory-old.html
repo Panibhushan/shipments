@@ -2,8 +2,8 @@
 <html xmlns:th="http://www.thymeleaf.org">
 
 <head>
-<link rel="stylesheet" th:href="@{/css/navbar.css}" />
-<style>
+ <link rel="stylesheet" th:href="@{/css/navbar.css}" /> 
+ <style>
 *, *::before, *::after {
 	box-sizing: border-box;
 }
@@ -15,6 +15,7 @@ body {
 	min-height: 100vh;
 }
 
+/* ── MSG BOX ── */
 #msgBox {
 	margin: 8px 24px 0;
 	padding: 8px 40px 8px 14px;
@@ -23,10 +24,12 @@ body {
 	position: relative;
 }
 
+/* ── PAGE CONTENT ── */
 .page-content {
 	padding: 14px 24px;
 }
 
+/* ── TOP BAR ── */
 .top-bar {
 	display: flex;
 	align-items: center;
@@ -44,7 +47,7 @@ body {
 .btn-add {
 	display: inline-block;
 	background-color: #4CAF50;
-	color: #fff;
+	color: #ffffff;
 	font-weight: 700;
 	font-size: 0.88rem;
 	padding: 9px 20px;
@@ -58,7 +61,7 @@ body {
 	transform: translateY(-1px);
 }
 
-/* FILTER BAR */
+/* ── FILTER BAR ── */
 .filter-bar {
 	display: flex;
 	align-items: center;
@@ -103,31 +106,7 @@ body {
 	border-color: #6a73b2;
 }
 
-.filter-bar .btn-filter {
-	padding: 7px 12px;
-	background-color: #6a73b2;
-	color: #fff;
-	font-weight: 700;
-	font-size: 0.86rem;
-	font-family: Arial, sans-serif;
-	border: none;
-	border-radius: 7px;
-	cursor: pointer;
-	letter-spacing: 0.03em;
-	transition: background-color 0.2s, transform 0.15s;
-	margin: 0;
-}
-
-.filter-bar .btn-filter:hover:not(:disabled) {
-	background-color: #555fa0;
-	transform: translateY(-1px);
-}
-
-.filter-bar .btn-filter:disabled {
-	background-color: #b0b5d8;
-	cursor: not-allowed;
-}
-
+/* ── FILTER BUTTON + TOOLTIP ── */
 .tooltip-wrapper {
 	position: relative;
 	display: inline-block;
@@ -136,7 +115,7 @@ body {
 .tooltip-wrapper .tip {
 	visibility: hidden;
 	opacity: 0;
-	width: 240px;
+	width: 280px;
 	background: #334155;
 	color: #fff;
 	text-align: center;
@@ -170,9 +149,34 @@ body {
 	opacity: 1;
 }
 
-/* TABLE */
+.filter-bar .btn-filter {
+	padding: 7px 12px;
+	background-color: #6a73b2;
+	color: #ffffff;
+	font-weight: 700;
+	font-size: 0.86rem;
+	font-family: Arial, sans-serif;
+	border: none;
+	border-radius: 7px;
+	cursor: pointer;
+	letter-spacing: 0.03em;
+	transition: background-color 0.2s, transform 0.15s;
+	margin: 0;
+}
+
+.filter-bar .btn-filter:hover:not(:disabled) {
+	background-color: #555fa0;
+	transform: translateY(-1px);
+}
+
+.filter-bar .btn-filter:disabled {
+	background-color: #b0b5d8;
+	cursor: not-allowed;
+}
+
+/* ── TABLE WRAPPER ── */
 .table-wrapper {
-	background: #fff;
+	background: #ffffff;
 	border-radius: 12px;
 	box-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
 	overflow: hidden;
@@ -218,6 +222,7 @@ td {
 	color: #374151;
 }
 
+/* ── LINK CELLS with tooltip ── */
 .cell-link {
 	position: relative;
 	display: inline-block;
@@ -268,10 +273,11 @@ td {
 	opacity: 1;
 }
 
+/* ── VIEW DETAILS BUTTON ── */
 .btn-view {
 	display: inline-block;
 	background-color: #6a73b2;
-	color: #fff;
+	color: #ffffff;
 	font-weight: 700;
 	font-size: 0.78rem;
 	padding: 7px 14px;
@@ -320,39 +326,13 @@ td {
 	opacity: 1;
 }
 
-.btn-delete {
-	background-color: #ed4758;
-	color: #fff;
-	font-weight: 700;
-	font-size: 0.78rem;
-	padding: 7px 14px;
-	border: none;
-	border-radius: 6px;
-	cursor: pointer;
-	transition: background-color 0.2s;
-	white-space: nowrap;
-}
-
-.btn-delete:hover {
-	background-color: #c73444;
-}
-
+/* ── BADGE for UOM / QTY ── */
 .badge {
 	display: inline-block;
-	padding: 4px 12px;
+	padding: 3px 10px;
 	border-radius: 12px;
 	font-size: 0.78rem;
 	font-weight: 700;
-}
-
-.badge-active {
-	background: #d1fae5;
-	color: #065f46;
-}
-
-.badge-inactive {
-	background: #fee2e2;
-	color: #991b1b;
 }
 
 .badge-uom {
@@ -360,6 +340,12 @@ td {
 	color: #3730a3;
 }
 
+.badge-qty {
+	background: #d1fae5;
+	color: #065f46;
+}
+
+/* ── EMPTY STATE ── */
 .empty-state {
 	text-align: center;
 	padding: 40px 20px;
@@ -384,30 +370,38 @@ td {
 
 	<p th:if="${msg}" id="msgBox"
 		th:style="'background:' + ${bgColor} + '; color:' + ${textColor} + ';'">
-		<span th:text="${msg}"></span> <span
+		<span th:utext="${msg}" style="white-space: pre-wrap;"></span> <span
 			onclick="this.parentElement.style.display='none'"
 			style="position: absolute; right: 14px; top: 50%; transform: translateY(-50%); cursor: pointer; font-weight: bold;">✕</span>
 	</p>
 
 	<div class="page-content">
 
+		<!-- ── TOP BAR ── -->
 		<div class="top-bar">
-			<h2>📦 Items</h2>
-			<a href="/items/goToCreateItemPage" class="btn-add">＋ Create New
-				Item</a>
+			<h2>🗄️ Inventory</h2>
+			<a href="/inventory/goToAddOrUpdateInventoryPage" class="btn-add">＋
+				Add / Update Inventory</a>
 		</div>
-
-		<!-- FILTER BAR -->
+		<p style="font-size: 12.5px">💡 While filtering, Changing Customer reloads Warehouses options.</p>
+		<!-- ── FILTER BAR ── -->
 		<div class="filter-bar">
-			<form id="customerAndItemForm"
-				th:action="@{/items/showItemsByCustomerAndItem/ALL/ALL}"
+			<form id="customerAndItemAndWarehouseForm"
+				th:action="@{/inventory/showInventoryByCustomerAndItemAndWarehouse/ALL/ALL/ALL}"
 				method="post">
-				<label for="customerId">Filter by Customer</label> <select
-					name="customerId" id="customerId" required>
+
+				<label for="customerId">Customer</label> <select name="customerId"
+					id="customerId" onchange="loadWarehouses(this.value)" required>
 					<option value="ALL">— ALL —</option>
 					<option th:each="c : ${customers}" th:value="${c.customerId}"
 						th:selected="${c.customerId == selectedCustomer}"
 						th:text="|${c.customerId} = ${c.customerName}|"></option>
+				</select> <label for="warehouseSelect">Warehouse</label> <select
+					name="warehouseSelect" id="warehouseSelect" required>
+					<option value="ALL">— ALL —</option>
+					<option th:each="w : ${warehouses}" th:value="${w.warehouseId}"
+						th:selected="${w.warehouseId == selectedWarehouse}"
+						th:text="|${w.warehouseId} = ${w.warehouseName}|"></option>
 				</select> <label for="itemId">Item ID</label> <input type="text"
 					name="itemId" id="itemId" placeholder="e.g. ITM-001"
 					th:value="${selectedItemId != null} ? ${selectedItemId} : ''"
@@ -415,124 +409,114 @@ td {
 
 				<div class="tooltip-wrapper show-tip" id="submitBtnWrapper">
 					<button type="submit" class="btn-filter" id="applyFiltersBtn"
-						disabled>Apply Filter</button>
-					<span class="tip">Change Customer ot item-id to enable
-						filter submission</span>
+						disabled>Apply Filters</button>
+					<span class="tip">Change Customer or Warehouse or Item ID to
+						enable filter submission</span>
 				</div>
 				<div>
-					<a href="/items/"
+					<a href="/inventory/"
 						style="background-color: #ee5a5a; text-decoration: none"
 						id="clearFiltersLink" class="btn-filter"> Clear Filters </a>
 				</div>
 			</form>
 		</div>
 
-		<!-- TABLE -->
-		<div class="table-wrapper" th:if="${not #lists.isEmpty(items)}">
-			<table id="itemsTable">
+		<!-- ── TABLE ── -->
+		<div class="table-wrapper" th:if="${not #lists.isEmpty(inventory)}">
+			<table>
 				<thead>
 					<tr>
-						<th class="sortable" data-col="0">Item<span
-							class="sort-arrow">⇅</span></th>
-						<th class="sortable" data-col="1">Customer<span
-							class="sort-arrow">⇅</span></th>
-						<th class="sortable" data-col="2">Description<span
-							class="sort-arrow">⇅</span></th>
-						<th class="sortable" data-col="3">UOM<span class="sort-arrow">⇅</span></th>
-						<th class="sortable" data-col="4">Status<span
-							class="sort-arrow">⇅</span></th>
-						<th class="sortable" data-col="5">Created At<span
-							class="sort-arrow">⇅</span></th>
-						<th class="sortable" data-col="6">Modified At<span
-							class="sort-arrow">⇅</span></th>
-						<th>Details</th>
-						<th>Delete</th>
+						<th>Item ID</th>
+						<th>Customer</th>
+						<th>Warehouse</th>
+						<th>UOM</th>
+						<th>Qty</th>
+						<th>Actions</th>
 					</tr>
 				</thead>
-				
-				
 				<tbody>
-					<tr th:each="i : ${items}"
-						th:data-href="@{'/items/viewOrEditItem/' + ${i.itemCustomerUomId}}"
+					<tr th:each="inv : ${inventory}"
+						th:data-href="@{'/inventory/showInventoryDetails/' + ${inv.itemCustomerUomWarehouseId}}"
 						onclick="rowClick(event, this)">
 
-						<!-- 						 We are using itemCustomerUomId instead of itemId in the hyperlink, because items table's primary-key is a combination of item-cust-uom
- -->
-						<td><span class="cell-link"> <a target="_blank"
-								th:href="@{'/items/showItemDetails/' + ${i.itemCustomerUomId}}"
-								th:text="${i.itemId}" onclick="event.stopPropagation()"></a> <span
+
+						<!-- Col 2: Item ID -->
+						<td><span class="cell-link"> <a
+								th:href="@{'/items/showItemDetails/' + ${inv.itemId} + '_' + ${inv.customerId} + '_' + ${inv.itemUom}}"
+								th:text="${inv.itemId}" onclick="event.stopPropagation()"></a> <span
 								class="cell-tip">View item details</span>
 						</span></td>
 
+						<!-- Col 3: Customer -->
 						<td><span class="cell-link"> <a target="_blank"
-								th:href="@{'/customers/showCustomerDetails/' + ${i.customerId}}"
-								th:text="${i.customerId}" onclick="event.stopPropagation()"></a>
+								th:href="@{'/customers/showCustomerDetails/' + ${inv.customerId}}"
+								th:text="${inv.customerId}" onclick="event.stopPropagation()"></a>
 								<span class="cell-tip">View customer details</span>
 						</span></td>
 
-						<td th:text="${i.itemDescription}"></td>
+						<!-- Col 4: Warehouse -->
+						<td><span class="cell-link"> <a target="_blank"
+								th:href="@{'/warehouses/showWarehouseDetails/' + ${inv.warehouseId}}"
+								th:text="${inv.warehouseId}" onclick="event.stopPropagation()"></a>
+								<span class="cell-tip">View warehouse details</span>
+						</span></td>
 
-						<td><span class="badge badge-uom" th:text="${i.itemUom}"></span></td>
+						<!-- Col 5: UOM -->
+						<td><span class="badge badge-uom" th:text="${inv.itemUom}"></span></td>
 
-						<td><span class="badge"
-							th:classappend="${i.itemStatus == 'Active'} ? 'badge-active' : 'badge-inactive'"
-							th:text="${i.itemStatus}"></span></td>
+						<!-- Col 6: Qty -->
+						<td><span class="badge badge-qty" th:text="${inv.quantity}"></span></td>
 
-						<td
-							th:text="${formattedCreatedAt != null} ? ${formattedCreatedAt} : ${i.createdAt}"></td>
-						<td
-							th:text="${formattedModifiedAt != null} ? ${formattedModifiedAt} : ${i.modifiedAt}"></td>
-
+						<!-- Col 1: View Details button -->
 						<td><a
-							th:href="@{'/items/viewOrEditItem/' + ${i.itemCustomerUomId}}"
+							th:href="@{'/inventory/showInventoryDetails/' + ${inv.itemCustomerUomWarehouseId}}"
 							class="btn-view" onclick="event.stopPropagation()"> ✏️ View /
-								Edit <span class="cell-tip">View or edit item</span>
+								Edit <span class="cell-tip">View / Edit inventory details</span>
 						</a></td>
-
-						<td>
-							<form
-								th:action="@{'/items/deleteItem/' + ${i.itemCustomerUomId}}"
-								method="post" onclick="event.stopPropagation()">
-								<button type="submit" class="btn-delete"
-									onclick="return confirm('Are you sure you want to delete this item?')">
-									🗑 Delete</button>
-							</form>
-						</td>
 
 					</tr>
 				</tbody>
 			</table>
 		</div>
 
-		<div th:if="${#lists.isEmpty(items)}" class="empty-state">
-			<p>No item records to display.</p>
-			<a href="/items/goToCreateItemPage"
+		<!-- ── EMPTY STATE ── -->
+		<div th:if="${#lists.isEmpty(inventory)}" class="empty-state">
+			<p>No inventory records to display.</p>
+			<a href="/inventory/goToAddOrUpdateInventoryPage"
 				style="background: #4CAF50; color: white; padding: 9px 20px; border-radius: 8px; text-decoration: none; font-weight: bold;">
-				＋ Create New Item </a>
+				＋ Add / Update Inventory </a>
 		</div>
 
 	</div>
 
 	<script>
-		let filterChanged = false;
+		let filtersChanged = false;
+
 		window.addEventListener("load", function () {
+			var msg = document.getElementById("msgBox");
+			if (msg) setTimeout(() => msg.style.display = "none", 10000);
 
 			const c = document.getElementById('customerId').value;
+			const w = document.getElementById('warehouseSelect').value;
 			const i = document.getElementById('itemId').value.trim();
 
-			console.log("c:", c, ", i:", i);
-
 			const clearFiltersLink = document.getElementById("clearFiltersLink");
-			if (c === 'ALL' && (i === 'ALL' || i === '')) {
+
+			console.log("c:", c, ", w:", w, ", i:", i);
+
+			if (c === 'ALL' && w == 'ALL' && (i === 'ALL' || i === '')) {
 				clearFiltersLink.classList.add("disabled-link");
 			} else {
 				clearFiltersLink.classList.remove("disabled-link");
 			}
 
-			var msg = document.getElementById("msgBox");
-			if (msg) setTimeout(() => msg.style.display = "none", 10000);
-
 		});
+
+		// Row click — navigate to view details unless click was on a link
+		function rowClick(event, row) {
+			const href = row.getAttribute('data-href');
+			if (href) window.location.href = href;
+		}
 
 		// Enable filter button on any change
 		function enableFilter() {
@@ -543,13 +527,14 @@ td {
 			wrapper.classList.remove('show-tip');
 
 			const c = document.getElementById('customerId').value;
+			const w = document.getElementById('warehouseSelect').value;
 			const i = document.getElementById('itemId').value.trim();
 
 			const clearFiltersLink = document.getElementById("clearFiltersLink");
 
-			console.log("c:", c, ", i:", i);
+			console.log("c:", c, ", w:", w, ", i:", i);
 
-			if (c === 'ALL' && (i === 'ALL' || i === '')) {
+			if (c === 'ALL' && w == 'ALL' && (i === 'ALL' || i === '')) {
 				clearFiltersLink.classList.add("disabled-link");
 			} else {
 				clearFiltersLink.classList.remove("disabled-link");
@@ -557,73 +542,51 @@ td {
 
 		}
 
-		function rowClick(event, row) { window.location.href = row.getAttribute('data-href'); }
-		document.getElementById('itemId').addEventListener('input', enableFilter);
-		document.getElementById('customerId').addEventListener('change', enableFilter);
+		document.getElementById('customerId').addEventListener('change', function () {
+			enableFilter();
+			loadWarehouses(this.value);
+		});
 
+		document.getElementById('warehouseSelect').addEventListener('change', enableFilter);
+		document.getElementById('itemId').addEventListener('input', enableFilter);
 
 		// Update form action and submit
-		document.getElementById('customerAndItemForm').addEventListener('submit', function (e) {
+		document.getElementById('customerAndItemAndWarehouseForm').addEventListener('submit', function (e) {
 			e.preventDefault();
 			if (!filtersChanged) return;
 			const c = document.getElementById('customerId').value;
+			const w = document.getElementById('warehouseSelect').value;
 			const i = document.getElementById('itemId').value.trim() || 'ALL';
-			this.action = `/items/showItemsByCustomerAndItem/${c}/${i}`;
+			this.action = `/inventory/showInventoryByCustomerAndItemAndWarehouse/${c}/${w}/${i}`;
 			this.submit();
 		});
-		
-		/* ══ TABLE SORT ══ */
-		
-		function rowClick(event, row) { window.location.href = row.getAttribute('data-href'); }
-		
-	    (function () {
-	      let sortState = { col: -1, asc: true };
 
-	      document.querySelectorAll('thead th.sortable').forEach(th => {
-	        th.addEventListener('click', function () {
-	          const col = parseInt(this.dataset.col, 10);
-	          sortState.col === col ? (sortState.asc = !sortState.asc) : (sortState.col = col, sortState.asc = true);
+		// Dynamically load warehouses
+		function loadWarehouses(customerId) {
+			const ws = document.getElementById('warehouseSelect');
+			ws.innerHTML = '<option value="ALL">— ALL —</option>';
+			if (!customerId || customerId === 'ALL') return;
 
-	          document.querySelectorAll('thead th.sortable').forEach(h => {
-	            h.classList.remove('sort-asc', 'sort-desc');
-	            h.querySelector('.sort-arrow').textContent = '⇅';
-	          });
-	          this.classList.add(sortState.asc ? 'sort-asc' : 'sort-desc');
-	          this.querySelector('.sort-arrow').textContent = sortState.asc ? '↑' : '↓';
-
-	          const tbody = document.querySelector('#itemsTable tbody');
-	          const rows  = Array.from(tbody.querySelectorAll('tr'));
-
-	          rows.sort((a, b) => {
-	            const cellA = getCellText(a, col);
-	            const cellB = getCellText(b, col);
-	            let cmp;
-
-	         if (col === 5 || col === 6) {
-	              // replace space with T for cross-browser ISO parsing
-	              const dA = new Date(cellA.trim().replace(' ', 'T'));
-	              const dB = new Date(cellB.trim().replace(' ', 'T'));
-	              cmp = (isNaN(dA) || isNaN(dB)) ? cellA.localeCompare(cellB) : dA - dB;
-	            } else {
-	              cmp = cellA.localeCompare(cellB, undefined, { numeric: true, sensitivity: 'base' });
-	            }
-	            return sortState.asc ? cmp : -cmp;
-	          });
-
-	          rows.forEach(r => tbody.appendChild(r)); 
-	        });
-	      });
-
-	      function getCellText(row, col) {
-	        const cell = row.querySelectorAll('td')[col];
-	        if (!cell) return '';
-	        if ((col === 5 || col === 6) && cell.dataset.sort) return cell.dataset.sort;
-	        const link = cell.querySelector('a');
-	        return (link ? link.textContent : cell.textContent).trim();
-	      }
-	    })();
-
+			fetch(`/shipments/getWarehousesByCustomer?customerId=${customerId}`, {
+				method: 'GET', headers: { 'Accept': 'application/json' }
+			})
+				.then(r => { if (!r.ok) throw new Error(); return r.json(); })
+				.then(data => {
+					if (data && data.length > 0) {
+						ws.innerHTML = '';
+						ws.innerHTML = '<option value="ALL">— ALL —</option>';
+						data.forEach(w => {
+							const opt = document.createElement('option');
+							opt.value = w.warehouseId;
+							opt.textContent = `${w.warehouseId} = ${w.warehouseName}`;
+							ws.appendChild(opt);
+						});
+					}
+				})
+				.catch(() => ws.innerHTML = '<option value="ALL">— Error Loading Warehouses —</option>');
+		}
 	</script>
+
 </body>
 
 </html>

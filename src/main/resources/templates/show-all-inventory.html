@@ -2,8 +2,8 @@
 <html xmlns:th="http://www.thymeleaf.org">
 
 <head>
- <link rel="stylesheet" th:href="@{/css/navbar.css}" /> 
- <style>
+<link rel="stylesheet" th:href="@{/css/navbar.css}" />
+<style>
 *, *::before, *::after {
 	box-sizing: border-box;
 }
@@ -383,8 +383,8 @@ td {
 			<a href="/inventory/goToAddOrUpdateInventoryPage" class="btn-add">＋
 				Add / Update Inventory</a>
 		</div>
-		<p style="font-size: 12.5px">While filtering, changing the
-			customer will affect the warehouse</p>
+		<p style="font-size: 12.5px">💡 While filtering, Changing the
+			Customer will reload the Warehouses options.</p>
 		<!-- ── FILTER BAR ── -->
 		<div class="filter-bar">
 			<form id="customerAndItemAndWarehouseForm"
@@ -424,14 +424,17 @@ td {
 
 		<!-- ── TABLE ── -->
 		<div class="table-wrapper" th:if="${not #lists.isEmpty(inventory)}">
-			<table>
+			<table id="inventoryTable">
 				<thead>
 					<tr>
-						<th>Item ID</th>
-						<th>Customer</th>
-						<th>Warehouse</th>
-						<th>UOM</th>
-						<th>Qty</th>
+						<th class="sortable" data-col="0">Item ID<span
+							class="sort-arrow">⇅</span></th>
+						<th class="sortable" data-col="1">Customer<span
+							class="sort-arrow">⇅</span></th>
+						<th class="sortable" data-col="2">Warehouse<span
+							class="sort-arrow">⇅</span></th>
+						<th class="sortable" data-col="3">UOM<span class="sort-arrow">⇅</span></th>
+						<th class="sortable" data-col="4">Qty<span class="sort-arrow">⇅</span></th>
 						<th>Actions</th>
 					</tr>
 				</thead>
@@ -586,6 +589,53 @@ td {
 				})
 				.catch(() => ws.innerHTML = '<option value="ALL">— Error Loading Warehouses —</option>');
 		}
+		
+		
+/* ══ TABLE SORT ══ */
+		
+		function rowClick(event, row) { window.location.href = row.getAttribute('data-href'); }
+		
+	    (function () {
+	      let sortState = { col: -1, asc: true };
+
+	      document.querySelectorAll('thead th.sortable').forEach(th => {
+	        th.addEventListener('click', function () {
+	          const col = parseInt(this.dataset.col, 10);
+	          sortState.col === col ? (sortState.asc = !sortState.asc) : (sortState.col = col, sortState.asc = true);
+
+	          document.querySelectorAll('thead th.sortable').forEach(h => {
+	            h.classList.remove('sort-asc', 'sort-desc');
+	            h.querySelector('.sort-arrow').textContent = '⇅';
+	          });
+	          this.classList.add(sortState.asc ? 'sort-asc' : 'sort-desc');
+	          this.querySelector('.sort-arrow').textContent = sortState.asc ? '↑' : '↓';
+
+	          const tbody = document.querySelector('#inventoryTable tbody');
+	          const rows  = Array.from(tbody.querySelectorAll('tr'));
+
+	          rows.sort((a, b) => {
+	            const cellA = getCellText(a, col);
+	            const cellB = getCellText(b, col);
+	            let cmp;
+ 
+	            cmp = cellA.localeCompare(cellB, undefined, { numeric: true, sensitivity: 'base' });
+	           
+	            return sortState.asc ? cmp : -cmp;
+	          });
+
+	          rows.forEach(r => tbody.appendChild(r)); 
+	        });
+	      });
+
+	      function getCellText(row, col) {
+	        const cell = row.querySelectorAll('td')[col];
+	        if (!cell) return '';
+	        const link = cell.querySelector('a');
+	        return (link ? link.textContent : cell.textContent).trim();
+	      }
+	    })();
+		
+		
 	</script>
 
 </body>

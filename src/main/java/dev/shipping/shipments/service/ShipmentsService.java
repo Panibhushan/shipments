@@ -67,7 +67,7 @@ public class ShipmentsService {
 	 * show).
 	 */
 	public Optional<Shipments> getShipmentById(String shipmentId) {
-		return shipmentsRepo.findById(shipmentId) ;
+		return shipmentsRepo.findById(shipmentId);
 	}
 
 	/**
@@ -120,7 +120,7 @@ public class ShipmentsService {
 					+ customerId + "'>View " + customerId + "</a>" };
 		}
 
-		//check if customer is configured with the selected warehouse
+		// check if customer is configured with the selected warehouse
 		Optional<CustomerWarehouses> customerWarehouses = customerWarehousesRepo
 				.findById(customerId + "_" + warehouseId);
 
@@ -130,15 +130,15 @@ public class ShipmentsService {
 					+ customerId + "'>View " + customerId + "</a>" };
 		}
 
-		// If no errors are found, then proceed to save the shipment 
+		// If no errors are found, then proceed to save the shipment
 		shipment.setCustomerId(customerId);
 		shipment.setWarehouseId(warehouseId);
 
 		Shipments savedShipment = shipmentsRepo.save(shipment);
 
 		if (savedShipment != null && savedShipment.getShipmentId() != null) {
-			snsService.publishShipmentStatus(savedShipment.getShipmentId(), "1100 - Created", "SHIPMENT_CREATED");
-			sqsService.sendShipmentStatus(savedShipment.getShipmentId(), "1100 - Created", "SHIPMENT_CREATED");
+			snsService.publishShipmentStatus(savedShipment.getShipmentId(), "1100 - CREATED", "SHIPMENT_CREATED");
+			sqsService.sendShipmentStatus(savedShipment.getShipmentId(), "1100 - CREATED", "SHIPMENT_CREATED");
 			return new String[] { "SUCCESS", savedShipment.getShipmentId() };
 		} else {
 			return new String[] { "FAILED", "Failed to create shipment!" };
@@ -210,7 +210,8 @@ public class ShipmentsService {
 				shipment.setShipStatus(9000);
 				shipmentStatusAndDesc = "9000 - CANCELLED";
 				updatedStatus = "SHIPMENT_CANCELLED";
-				reason = "SHIPMENT_CANCELLED with reason: "+cancellationReason; // setting cancellation reason entered by user in dynamodb reason col
+				reason = "SHIPMENT_CANCELLED with reason: " + cancellationReason; // setting cancellation reason entered
+																					// by user in dynamodb reason col
 				break;
 			default:
 				throw new RuntimeException("Invalid action: " + action);
@@ -299,6 +300,85 @@ public class ShipmentsService {
 		System.out.println("final Query: " + query.toString() + "\nresultList: " + resultList.toString());
 
 		return resultList;
+	}
+
+	// Dynamically setting the conditions and running a custom query in service
+	// instead of calling individual methods in Repo
+	@Transactional
+	public List<Shipments> getShipmentListByAdvancedFilters(String customerId, String warehouseId, String statusFrom,
+			String statusTo, String dateFrom, String dateTo, String itemId) {
+
+		StringBuilder query = new StringBuilder("SELECT s FROM Shipments s");
+
+		// Dynamically build WHERE clause
+		List<String> conditions = new ArrayList<>();
+
+		if (!customerId.equals("ALL"))
+			conditions.add("s.customerId = :customerId");
+		if (!warehouseId.equals("ALL"))
+			conditions.add("s.warehouseId = :warehouseId");
+
+		if (!statusFrom.equals("ALL"))
+			conditions.add("s.shipStatus >= :statusFrom");
+		if (!statusTo.equals("ALL"))
+			conditions.add("s.shipStatus <= :statusTo");
+
+		if (!dateFrom.equals("ALL"))
+			conditions.add("s.createdAt >= :dateFrom");
+		if (!dateTo.equals("ALL"))
+			conditions.add("s.createdAt <= :dateTo");
+
+		// shipmentlines table is yet to be created
+		/*
+		 * THIS WILL BE UNCOMMENTED WHEN SHIPMENTLINES TABLE IS CREATED if
+		 * (!itemId.equals("ALL")) conditions.
+		 * add("s.shipmentId in ( select sl.shipmentId from shipmentlines sl where sl.itemId= :itemId )"
+		 * );
+		 * 
+		 */
+
+		// Append WHERE + AND automatically
+		if (!conditions.isEmpty()) {
+			query.append(" WHERE ").append(String.join(" AND ", conditions));
+		}
+
+		// Create query
+		TypedQuery<Shipments> typedQuery = entityManager.createQuery(query.toString(), Shipments.class);
+
+		// Bind only non-null parameters
+		if (!customerId.equals("ALL"))
+			typedQuery.setParameter("customerId", customerId);
+		if (!warehouseId.equals("ALL"))
+			typedQuery.setParameter("warehouseId", warehouseId);
+		if (!statusFrom.equals("ALL"))
+			typedQuery.setParameter("statusFrom", statusFrom);
+		if (!statusTo.equals("ALL"))
+			typedQuery.setParameter("statusTo", statusTo);
+
+		/// Converting the string to DB compatible LocalDateTime and taking
+		/// it as start-of-day, so that the string 2026-05-29 will be
+		/// considered as 2026-05-29 00:00:00
+		if (!dateFrom.equals("ALL"))
+			typedQuery.setParameter("dateFrom", LocalDate.parse(dateFrom).atStartOfDay());
+
+		// Converting the string to DB compatible LocalDateTime and taking it as
+		// start-of-day of next day, so that the string 2026-05-29 will be considered as
+		// 2026-05-30 00:00:00, so that it includes data of 2026-05-29 as well
+		if (!dateTo.equals("ALL"))
+			typedQuery.setParameter("dateTo", LocalDate.parse(dateTo).plusDays(1).atStartOfDay());
+
+		/*
+		 * THIS WILL BE UNCOMMENTED WHEN SHIPMENTLINES TABLE IS CREATED if
+		 * (!itemId.equals("ALL")) typedQuery.setParameter("itemId", itemId);
+		 */
+		System.out.println("getShipmentListByAdvancedFilters()::: FinalQuery: \n" + query.toString());
+
+		List<Shipments> resultList = typedQuery.getResultList();
+
+		System.out.println("final Query: " + query.toString() + "\nresultList: " + resultList.toString());
+
+		return resultList;
+
 	}
 
 }

@@ -1,176 +1,421 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-  <link rel="stylesheet" th:href="@{/css/navbar.css}" />
-  <style>
-    *, *::before, *::after { box-sizing: border-box; }
-    body { font-family: Arial, sans-serif; background: #f4f6f9; margin: 0; min-height: 100vh; }
-    #msgBox { margin: 8px 24px 0; padding: 8px 40px 8px 14px; border-radius: 8px; font-weight: bold; position: relative; }
-    .page-wrapper { display: flex; gap: 20px; padding: 14px 24px; align-items: flex-start; }
+<link rel="stylesheet" th:href="@{/css/navbar.css}" />
+<style>
+*, *::before, *::after {
+	box-sizing: border-box;
+}
 
-    /* ── FORM SECTION ── */
-    .form-section { width: 62%; }
-    .form-section h2 { font-size: 1rem; color: #1e293b; margin: 0 0 10px; font-weight: 700; }
-    .form-card { background: #fff; border-radius: 12px; padding: 20px 24px; box-shadow: 0 2px 12px rgba(0,0,0,0.07); }
-    .section-title { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #94a3b8; margin: 14px 0 8px; padding-bottom: 5px; border-bottom: 1px solid #e2e8f0; }
-    .section-title:first-child { margin-top: 0; }
-    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 24px; }
-    .full-span { grid-column: 1 / -1; }
+body {
+	font-family: Arial, sans-serif;
+	background: #f4f6f9;
+	margin: 0;
+	min-height: 100vh;
+}
 
-    label { display: block; font-size: 0.7rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.06em; margin-top: 10px; margin-bottom: 3px; }
+#msgBox {
+	margin: 8px 24px 0;
+	padding: 8px 40px 8px 14px;
+	border-radius: 8px;
+	font-weight: bold;
+	position: relative;
+}
 
-    .readonly-value { font-size: 1rem; font-weight: 700; color: #1e293b; padding: 6px 0 8px; border-bottom: 2px solid #e2e8f0; margin-bottom: 4px; }
+.page-wrapper {
+	display: flex;
+	gap: 20px;
+	padding: 14px 24px;
+	align-items: flex-start;
+}
 
-    input[type=text], input[type=email], input[type=date], select {
-      width: 100%; padding: 9px 12px; margin: 0 0 2px;
-      border: 1.5px solid #cbd5e1; border-radius: 8px;
-      font-size: 0.92rem; font-family: Arial, sans-serif;
-      background: #f8fafc; color: #1e293b; outline: none;
-      transition: border-color 0.2s, box-shadow 0.2s;
-    }
-    input:focus, select:focus { border-color: #6a73b2; box-shadow: 0 0 0 3px rgba(106,115,178,0.15); background: #fff; }
+/* ── FORM SECTION ── */
+.form-section {
+	width: 62%;
+}
 
-    /* ── WAREHOUSE CHECKBOXES ── */
-    .checkbox-group { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 6px; }
-    .checkbox-item { display: inline-flex; align-items: center; gap: 0; background: #f1f5f9; border: 1.5px solid #cbd5e1; border-radius: 7px; padding: 0; overflow: visible; position: relative; }
-    .checkbox-item:has(input:checked) { background: #e0e7ff; border-color: #6a73b2; }
-    .checkbox-item input[type=checkbox] { width: 15px; height: 15px; accent-color: #6a73b2; cursor: pointer; margin: 0 0 0 10px; flex-shrink: 0; }
+.form-section h2 {
+	font-size: 1rem;
+	color: #1e293b;
+	margin: 0 0 10px;
+	font-weight: 700;
+}
 
-    .wh-trigger { display: inline-flex; align-items: center; padding: 6px 12px 6px 6px; cursor: pointer; font-size: 0.82rem; font-weight: 700; color: #374151; border-bottom: 1px dashed #6a73b2; position: relative; }
-    .wh-tooltip { visibility: hidden; opacity: 0; background: #1e293b; color: #fff; font-size: 0.78rem; padding: 10px 14px; border-radius: 8px; line-height: 1.7; white-space: nowrap; position: absolute; top: 110%; left: 0; z-index: 9999; transition: opacity 0.2s; pointer-events: auto; box-shadow: 0 4px 16px rgba(0,0,0,0.18); }
-    .wh-tooltip a { display: block; margin-top: 6px; color: #90caf9; text-decoration: underline; font-size: 0.76rem; }
-    .wh-trigger:hover .wh-tooltip, .wh-tooltip:hover { visibility: visible; opacity: 1; }
+.form-card {
+	background: #fff;
+	border-radius: 12px;
+	padding: 20px 24px;
+	box-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
+}
 
-    .warehouse-sublabel { font-size: 0.68rem; font-weight: 400; color: #94a3b8; text-transform: none; letter-spacing: 0; margin-left: 6px; }
+.section-title {
+	font-size: 0.68rem;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.1em;
+	color: #94a3b8;
+	margin: 14px 0 8px;
+	padding-bottom: 5px;
+	border-bottom: 1px solid #e2e8f0;
+}
 
-    /* ── BUTTONS ── */
-    .button-row { margin-top: 18px; padding-top: 14px; border-top: 1px solid #e2e8f0; display: flex; gap: 10px; }
-    .btn-update { background-color: #6a73b2; color: #fff; font-weight: 700; font-size: 0.9rem; padding: 10px 26px; border: none; border-radius: 8px; cursor: pointer; transition: background-color 0.2s, transform 0.15s; }
-    .btn-update:hover { background-color: #555fa0; transform: translateY(-1px); }
-    .btn-delete { background-color: #ed4758; color: #fff; font-weight: 700; font-size: 0.9rem; padding: 10px 26px; border: none; border-radius: 8px; cursor: pointer; transition: background-color 0.2s, transform 0.15s; }
-    .btn-delete:hover { background-color: #c73444; transform: translateY(-1px); }
+.section-title:first-child {
+	margin-top: 0;
+}
 
-    /* ── CONDITIONS SECTION ── */
-    .conditions-section { width: 38%; background: #f0f7f2; border: 1px solid #c8e0d0; border-radius: 12px; padding: 18px 22px; align-self: flex-start; margin-top: 30px; }
-    .conditions-section h4 { margin: 0 0 10px; font-size: 0.92rem; color: #2d5a3d; }
-    .conditions-section ol { padding-left: 18px; color: #374151; line-height: 2; margin: 0; font-size: 0.85rem; }
-  </style>
+.form-grid {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 0 24px;
+}
+
+.full-span {
+	grid-column: 1/-1;
+}
+
+label {
+	display: block;
+	font-size: 0.7rem;
+	font-weight: 700;
+	color: #94a3b8;
+	text-transform: uppercase;
+	letter-spacing: 0.06em;
+	margin-top: 10px;
+	margin-bottom: 3px;
+}
+
+.readonly-value {
+	font-size: 1rem;
+	font-weight: 700;
+	color: #1e293b;
+	padding: 6px 0 8px;
+	border-bottom: 2px solid #e2e8f0;
+	margin-bottom: 4px;
+}
+
+input[type=text], input[type=email], input[type=date], select {
+	width: 100%;
+	padding: 9px 12px;
+	margin: 0 0 2px;
+	border: 1.5px solid #cbd5e1;
+	border-radius: 8px;
+	font-size: 0.92rem;
+	font-family: Arial, sans-serif;
+	background: #f8fafc;
+	color: #1e293b;
+	outline: none;
+	transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+input:focus, select:focus {
+	border-color: #6a73b2;
+	box-shadow: 0 0 0 3px rgba(106, 115, 178, 0.15);
+	background: #fff;
+}
+
+/* ── WAREHOUSE CHECKBOXES ── */
+.checkbox-group {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 8px;
+	margin-top: 6px;
+}
+
+.checkbox-item {
+	display: inline-flex;
+	align-items: center;
+	gap: 0;
+	background: #f1f5f9;
+	border: 1.5px solid #cbd5e1;
+	border-radius: 7px;
+	padding: 0;
+	overflow: visible;
+	position: relative;
+}
+
+.checkbox-item:has(input:checked) {
+	background: #e0e7ff;
+	border-color: #6a73b2;
+}
+
+.checkbox-item input[type=checkbox] {
+	width: 15px;
+	height: 15px;
+	accent-color: #6a73b2;
+	cursor: pointer;
+	margin: 0 0 0 10px;
+	flex-shrink: 0;
+}
+
+.wh-trigger {
+	display: inline-flex;
+	align-items: center;
+	padding: 6px 12px 6px 6px;
+	cursor: pointer;
+	font-size: 0.82rem;
+	font-weight: 700;
+	color: #374151;
+	border-bottom: 1px dashed #6a73b2;
+	position: relative;
+}
+
+.wh-tooltip {
+	visibility: hidden;
+	opacity: 0;
+	background: #1e293b;
+	color: #fff;
+	font-size: 0.78rem;
+	padding: 10px 14px;
+	border-radius: 8px;
+	line-height: 1.7;
+	white-space: nowrap;
+	position: absolute;
+	top: 110%;
+	left: 0;
+	z-index: 9999;
+	transition: opacity 0.2s;
+	pointer-events: auto;
+	box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
+}
+
+.wh-tooltip a {
+	display: block;
+	margin-top: 6px;
+	color: #90caf9;
+	text-decoration: underline;
+	font-size: 0.76rem;
+}
+
+.wh-trigger:hover .wh-tooltip, .wh-tooltip:hover {
+	visibility: visible;
+	opacity: 1;
+}
+
+.warehouse-sublabel {
+	font-size: 0.68rem;
+	font-weight: 400;
+	color: #94a3b8;
+	text-transform: none;
+	letter-spacing: 0;
+	margin-left: 6px;
+}
+
+/* ── BUTTONS ── */
+.button-row {
+	margin-top: 18px;
+	padding-top: 14px;
+	border-top: 1px solid #e2e8f0;
+	display: flex;
+	gap: 10px;
+}
+
+.btn-update {
+	background-color: #6a73b2;
+	color: #fff;
+	font-weight: 700;
+	font-size: 0.9rem;
+	padding: 10px 26px;
+	border: none;
+	border-radius: 8px;
+	cursor: pointer;
+	transition: background-color 0.2s, transform 0.15s;
+}
+
+.btn-update:hover {
+	background-color: #555fa0;
+	transform: translateY(-1px);
+}
+
+.btn-delete {
+	background-color: #ed4758;
+	color: #fff;
+	font-weight: 700;
+	font-size: 0.9rem;
+	padding: 10px 26px;
+	border: none;
+	border-radius: 8px;
+	cursor: pointer;
+	transition: background-color 0.2s, transform 0.15s;
+}
+
+.btn-delete:hover {
+	background-color: #c73444;
+	transform: translateY(-1px);
+}
+
+/* ── CONDITIONS SECTION ── */
+.conditions-section {
+	width: 38%;
+	background: #f0f7f2;
+	border: 1px solid #c8e0d0;
+	border-radius: 12px;
+	padding: 18px 22px;
+	align-self: flex-start;
+	margin-top: 30px;
+}
+
+.conditions-section h4 {
+	margin: 0 0 10px;
+	font-size: 0.92rem;
+	color: #2d5a3d;
+}
+
+.conditions-section ol {
+	padding-left: 18px;
+	color: #374151;
+	line-height: 2;
+	margin: 0;
+	font-size: 0.85rem;
+}
+</style>
 </head>
 <body>
-  <div th:replace="~{fragments/navbar :: navbar}"></div>
+	<div th:replace="~{fragments/navbar :: navbar}"></div>
 
-  <p th:if="${msg}" id="msgBox" th:style="'background:' + ${bgColor} + '; color:' + ${textColor} + ';'">
-    <span th:text="${msg}" style="white-space:pre-wrap;"></span> 
-    <span onclick="this.parentElement.style.display='none'" style="position:absolute;right:14px;top:50%;transform:translateY(-50%);cursor:pointer;font-weight:bold;">✕</span>
-  </p>
+	<p th:if="${msg}" id="msgBox"
+		th:style="'background:' + ${bgColor} + '; color:' + ${textColor} + ';'">
+		<span th:text="${msg}" style="white-space: pre-wrap;"></span> <span
+			onclick="this.parentElement.style.display='none'"
+			style="position: absolute; right: 14px; top: 50%; transform: translateY(-50%); cursor: pointer; font-weight: bold;">✕</span>
+	</p>
 
-  <div class="page-wrapper">
-    <div class="form-section">
-      <h2>👤 Edit Customer</h2>
-      <div class="form-card">
-        <form action="/customers/updateCustomer" method="post" name="updateCustomerDetails" id="updateCustomerDetails">
-          <input type="hidden" name="customerId" th:value="${customer.customerId}" />
+	<div class="page-wrapper">
+		<div class="form-section">
+			<h2>👤 Edit Customer</h2>
+			<div class="form-card">
+				<form action="/customers/updateCustomer" method="post"
+					name="updateCustomerDetails" id="updateCustomerDetails">
+					<input type="hidden" name="customerId"
+						th:value="${customer.customerId}" />
 
-          <div class="section-title">Customer Details</div>
-          <div class="form-grid">
-            <div>
-              <label>Customer ID</label>
-              <div class="readonly-value" th:text="${customer.customerId}">CUST-001</div>
-            </div>
-            <div>
-              <label>Created At</label>
-              <div class="readonly-value" th:text="${customer.createdAt}">2024-01-01 10:00</div>
-            </div>
-            <div>
-              <label for="customerName">Customer Name</label>
-              <input type="text" name="customerName" id="customerName" placeholder="Enter customer name"
-                     th:value="${customer.customerName != null} ? ${customer.customerName} : ''" required />
-            </div>
-            <div>
-              <label>Modified At</label>
-              <div class="readonly-value" th:text="${customer.modifiedAt}">2024-06-15 14:30</div>
-            </div>
-            <div>
-              <label for="customerEmail">Email</label>
-              <input type="email" name="customerEmail" id="customerEmail" th:value="${customer.customerEmail}" required />
-            </div>
-            <div>
-              <label for="customerStatus">Customer Status</label>
-              <select name="customerStatus" id="customerStatus" required>
-                <option th:each="opt : ${options}" th:value="${opt}" th:text="${opt}" th:selected="${opt == selectedStatus}"></option>
-              </select>
-            </div>
-            <div>
-              <label for="validUpto">Valid Upto</label>
-              <input type="date" name="validUpto" id="validUpto"
-                     th:value="${validUptoJustDate != null} ? ${validUptoJustDate} : ''" required />
-            </div>
-          </div>
+					<div class="section-title">Customer Details</div>
+					<div class="form-grid">
+						<div>
+							<label>Customer ID</label>
+							<div class="readonly-value" th:text="${customer.customerId}">CUST-001</div>
+						</div>
+						<div>
+							<label>Created At</label>
+							<div class="readonly-value" th:text="${customer.createdAt}">2024-01-01
+								10:00</div>
+						</div>
+						<div>
+							<label for="customerName">Customer Name</label> <input
+								type="text" name="customerName" id="customerName"
+								placeholder="Enter customer name"
+								th:value="${customer.customerName != null} ? ${customer.customerName} : ''"
+								required />
+						</div>
+						<div>
+							<label>Modified At</label>
+							<div class="readonly-value" th:text="${customer.modifiedAt}">2024-06-15
+								14:30</div>
+						</div>
+						<div>
+							<label for="customerEmail">Email</label> <input type="email"
+								name="customerEmail" id="customerEmail"
+								th:value="${customer.customerEmail}" required />
+						</div>
+						<div>
+							<label for="customerStatus">Customer Status</label> <select
+								name="customerStatus" id="customerStatus" required>
+								<option th:each="opt : ${options}" th:value="${opt}"
+									th:text="${opt}" th:selected="${opt == selectedStatus}"></option>
+							</select>
+						</div>
+						<div>
+							<label for="validUpto"
+								th:style="'background:' + ${bgColorForValidUpto} + '; color:' + ${textColorForValidUpto} + ';'">Valid
+								Upto</label> <input type="date" name="validUpto" id="validUpto"
+								th:value="${validUptoJustDate != null} ? ${validUptoJustDate} : ''"
+								required
+								th:style="'background:' + ${bgColorForValidUpto} + '; color:' + ${textColorForValidUpto} + ';'" />
+							<span th:if="${isExpired == true}"
+								style="color: red; font-weight: bold; margin-left: 6px;">
+								Contract has Expired!! Extend it to continue shipping.</span>
 
-          <!-- ASSIGNED WAREHOUSES -->
-          <div class="section-title">
-            Allocated Warehouses
-            <span class="warehouse-sublabel">(hover ID to see details)</span>
-          </div>
-          <div class="checkbox-group" th:unless="${#lists.isEmpty(assignedWarehouses)}">
-            <label class="checkbox-item" th:each="aw : ${assignedWarehouses}">
-              <input type="checkbox" th:name="selectedWarehouses" th:value="${aw.warehouseId}" th:id="${aw.warehouseId}" checked />
-              <span class="wh-trigger">
-                <span th:text="${aw.warehouseId}"></span>
-                <div class="wh-tooltip">
-                  <b>Name:</b> <span th:text="${aw.warehouseName}"></span><br/>
-                  <b>Address:</b> <span th:text="${aw.warehouseAddress}"></span><br/>
-                  <b>Status:</b> <span th:text="${aw.warehouseStatus}"></span>
-                  <a th:href="@{'/warehouses/showWarehouseDetails/' + ${aw.warehouseId}}" target="_blank">View Details →</a>
-                </div>
-              </span>
-            </label>
-          </div>
-          <span th:if="${#lists.isEmpty(assignedWarehouses)}" style="color:#94a3b8;font-style:italic;font-size:0.85rem;">None assigned</span>
+						</div>
+					</div>
 
-          <!-- UNASSIGNED WAREHOUSES -->
-          <div class="section-title">
-            Available Unallocated Warehouses
-            <span class="warehouse-sublabel">(hover ID to see details)</span>
-          </div>
-          <div class="checkbox-group" th:unless="${#lists.isEmpty(unassignedWarehouses)}">
-            <label class="checkbox-item" th:each="uw : ${unassignedWarehouses}">
-              <input type="checkbox" th:name="selectedWarehouses" th:value="${uw.warehouseId}" th:id="${uw.warehouseId}" />
-              <span class="wh-trigger">
-                <span th:text="${uw.warehouseId}"></span>
-                <div class="wh-tooltip">
-                  <b>Name:</b> <span th:text="${uw.warehouseName}"></span><br/>
-                  <b>Address:</b> <span th:text="${uw.warehouseAddress}"></span><br/>
-                  <b>Status:</b> <span th:text="${uw.warehouseStatus}"></span>
-                  <a th:href="@{'/warehouses/showWarehouseDetails/' + ${uw.warehouseId}}" target="_blank">View Details →</a>
-                </div>
-              </span>
-            </label>
-          </div>
-          <span th:if="${#lists.isEmpty(unassignedWarehouses)}" style="color:#94a3b8;font-style:italic;font-size:0.85rem;">No additional warehouses available</span>
+					<!-- ASSIGNED WAREHOUSES -->
+					<div class="section-title">
+						Allocated Warehouses <span class="warehouse-sublabel">(hover
+							ID to see details)</span>
+					</div>
+					<div class="checkbox-group"
+						th:unless="${#lists.isEmpty(assignedWarehouses)}">
+						<label class="checkbox-item" th:each="aw : ${assignedWarehouses}">
+							<input type="checkbox" th:name="selectedWarehouses"
+							th:value="${aw.warehouseId}" th:id="${aw.warehouseId}" checked />
+							<span class="wh-trigger"> <span
+								th:text="${aw.warehouseId}"></span>
+								<div class="wh-tooltip">
+									<b>Name:</b> <span th:text="${aw.warehouseName}"></span><br />
+									<b>Address:</b> <span th:text="${aw.warehouseAddress}"></span><br />
+									<b>Status:</b> <span th:text="${aw.warehouseStatus}"></span> <a
+										th:href="@{'/warehouses/showWarehouseDetails/' + ${aw.warehouseId}}"
+										target="_blank">View Details →</a>
+								</div>
+						</span>
+						</label>
+					</div>
+					<span th:if="${#lists.isEmpty(assignedWarehouses)}"
+						style="color: #94a3b8; font-style: italic; font-size: 0.85rem;">None
+						assigned</span>
 
-          <div class="button-row">
-            <button type="button" class="btn-update" onclick="submitIfChanged(event)">✔ Update Customer</button>
-            <button type="button" class="btn-delete" onclick="confirmDelete()">🗑 Delete Customer</button>
-          </div>
-        </form>
+					<!-- UNASSIGNED WAREHOUSES -->
+					<div class="section-title">
+						Available Unallocated Warehouses <span class="warehouse-sublabel">(hover
+							ID to see details)</span>
+					</div>
+					<div class="checkbox-group"
+						th:unless="${#lists.isEmpty(unassignedWarehouses)}">
+						<label class="checkbox-item"
+							th:each="uw : ${unassignedWarehouses}"> <input
+							type="checkbox" th:name="selectedWarehouses"
+							th:value="${uw.warehouseId}" th:id="${uw.warehouseId}" /> <span
+							class="wh-trigger"> <span th:text="${uw.warehouseId}"></span>
+								<div class="wh-tooltip">
+									<b>Name:</b> <span th:text="${uw.warehouseName}"></span><br />
+									<b>Address:</b> <span th:text="${uw.warehouseAddress}"></span><br />
+									<b>Status:</b> <span th:text="${uw.warehouseStatus}"></span> <a
+										th:href="@{'/warehouses/showWarehouseDetails/' + ${uw.warehouseId}}"
+										target="_blank">View Details →</a>
+								</div>
+						</span>
+						</label>
+					</div>
+					<span th:if="${#lists.isEmpty(unassignedWarehouses)}"
+						style="color: #94a3b8; font-style: italic; font-size: 0.85rem;">No
+						additional warehouses available</span>
 
-        <form id="deleteCustomerForm" th:action="@{'/customers/deleteCustomer/' + ${customer.customerId}}" method="post" style="display:none;"></form>
-      </div>
-    </div>
+					<div class="button-row">
+						<button type="button" class="btn-update"
+							onclick="submitIfChanged(event)">✔ Update Customer</button>
+						<button type="button" class="btn-delete" onclick="confirmDelete()">🗑
+							Delete Customer</button>
+					</div>
+				</form>
 
-    <div class="conditions-section">
-      <h4>📌 Conditions for updating customer</h4>
-      <ol>
-        <li>Customer Name must be at least 5 characters long.</li>
-        <li>Customer Name must be maximum 30 characters only.</li>
-        <li>Valid Up To must be a future date (earliest is tomorrow).</li>
-        <li><strong>Active</strong> = Shipping is allowed. <strong>Disabled</strong> = Not allowed.</li>
-      </ol>
-    </div>
-  </div>
+				<form id="deleteCustomerForm"
+					th:action="@{'/customers/deleteCustomer/' + ${customer.customerId}}"
+					method="post" style="display: none;"></form>
+			</div>
+		</div>
 
-  <script>
+		<div class="conditions-section">
+			<h4>📌 Conditions for updating customer</h4>
+			<ol>
+				<li>Customer Name must be at least 5 characters long.</li>
+				<li>Customer Name must be maximum 30 characters only.</li>
+				<li>Valid Up To must be a future date (earliest is tomorrow).</li>
+				<li><strong>Active</strong> = Shipping is allowed. <strong>Disabled</strong>
+					= Not allowed.</li>
+			</ol>
+		</div>
+	</div>
+
+	<script>
     window.addEventListener("load", function () {
       var msg = document.getElementById("msgBox");
       if (msg) setTimeout(() => msg.style.display = "none", 10000);

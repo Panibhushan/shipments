@@ -1,96 +1,257 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-  <link rel="stylesheet" th:href="@{/css/navbar.css}" />
-  <style>
-    *, *::before, *::after { box-sizing: border-box; }
-    body { font-family: Arial, sans-serif; background: #f4f6f9; margin: 0; min-height: 100vh; }
-    #msgBox { margin: 8px 24px 0; padding: 8px 40px 8px 14px; border-radius: 8px; font-weight: bold; position: relative; }
-    .page-wrapper { display: flex; gap: 20px; padding: 14px 24px; align-items: flex-start; }
-    .form-section { width: 60%; }
-    .form-section h2 { font-size: 1rem; color: #1e293b; margin: 0 0 10px; font-weight: 700; }
-    .form-card { background: #fff; border-radius: 12px; padding: 20px 24px; box-shadow: 0 2px 12px rgba(0,0,0,0.07); }
-    .section-title { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #94a3b8; margin: 14px 0 8px; padding-bottom: 5px; border-bottom: 1px solid #e2e8f0; }
-    .section-title:first-child { margin-top: 0; }
-    label { display: block; font-size: 0.7rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.06em; margin-top: 10px; margin-bottom: 3px; }
-    select {
-      width: 100%; padding: 9px 12px; margin: 0 0 2px;
-      border: 1.5px solid #cbd5e1; border-radius: 8px;
-      font-size: 0.92rem; font-family: Arial, sans-serif;
-      background: #f8fafc; color: #1e293b; outline: none;
-      transition: border-color 0.2s, box-shadow 0.2s;
-    }
-    select:focus { border-color: #6a73b2; box-shadow: 0 0 0 3px rgba(106,115,178,0.15); background: #fff; }
-    .helper-link { font-size: 0.78rem; color: #6a73b2; text-decoration: none; margin-top: 4px; display: inline-block; }
-    .helper-link:hover { text-decoration: underline; }
-    #warehouseMessage { display: none; margin-top: 5px; font-size: 0.82rem; color: #c0392b; background: #fef2f2; border: 1px solid #fecaca; border-radius: 6px; padding: 7px 12px; }
-    #warehouseMessage a { color: #2980b9; font-weight: 700; text-decoration: none; }
-    #warehouseMessage a:hover { text-decoration: underline; }
-    .button-row { margin-top: 18px; padding-top: 14px; border-top: 1px solid #e2e8f0; }
-    .btn-submit { background-color: #4CAF50; color: #fff; font-weight: 700; font-size: 0.9rem; padding: 10px 26px; border: none; border-radius: 8px; cursor: pointer; transition: background-color 0.2s, transform 0.15s; }
-    .btn-submit:hover { background-color: #3d9140; transform: translateY(-1px); }
-    .conditions-section { width: 40%; background: #f0f7f2; border: 1px solid #c8e0d0; border-radius: 12px; padding: 18px 22px; align-self: flex-start; margin-top: 30px; }
-    .conditions-section h4 { margin: 0 0 10px; font-size: 0.92rem; color: #2d5a3d; }
-    .conditions-section ol { padding-left: 18px; color: #374151; line-height: 2; margin: 0; font-size: 0.85rem; }
-  </style>
+<link rel="stylesheet" th:href="@{/css/navbar.css}" />
+<style>
+*, *::before, *::after {
+	box-sizing: border-box;
+}
+
+body {
+	font-family: Arial, sans-serif;
+	background: #f4f6f9;
+	margin: 0;
+	min-height: 100vh;
+}
+
+#msgBox {
+	margin: 8px 24px 0;
+	padding: 8px 40px 8px 14px;
+	border-radius: 8px;
+	font-weight: bold;
+	position: relative;
+}
+
+.page-wrapper {
+	display: flex;
+	gap: 20px;
+	padding: 14px 24px;
+	align-items: flex-start;
+}
+
+.form-section {
+	width: 60%;
+}
+
+.form-section h2 {
+	font-size: 1rem;
+	color: #1e293b;
+	margin: 0 0 10px;
+	font-weight: 700;
+}
+
+.form-card {
+	background: #fff;
+	border-radius: 12px;
+	padding: 20px 24px;
+	box-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
+}
+
+.section-title {
+	font-size: 0.68rem;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.1em;
+	color: #94a3b8;
+	margin: 14px 0 8px;
+	padding-bottom: 5px;
+	border-bottom: 1px solid #e2e8f0;
+}
+
+.section-title:first-child {
+	margin-top: 0;
+}
+
+label {
+	display: block;
+	font-size: 0.7rem;
+	font-weight: 700;
+	color: #94a3b8;
+	text-transform: uppercase;
+	letter-spacing: 0.06em;
+	margin-top: 10px;
+	margin-bottom: 3px;
+}
+
+select {
+	width: 100%;
+	padding: 9px 12px;
+	margin: 0 0 2px;
+	border: 1.5px solid #cbd5e1;
+	border-radius: 8px;
+	font-size: 0.92rem;
+	font-family: Arial, sans-serif;
+	background: #f8fafc;
+	color: #1e293b;
+	outline: none;
+	transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+select:focus {
+	border-color: #6a73b2;
+	box-shadow: 0 0 0 3px rgba(106, 115, 178, 0.15);
+	background: #fff;
+}
+
+.helper-link {
+	font-size: 0.78rem;
+	color: #6a73b2;
+	text-decoration: none;
+	margin-top: 4px;
+	display: inline-block;
+}
+
+.helper-link:hover {
+	text-decoration: underline;
+}
+
+#warehouseMessage {
+	display: none;
+	margin-top: 5px;
+	font-size: 0.82rem;
+	color: #c0392b;
+	background: #fef2f2;
+	border: 1px solid #fecaca;
+	border-radius: 6px;
+	padding: 7px 12px;
+}
+
+#warehouseMessage a {
+	color: #2980b9;
+	font-weight: 700;
+	text-decoration: none;
+}
+
+#warehouseMessage a:hover {
+	text-decoration: underline;
+}
+
+.button-row {
+	margin-top: 18px;
+	padding-top: 14px;
+	border-top: 1px solid #e2e8f0;
+}
+
+.btn-submit {
+	background-color: #4CAF50;
+	color: #fff;
+	font-weight: 700;
+	font-size: 0.9rem;
+	padding: 10px 26px;
+	border: none;
+	border-radius: 8px;
+	cursor: pointer;
+	transition: background-color 0.2s, transform 0.15s;
+}
+
+.btn-submit:hover {
+	background-color: #3d9140;
+	transform: translateY(-1px);
+}
+
+.conditions-section {
+	width: 40%;
+	background: #f0f7f2;
+	border: 1px solid #c8e0d0;
+	border-radius: 12px;
+	padding: 18px 22px;
+	align-self: flex-start;
+	margin-top: 30px;
+}
+
+.conditions-section h4 {
+	margin: 0 0 10px;
+	font-size: 0.92rem;
+	color: #2d5a3d;
+}
+
+.conditions-section ol {
+	padding-left: 18px;
+	color: #374151;
+	line-height: 2;
+	margin: 0;
+	font-size: 0.85rem;
+}
+</style>
 </head>
 <body>
 
-  <div th:replace="~{fragments/navbar :: navbar}"></div>
+	<div th:replace="~{fragments/navbar :: navbar}"></div>
 
-  <p th:if="${msg}" id="msgBox"
-     th:style="'background:' + ${bgColor} + '; color:' + ${textColor} + ';'">
-    <span th:utext="${msg}" style="white-space:pre-wrap;"></span>
-    <span onclick="this.parentElement.style.display='none'"
-          style="position:absolute;right:14px;top:50%;transform:translateY(-50%);cursor:pointer;font-weight:bold;">✕</span>
-  </p>
+	<p th:if="${msg}" id="msgBox"
+		th:style="'background:' + ${bgColor} + '; color:' + ${textColor} + ';'">
+		<span th:utext="${msg}" style="white-space: pre-wrap;"></span> <span
+			onclick="this.parentElement.style.display='none'"
+			style="position: absolute; right: 14px; top: 50%; transform: translateY(-50%); cursor: pointer; font-weight: bold;">✕</span>
+	</p>
 
-  <div class="page-wrapper">
-    <div class="form-section">
-      <h2>🚢 Create New Shipment</h2>
-      <div class="form-card">
-        <form action="/shipments/createShipment" method="post" id="shipmentForm">
+	<div class="page-wrapper">
+		<div class="form-section">
+			<h2>🚢 Create New Shipment</h2>
+			<div class="form-card">
+				<form action="/shipments/createShipment" method="post"
+					id="shipmentForm">
 
-          <div class="section-title">Customer</div>
-<!--           <label for="customerId">Customer</label>
- -->          <select name="customerId" id="customerId" onchange="loadWarehouses(this.value)" required>
-            <option value="">— Select Customer —</option>
-            <option th:each="c : ${customers}" th:value="${c.customerId}"
-                    th:text="|${c.customerId} = ${c.customerName}|"></option>
-          </select>
-          <a href="/customers/goToCreateCustomerPage" class="helper-link">＋ Customer doesn't exist? Create one</a>
+					<div class="section-title">
+						Customer <br />
+						<p class="helper-link" style="font-size: 9px; text-decoration: none; margin-bottom: 0px">
+							(Only Active Customers with Valid Contract are shown here <br />
+							If the customer you are looking for is not appearing then search
+							here: <a href="/customers/" class="helper-link"
+								style="color:#1d213c ; font-size: 10px; font-weight: bold; text-decoration: underline dotted;">View Customers</a>)
+						</p>
+					</div>
+					<!--           <label for="customerId">Customer</label>
+ -->
+					<select name="customerId" id="customerId"
+						onchange="loadWarehouses(this.value)" required>
+						<option value="">— Select Customer —</option>
+						<option th:each="c : ${customers}" th:value="${c.customerId}"
+							th:text="|${c.customerId} = ${c.customerName}|"></option>
+					</select> <a href="/customers/goToCreateCustomerPage" class="helper-link">＋
+						Customer doesn't exist? Create one</a>
 
-          <div class="section-title">Warehouse</div>
-<!--           <label for="warehouseSelect">Warehouse</label>
- -->          <select id="warehouseSelect" name="warehouseId" required>
-            <option value="">— Select Warehouse —</option>
-          </select>
-          <div id="warehouseMessage">
-            ⚠️ No warehouses configured for this customer.
-            <a target="_blank" id="editCustomerLink" href="#">Allocate warehouses now →</a>
-          </div>
+					<div class="section-title">Warehouse</div>
+					<!--           <label for="warehouseSelect">Warehouse</label>
+ -->
+					<select id="warehouseSelect" name="warehouseId" required>
+						<option value="">— Select Warehouse —</option>
+					</select>
+					<div id="warehouseMessage">
+						⚠️ No warehouses configured for this customer. <a target="_blank"
+							id="editCustomerLink" href="#">Allocate warehouses now →</a>
+					</div>
 
-          <div class="button-row">
-            <button type="submit" class="btn-submit">✔ Create Shipment</button>
-          </div>
+					<div class="button-row">
+						<button type="submit" class="btn-submit">✔ Create
+							Shipment</button>
+					</div>
 
-        </form>
-      </div>
-    </div>
+				</form>
+			</div>
+		</div>
 
-    <div class="conditions-section">
-      <h4>📌 Conditions for creating shipment</h4>
-      <ol>
-        <li>Select a <strong>Customer</strong> first — warehouses load dynamically.</li>
-        <li>Only warehouses configured for the selected customer will appear.</li>
-        <li>Customer must have <strong>Active</strong> status to create a shipment.</li>
-        <li>Warehouse must have <strong>Active</strong> status to create a shipment.</li>
-        <li>Shipment starts at status <strong>1100 — Created</strong>.</li>
-      </ol>
-    </div>
-  </div>
+		<div class="conditions-section">
+			<h4>📌 Conditions for creating shipment</h4>
+			<ol>
+				<li>Select a <strong>Customer</strong> first — warehouses load
+					dynamically.
+				</li>
+				<li>Only warehouses configured for the selected customer will
+					appear.</li>
+				<li>Customer must have <strong>Active</strong> status to create
+					a shipment.
+				</li>
+				<li>Warehouse must have <strong>Active</strong> status to
+					create a shipment.
+				</li>
+				<li>Shipment starts at status <strong>1100 — Created</strong>.
+				</li>
+			</ol>
+		</div>
+	</div>
 
-  <script>
+	<script>
     window.addEventListener("load", function () {
       var msg = document.getElementById("msgBox");
       if (msg) setTimeout(() => msg.style.display = "none", 10000);

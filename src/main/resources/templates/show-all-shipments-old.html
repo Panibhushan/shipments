@@ -690,10 +690,28 @@ thead th.sort-asc .sort-arrow, thead th.sort-desc .sort-arrow {
     window.addEventListener("load", function () {
       var msg = document.getElementById("msgBox");
       if (msg) setTimeout(() => msg.style.display = "none", 10000);
-      evaluateClearLink(); 
+      evaluateClearLink();
+      populateHiddenShipmentIds();
     });
 
     function rowClick(event, row) { window.location.href = row.getAttribute('data-href'); }
+
+    /* ── populate hidden shipment IDs for advanced filter form ── */
+    function populateHiddenShipmentIds() {
+      const container = document.getElementById('hiddenShipmentIds');
+      if (!container) return;
+      container.innerHTML = '';
+      document.querySelectorAll('#shipmentsTable tbody tr').forEach(row => {
+        const id = row.dataset.shipmentId;
+        if (id) {
+          const input = document.createElement('input');
+          input.type  = 'hidden';
+          input.name  = 'shipmentIds';
+          input.value = id;
+          container.appendChild(input);
+        }
+      });
+    }
 
     /* ── clear filter link state ── */
     function evaluateClearLink() {
@@ -789,7 +807,9 @@ thead th.sort-asc .sort-arrow, thead th.sort-desc .sort-arrow {
             return sortState.asc ? cmp : -cmp;
           });
 
-          rows.forEach(r => tbody.appendChild(r)); 
+          rows.forEach(r => tbody.appendChild(r));
+          // re-populate hidden IDs after sort so advanced filter reflects new order
+          populateHiddenShipmentIds();
         });
       });
 

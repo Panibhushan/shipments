@@ -70,8 +70,15 @@ public class CustomersService {
 		// Convert stored datetime string → plain date string for the calendar input
 		LocalDateTime dateTime = LocalDateTime.parse(customer.getValidUpto(),
 				DateTimeFormatter.ofPattern("dd-MMM-yyyy HH:mm:ss"));
+		
+		boolean isExpired = dateTime.toLocalDate().isBefore(LocalDate.now());
 		String validUptoJustDate = dateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 		model.addAttribute("validUptoJustDate", validUptoJustDate);
+		if(isExpired) {
+			model.addAttribute("bgColorForValidUpto", "red");
+			model.addAttribute("textColorForValidUpto", "yellow");
+			model.addAttribute("isExpired", isExpired);
+		}
 	}
 
 	// ─────────────────────────────────────────────

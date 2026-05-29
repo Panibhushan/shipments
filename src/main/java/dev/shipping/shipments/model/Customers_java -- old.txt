@@ -109,8 +109,8 @@ public class Customers {
 	public String getValidUpto() {
 		if (validUpto == null)
 			return null;
-		return validUpto.format(DateTimeFormatter.ofPattern("dd-MMM-yyyy HH:mm:ss")).toUpperCase();
-		// returns "15-MAY-2026 00:00:00"
+		return validUpto.format(DateTimeFormatter.ofPattern("dd-MMM-yyyy HH:mm:ss"));
+		// returns "15-May-2026 00:00:00"
 	}
 
 	public String getCustomerEmail() {

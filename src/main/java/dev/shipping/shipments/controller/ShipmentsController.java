@@ -42,7 +42,7 @@ public class ShipmentsController {
 
 	// SHOW ALL SHIPMENTS AS LIST
 	@GetMapping("/shipments/")
-	public String home(Model model) {
+	public String showAllShipments(Model model) {
 		model.addAttribute("shipments", shipmentsService.getAllShipments());
 		model.addAttribute("activePage", "allShipments"); // ← this shows which dropdown is active in the navbar
 		model.addAttribute("selectedCustomer", "ALL");
@@ -51,16 +51,27 @@ public class ShipmentsController {
 		return "show-all-shipments";
 	}
 
+	// SHOW ALL SHIPMENTS AS LIST
+	@GetMapping("/shipments/advancedShipmentFilters/")
+	public String showAllShipmentsWithadvancedFilters(Model model) {
+		model.addAttribute("shipments", shipmentsService.getAllShipments());
+		model.addAttribute("activePage", "allShipments"); // ← this shows which dropdown is active in the navbar
+		model.addAttribute("selectedCustomer", "ALL");
+		model.addAttribute("customers", customersService.getAllCustomers());
+		model.addAttribute("warehouses", warehousesService.getAllWarehouses());
+		return "show-all-shipments-with-advanced-filters";
+	}
+
 	// SHOW SHIPMENTS LIST BASED ON INPUT FILTERS
 	@PostMapping("/shipments/showShipmentsByFilters/{customerId}/{warehouseId}/{status}")
 	public String showShipmentsByCustomerAndWarehouse(@PathVariable String customerId, @PathVariable String warehouseId,
 			@PathVariable String status, Model model) {
 
-		System.out.println("/shipments/showShipmentsByFilters/{customerId}/{warehouseId}: "
-				+ customerId + " / " + warehouseId + " / " + status);
-		
+		System.out.println("/shipments/showShipmentsByFilters/{customerId}/{warehouseId}: " + customerId + " / "
+				+ warehouseId + " / " + status);
+
 		List<Shipments> shipmentsList = shipmentsService.getShipmentList(customerId, warehouseId, status);
-		
+
 		model.addAttribute("shipments", shipmentsList);
 		model.addAttribute("selectedCustomer", customerId);
 		model.addAttribute("selectedWarehouse", warehouseId);
@@ -74,6 +85,42 @@ public class ShipmentsController {
 		}
 
 		return "show-all-shipments";
+
+	}
+
+	// SHOW SHIPMENTS LIST BASED ON INPUT ADVANCED FILTERS
+	@PostMapping("/shipments/showShipmentsByAdvancedFilters/{customerId}/{warehouseId}/{statusFrom}/{statusTo}/{dateFrom}/{dateTo}/{itemId}")
+	public String filter(@PathVariable String customerId, @PathVariable String warehouseId,
+			@PathVariable String statusFrom, @PathVariable String statusTo, @PathVariable String dateFrom,
+			@PathVariable String dateTo, @PathVariable String itemId, Model model) {
+
+		System.out.println(
+				"/shipments/showShipmentsByAdvancedFilters/{customerId}/{warehouseId}/{statusFrom}/{statusTo}/{dateFrom}/{dateTo}/{itemId}: "
+						+ customerId + " / " + warehouseId + " / " + statusFrom + " / " + statusTo + " / " + dateFrom
+						+ " / " + dateTo+ " / " + itemId);
+
+	//	List<Shipments> shipmentsList = shipmentsService.getShipmentList(customerId, warehouseId, statusFrom);
+
+		List<Shipments> shipmentsList = shipmentsService.getShipmentListByAdvancedFilters(customerId, warehouseId, statusFrom, statusTo, dateFrom, dateTo, itemId);
+
+		model.addAttribute("shipments", shipmentsList);
+		model.addAttribute("selectedCustomer", customerId);
+		model.addAttribute("selectedWarehouse", warehouseId);
+		model.addAttribute("selectedStatusFrom", statusFrom.equals("ALL") ? "" : statusFrom);
+		model.addAttribute("selectedStatusTo", statusTo.equals("ALL") ? "" : statusTo);
+		model.addAttribute("selectedCreatedFrom",dateFrom.equals("ALL") ? "" : dateFrom);
+		model.addAttribute("selectedCreatedTo",dateTo.equals("ALL") ? "" : dateTo);
+		model.addAttribute("selectedItemId",itemId.equals("ALL") ? "" : itemId);		
+		
+		model.addAttribute("customers", customersService.getAllCustomers());
+
+		if (customerId.equals("ALL")) {
+			model.addAttribute("warehouses", warehousesService.getAllWarehouses());
+		} else {
+			model.addAttribute("warehouses", shipmentsService.getWarehousesByCustomer(customerId));
+		}
+
+		return "show-all-shipments-with-advanced-filters";
 
 	}
 
@@ -97,11 +144,12 @@ public class ShipmentsController {
 	@PostMapping("/shipments/createShipment")
 	public String saveShipments(@ModelAttribute Shipments shipment, @RequestParam String customerId,
 			@RequestParam String warehouseId, RedirectAttributes redirectAttributes) {
-		
-		 /* resultArray[0]: SUCCESS or FAILED 
-		  * resultArray[1]: Newly created shipment-id, if success, 
-		  * and ErrorMessage if failed*/		 		
-		
+
+		/*
+		 * resultArray[0]: SUCCESS or FAILED resultArray[1]: Newly created shipment-id,
+		 * if success, and ErrorMessage if failed
+		 */
+
 		String[] resultArray = shipmentsService.createShipment(shipment, customerId, warehouseId);
 
 		if (resultArray[0].equals("SUCCESS")) {
@@ -145,15 +193,13 @@ public class ShipmentsController {
 	// ─────────────────────────────────────────────
 
 	@PostMapping("/shipments/updateShipmentStatus")
-	public String updateShipmentStatus(@RequestParam String shipmentId,
-			@RequestParam Integer shipStatus, @RequestParam String action, @RequestParam String customerId,
-			@RequestParam String warehouseId,
+	public String updateShipmentStatus(@RequestParam String shipmentId, @RequestParam Integer shipStatus,
+			@RequestParam String action, @RequestParam String customerId, @RequestParam String warehouseId,
 			@RequestParam(required = false, defaultValue = "") String cancellationReason,
 			RedirectAttributes redirectAttributes) {
 
-		System.out.println("/shipments/updateShipmentStatus:: " + shipmentId + " --- "
-				+ shipStatus + " --- " + action + " --- " + customerId + " --- " + warehouseId + " --- "
-				+ cancellationReason);
+		System.out.println("/shipments/updateShipmentStatus:: " + shipmentId + " --- " + shipStatus + " --- " + action
+				+ " --- " + customerId + " --- " + warehouseId + " --- " + cancellationReason);
 
 		// pass cancellationReason into your service as needed
 		String response = shipmentsService.updateShipmentStatus(shipmentId, shipStatus, action, customerId, warehouseId,
@@ -164,7 +210,7 @@ public class ShipmentsController {
 			redirectAttributes.addFlashAttribute("bgColor", "#d95f6c");
 			redirectAttributes.addFlashAttribute("textColor", "#ffffff");
 		} else {
-			
+
 			redirectAttributes.addFlashAttribute("bgColor", "#d4edda");
 			redirectAttributes.addFlashAttribute("textColor", "#155724");
 		}
