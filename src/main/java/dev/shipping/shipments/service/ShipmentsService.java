@@ -166,6 +166,12 @@ public class ShipmentsService {
 				.orElseThrow(() -> new RuntimeException("Shipment not found"));
 
 		Optional<Customers> singleCustomer = customersRepo.findById(customerId);
+		
+		//Immediately return if the customer is not found
+		if (!singleCustomer.isPresent()) {
+			return "Customer: "+customerId+" is not found !!" ;
+		}
+		
 		Optional<Warehouses> singleWarehouse = warehousesRepo.findById(warehouseId);
 		Optional<CustomerWarehouses> customerWarehouses = customerWarehousesRepo
 				.findById(customerId + "_" + warehouseId);
@@ -265,13 +271,15 @@ public class ShipmentsService {
 	// Dynamically setting the conditions and running a custom query in service
 	// instead of calling individual methods in Repo
 	@Transactional
-	public List<Shipments> getShipmentList(String customerId, String warehouseId, String shipStatus) {
+	public List<Shipments> getShipmentList(String shipmentId, String customerId, String warehouseId, String shipStatus) {
 
 		StringBuilder query = new StringBuilder("SELECT s FROM Shipments s");
 
 		// Dynamically build WHERE clause
 		List<String> conditions = new ArrayList<>();
 
+		if (!shipmentId.equals("ALL"))
+			conditions.add("s.shipmentId = :shipmentId");
 		if (!customerId.equals("ALL"))
 			conditions.add("s.customerId = :customerId");
 		if (!warehouseId.equals("ALL"))
@@ -288,6 +296,8 @@ public class ShipmentsService {
 		TypedQuery<Shipments> typedQuery = entityManager.createQuery(query.toString(), Shipments.class);
 
 		// Bind only non-null parameters
+		if (!shipmentId.equals("ALL"))
+			typedQuery.setParameter("shipmentId", shipmentId);
 		if (!customerId.equals("ALL"))
 			typedQuery.setParameter("customerId", customerId);
 		if (!warehouseId.equals("ALL"))
@@ -305,7 +315,7 @@ public class ShipmentsService {
 	// Dynamically setting the conditions and running a custom query in service
 	// instead of calling individual methods in Repo
 	@Transactional
-	public List<Shipments> getShipmentListByAdvancedFilters(String customerId, String warehouseId, String statusFrom,
+	public List<Shipments> getShipmentListByAdvancedFilters(String shipmentId, String customerId, String warehouseId, String statusFrom,
 			String statusTo, String dateFrom, String dateTo, String itemId) {
 
 		StringBuilder query = new StringBuilder("SELECT s FROM Shipments s");
@@ -313,6 +323,8 @@ public class ShipmentsService {
 		// Dynamically build WHERE clause
 		List<String> conditions = new ArrayList<>();
 
+		if (!shipmentId.equals("ALL"))
+			conditions.add("s.shipmentId = :shipmentId");
 		if (!customerId.equals("ALL"))
 			conditions.add("s.customerId = :customerId");
 		if (!warehouseId.equals("ALL"))
@@ -346,6 +358,8 @@ public class ShipmentsService {
 		TypedQuery<Shipments> typedQuery = entityManager.createQuery(query.toString(), Shipments.class);
 
 		// Bind only non-null parameters
+		if (!shipmentId.equals("ALL"))
+			typedQuery.setParameter("shipmentId", shipmentId);
 		if (!customerId.equals("ALL"))
 			typedQuery.setParameter("customerId", customerId);
 		if (!warehouseId.equals("ALL"))
@@ -379,6 +393,6 @@ public class ShipmentsService {
 
 		return resultList;
 
-	}
+	} 
 
 }

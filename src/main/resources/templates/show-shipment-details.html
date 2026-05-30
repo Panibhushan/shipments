@@ -120,7 +120,7 @@
 
   <div th:replace="~{fragments/navbar :: navbar}"></div>
 
-  <p th:if="${msg}" id="msgBox"
+  <p th:if="${msg}" id="msgBox" th:data-autohide="${autoHide}"
      th:style="'background:' + ${bgColor} + '; color:' + ${textColor} + ';'">
     <span th:utext="${msg}" style="white-space:pre-wrap;"></span>
     <span onclick="this.parentElement.style.display='none'"
@@ -325,10 +325,21 @@
     });
 
     // ── msg box ──
-    window.addEventListener("load", function () {
-      var msg = document.getElementById("msgBox");
-      if (msg) setTimeout(() => msg.style.display = "none", 10000);
-    });
+   window.addEventListener("load", function () {
+	    const msg = document.getElementById("msgBox");
+	
+	    if (!msg) return;
+	
+	 	// this will tell whether to hide the msg after 10secs or to always show it
+	 	// if autoHide is set to true that means, shipment status is updated successfully so we can close the message orprevent the message in red ribbon to always show & not disapper after 10secs
+	 	// if autoHide is false, that means status update has failed due to some errors, so this msg will appear untill the page is refreshed or shipment details is reloaded
+	    const autoHide = msg.dataset.autohide === "true";
+	
+	    if (autoHide) {
+	        setTimeout(() => msg.style.display = "none", 10000);
+	    }
+    
+	});
 
     // ── disable buttons if needed ──
     document.addEventListener("DOMContentLoaded", function () {

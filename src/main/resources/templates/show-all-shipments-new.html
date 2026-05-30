@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
 <link rel="stylesheet" th:href="@{/css/navbar.css}" />
@@ -345,7 +346,7 @@ thead th {
 	text-align: center;
 	padding: 10px 10px;
 	color: #374151;
-	background: #d9e2ed;
+	background: #f1f5f9;
 	font-size: 0.7rem;
 	font-weight: 700;
 	text-transform: uppercase;
@@ -591,7 +592,8 @@ thead th.sort-asc .sort-arrow, thead th.sort-desc .sort-arrow {
 				<p class="filter-hint">💡 Changing Customer reloads Warehouses.</p>
 
 				<form id="shipmentAndCustomerAndWarehouseAndStatusForm"
-					th:action="@{/shipments/showShipmentsByFilters}" method="get"
+					th:action="@{/shipments/showShipmentsByFilters}"
+					method="get"
 					style="display: flex; flex-direction: column; flex: 1; min-height: 0;">
 
 					<!-- scrollable field area -->
@@ -616,8 +618,8 @@ thead th.sort-asc .sort-arrow, thead th.sort-desc .sort-arrow {
 						</div>
 
 						<div class="filter-group">
-							<label for="warehouseId">Warehouse</label> <select
-								name="warehouseId" id="warehouseId" required>
+							<label for="warehouseSelect">Warehouse</label> <select
+								name="warehouseSelect" id="warehouseSelect" required>
 								<option value="ALL">— ALL —</option>
 								<option th:each="w : ${warehouses}" th:value="${w.warehouseId}"
 									th:selected="${w.warehouseId == selectedWarehouse}"
@@ -626,8 +628,8 @@ thead th.sort-asc .sort-arrow, thead th.sort-desc .sort-arrow {
 						</div>
 
 						<div class="filter-group">
-							<label for="shipmentStatus">Status</label> <select
-								name="shipmentStatus" id="shipmentStatus" required>
+							<label for="statusSelect">Status</label> <select
+								name="statusSelect" id="statusSelect" required>
 								<option value="ALL" th:selected="${selectedStatus == 'ALL'}">—
 									ALL —</option>
 								<option value="1100" th:selected="${selectedStatus == '1100'}">1100
@@ -735,10 +737,7 @@ thead th.sort-asc .sort-arrow, thead th.sort-desc .sort-arrow {
 					<p>No shipment records to display.</p>
 					<a href="/shipments/createShipmentPage"
 						style="background: #4CAF50; color: white; padding: 9px 20px; border-radius: 8px; text-decoration: none; font-weight: bold;">
-						＋ Create New Shipment </a> <br /> <br /> <br /> <a
-						href="/shipments/"
-						style="background-color: #ee5a5a; color: #fff; padding: 9px 20px; border-radius: 8px; text-decoration: none; font-weight: bold;">
-						✕ Clear Filters </a>  
+						＋ Create New Shipment </a>
 				</div>
 
 			</div>
@@ -762,8 +761,8 @@ thead th.sort-asc .sort-arrow, thead th.sort-desc .sort-arrow {
     function evaluateClearLink() {
       const s  = document.getElementById('shipmentId').value;
       const c  = document.getElementById('customerId').value;
-      const w  = document.getElementById('warehouseId').value;
-      const st = document.getElementById('shipmentStatus').value;
+      const w  = document.getElementById('warehouseSelect').value;
+      const st = document.getElementById('statusSelect').value;
       const lnk = document.getElementById('clearFiltersLink');
       (s === '' && c === 'ALL' && w === 'ALL' && st === 'ALL')
         ? lnk.classList.add('disabled-link')
@@ -778,8 +777,8 @@ thead th.sort-asc .sort-arrow, thead th.sort-desc .sort-arrow {
     }
 
     document.getElementById('customerId').addEventListener('change', function () { enableFilter(); loadWarehouses(this.value); });
-    document.getElementById('warehouseId').addEventListener('change', enableFilter);
-    document.getElementById('shipmentStatus').addEventListener('change', enableFilter);
+    document.getElementById('warehouseSelect').addEventListener('change', enableFilter);
+    document.getElementById('statusSelect').addEventListener('change', enableFilter);
     document.getElementById('shipmentId').addEventListener('input', enableFilter);
 
     document.getElementById('shipmentAndCustomerAndWarehouseAndStatusForm').addEventListener('submit', function (e) {
@@ -791,7 +790,7 @@ thead th.sort-asc .sort-arrow, thead th.sort-desc .sort-arrow {
     });
 
     function loadWarehouses(customerId) {
-      const ws = document.getElementById('warehouseId');
+      const ws = document.getElementById('warehouseSelect');
       ws.innerHTML = '<option value="ALL">— ALL —</option>';
       if (!customerId || customerId === 'ALL') return;
       fetch(`/shipments/getWarehousesByCustomer?customerId=${customerId}`, {

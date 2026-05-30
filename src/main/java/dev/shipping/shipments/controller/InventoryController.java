@@ -53,12 +53,19 @@ public class InventoryController {
 		return "show-all-inventory";
 	}
 
+	// Adding this addittional method, just incase I missed to update the URL from
+	// goToAddOrUpdateInventoryPage to addOrUpdateInventoryPage in any pages, this will route
+	// correctly instead of giving error
 	@GetMapping("/inventory/goToAddOrUpdateInventoryPage")
-	public String addItemsPage(Model model) {
+	public String goToAddOrUpdateInventoryPage(Model model) {
+		return "redirect:/inventory/addOrUpdateInventoryPage";
+	}
+
+	@GetMapping("/inventory/addOrUpdateInventoryPage")
+	public String addOrUpdateInventoryPage(Model model) {
 		model.addAttribute("inventory", new Inventory());
 		model.addAttribute("customers", itemsService.getActiveAndValidCustomers());
-		model.addAttribute("activePage", "addOrUpdateInventory"); // ← this is show which dropdown is active in the
-																	// navbar
+		model.addAttribute("activePage", "addOrUpdateInventory"); //this is show which dropdown is active in the navbar
 		model.addAttribute("itemUomsList", itemUomsList);
 		return "create-or-update-inventory";
 	}
@@ -81,7 +88,8 @@ public class InventoryController {
 				itemCustomerUomWarehouseId, quantity, adjustmentType);
 
 		if (result.equals("ITEM_NOT_FOUND")) {
-			redirectAttributes.addFlashAttribute("msg", "This combination doesnt exist!!\nItem: "+itemId+", Customer: "+customerId+", UOM: "+itemUom);
+			redirectAttributes.addFlashAttribute("msg", "This combination doesnt exist!!\nItem: " + itemId
+					+ ", Customer: " + customerId + ", UOM: " + itemUom);
 			redirectAttributes.addFlashAttribute("bgColor", "#f8d7da");
 			redirectAttributes.addFlashAttribute("textColor", "#721c24");
 		} else {
@@ -135,15 +143,15 @@ public class InventoryController {
 
 		Optional<Inventory> inventory = inventoryService
 				.getInventoryByItemCustomerUomWarehouseId(itemCustomerUomWarehouseId);
-		
+
 		/*
 		 * System.out.println("inventory: " + inventory + "\ninventory.get(): " +
 		 * inventory.get());
 		 */
-		 
-		
-		if(inventory.isEmpty()) {
-			redirectAttributes.addFlashAttribute("msg", "Requested inventory combination doesnt exist or cannot be created!!");
+
+		if (inventory.isEmpty()) {
+			redirectAttributes.addFlashAttribute("msg",
+					"Requested inventory combination doesnt exist or cannot be created!!");
 			redirectAttributes.addFlashAttribute("bgColor", "#f8d7da");
 			redirectAttributes.addFlashAttribute("textColor", "#721c24");
 			return "redirect:/inventory/";

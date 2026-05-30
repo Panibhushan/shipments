@@ -268,7 +268,7 @@ td {
 
 		<div class="top-bar">
 			<h2>🏭 Warehouses</h2>
-			<a href="/warehouses/goToCreateWarehousePage" class="btn-add">＋
+			<a href="/warehouses/createWarehousePage" class="btn-add">＋
 				Create New Warehouse</a>
 		</div>
 
@@ -338,7 +338,7 @@ td {
 
 		<div th:if="${#lists.isEmpty(warehouses)}" class="empty-state">
 			<p>No warehouse records to display.</p>
-			<a href="/warehouses/goToCreateWarehousePage"
+			<a href="/warehouses/createWarehousePage"
 				style="background: #4CAF50; color: white; padding: 9px 20px; border-radius: 8px; text-decoration: none; font-weight: bold;">
 				＋ Create New Warehouse </a>
 		</div>

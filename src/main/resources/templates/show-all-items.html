@@ -393,7 +393,7 @@ td {
 
 		<div class="top-bar">
 			<h2>📦 Items</h2>
-			<a href="/items/goToCreateItemPage" class="btn-add">＋ Create New
+			<a href="/items/createItemPage" class="btn-add">＋ Create New
 				Item</a>
 		</div>
 
@@ -506,7 +506,7 @@ td {
 
 		<div th:if="${#lists.isEmpty(items)}" class="empty-state">
 			<p>No item records to display.</p>
-			<a href="/items/goToCreateItemPage"
+			<a href="/items/createItemPage"
 				style="background: #4CAF50; color: white; padding: 9px 20px; border-radius: 8px; text-decoration: none; font-weight: bold;">
 				＋ Create New Item </a>
 		</div>

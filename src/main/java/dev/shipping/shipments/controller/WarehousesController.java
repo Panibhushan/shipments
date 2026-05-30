@@ -27,22 +27,30 @@ public class WarehousesController {
 
 	@GetMapping("/warehouses/")
 	public String showAllWarehouses(Model model) {
-		
+
 		List<Warehouses> warehouses = warehousesService.getAllWarehouses();
-		
+
 		/*
-		 * for(Warehouses w : warehouses) {  
+		 * for(Warehouses w : warehouses) {
 		 * System.out.println("w.getCreatedAt: "+w.getCreatedAt()); }
 		 */
 		model.addAttribute("warehouses", warehousesService.getAllWarehouses());
-		model.addAttribute("activePage", "allWarehouses");  // ←  this is show which dropdown is active in the navbar
+		model.addAttribute("activePage", "allWarehouses"); // ← this is show which dropdown is active in the navbar
 		return "show-all-warehouses";
 	}
 
+	// Adding this addittional method, just incase I missed to update the URL from
+	// goToCreateWarehousePage to createWarehousePage in any pages, this will route
+	// correctly instead of giving error
 	@GetMapping("/warehouses/goToCreateWarehousePage")
+	public String goToCreateWarehousePage(Model model) {
+		return "redirect:/warehouses/createWarehousePage";
+	}
+
+	@GetMapping("/warehouses/createWarehousePage")
 	public String addWarehousesPage(Model model) {
 		model.addAttribute("warehouse", new Warehouses());
-		model.addAttribute("activePage", "createWarehouse");  // ←  this is show which dropdown is active in the navbar
+		model.addAttribute("activePage", "createWarehouse"); // ← this is show which dropdown is active in the navbar
 		return "create-warehouse";
 	}
 
@@ -52,8 +60,10 @@ public class WarehousesController {
 		String warehouseId = warehouse.getWarehouseId();
 
 		if (warehousesService.warehouseExists(warehouseId)) {
-			redirectAttributes.addFlashAttribute("msg", "Warehouse " + warehouseId + " already exists !!!"+ "&nbsp;&nbsp;&nbsp;&nbsp;<a style='color:yellow;' href='/warehouses/showWarehouseDetails/" + warehouseId
-					+ "'>View " + warehouseId + "</a>");
+			redirectAttributes.addFlashAttribute("msg",
+					"Warehouse " + warehouseId + " already exists !!!"
+							+ "&nbsp;&nbsp;&nbsp;&nbsp;<a style='color:yellow;' href='/warehouses/showWarehouseDetails/"
+							+ warehouseId + "'>View " + warehouseId + "</a>");
 			redirectAttributes.addFlashAttribute("bgColor", "#d95f6c");
 			redirectAttributes.addFlashAttribute("textColor", "#ffffff");
 			return "redirect:/warehouses/goToCreateWarehousePage";
@@ -69,7 +79,7 @@ public class WarehousesController {
 			redirectAttributes.addFlashAttribute("textColor", "#f5f0f1");
 		} else {
 			warehousesService.createWarehouse(warehouse);
-			redirectAttributes.addFlashAttribute("msg", 
+			redirectAttributes.addFlashAttribute("msg",
 					"Created Customer: " + warehouseId + " !!!"
 							+ "&nbsp;&nbsp;&nbsp;&nbsp;<a href='/warehouses/showWarehouseDetails/" + warehouseId
 							+ "'>View " + warehouseId + "</a>");

@@ -61,7 +61,15 @@ public class ItemsController {
 		}
 	}
 
+	// Adding this addittional method, just incase I missed to update the URL from
+	// goToCreateItemPage to createItemPage in any pages, this will route correctly
+	// instead of giving error
 	@GetMapping("/items/goToCreateItemPage")
+	public String goToCreateItemPage(Model model) {
+		return "redirect:/items/createItemPage";
+	}
+
+	@GetMapping("/items/createItemPage")
 	public String addItemsPage(Model model) {
 		model.addAttribute("items", new Items());
 		model.addAttribute("customers", itemsService.getActiveAndValidCustomers());

@@ -30,7 +30,13 @@ public class CustomersController {
 		return "show-all-customers";
 	}
 
+	// Adding this addittional method, just incase I missed to update the URL from goToCreateCustomerPage to createCustomerPage in any pages, this will route correctly instead of giving error
 	@GetMapping("/customers/goToCreateCustomerPage")
+	public String goToCreateCustomerPage(Model model) {
+		return "redirect:/customers/createCustomerPage";
+	}
+
+	@GetMapping("/customers/createCustomerPage")
 	public String addCustomersPage(Model model) {
 		model.addAttribute("customer", new Customers());
 	    model.addAttribute("activePage", "createCustomer");  // ←  this is show which dropdown is active in the navbar

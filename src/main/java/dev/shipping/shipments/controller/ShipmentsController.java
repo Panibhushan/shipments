@@ -63,16 +63,17 @@ public class ShipmentsController {
 	}
 
 	// SHOW SHIPMENTS LIST BASED ON INPUT FILTERS
-	@PostMapping("/shipments/showShipmentsByFilters/{customerId}/{warehouseId}/{status}")
-	public String showShipmentsByCustomerAndWarehouse(@PathVariable String customerId, @PathVariable String warehouseId,
-			@PathVariable String status, Model model) {
+	@PostMapping("/shipments/showShipmentsByFilters/{shipmentId}/{customerId}/{warehouseId}/{status}")
+	public String showShipmentsByCustomerAndWarehouse(@PathVariable String shipmentId, @PathVariable String customerId,
+			@PathVariable String warehouseId, @PathVariable String status, Model model) {
 
-		System.out.println("/shipments/showShipmentsByFilters/{customerId}/{warehouseId}: " + customerId + " / "
-				+ warehouseId + " / " + status);
+		System.out.println("/shipments/showShipmentsByFilters/{shipmentId}/{customerId}/{warehouseId}: " + shipmentId
+				+ " / " + customerId + " / " + warehouseId + " / " + status);
 
-		List<Shipments> shipmentsList = shipmentsService.getShipmentList(customerId, warehouseId, status);
+		List<Shipments> shipmentsList = shipmentsService.getShipmentList(shipmentId, customerId, warehouseId, status);
 
 		model.addAttribute("shipments", shipmentsList);
+		model.addAttribute("enteredShipmentId", shipmentId);
 		model.addAttribute("selectedCustomer", customerId);
 		model.addAttribute("selectedWarehouse", warehouseId);
 		model.addAttribute("selectedStatus", status.equals("ALL") ? "" : status);
@@ -85,33 +86,114 @@ public class ShipmentsController {
 		}
 
 		return "show-all-shipments";
+	}
+	
+	// SHOW SHIPMENTS LIST BASED ON INPUT ADVANCED FILTERS
+		@PostMapping("/shipments/showShipmentsByAdvancedFilters/{shipmentId}/{customerId}/{warehouseId}/{statusFrom}/{statusTo}/{dateFrom}/{dateTo}/{itemId}")
+		public String filter(@PathVariable String shipmentId, @PathVariable String customerId,
+				@PathVariable String warehouseId, @PathVariable String statusFrom, @PathVariable String statusTo,
+				@PathVariable String dateFrom, @PathVariable String dateTo, @PathVariable String itemId, Model model) {
 
+			System.out.println(
+					"/shipments/showShipmentsByAdvancedFilters/{shipmentId}/{customerId}/{warehouseId}/{statusFrom}/{statusTo}/{dateFrom}/{dateTo}/{itemId}: "
+							+ shipmentId + " / " + customerId + " / " + warehouseId + " / " + statusFrom + " / " + statusTo
+							+ " / " + dateFrom + " / " + dateTo + " / " + itemId);
+
+			// List<Shipments> shipmentsList = shipmentsService.getShipmentList(customerId,
+			// warehouseId, statusFrom);
+
+			List<Shipments> shipmentsList = shipmentsService.getShipmentListByAdvancedFilters(shipmentId, customerId,
+					warehouseId, statusFrom, statusTo, dateFrom, dateTo, itemId);
+
+			model.addAttribute("shipments", shipmentsList);
+			model.addAttribute("enteredShipmentId", shipmentId);
+			model.addAttribute("selectedCustomer", customerId);
+			model.addAttribute("selectedWarehouse", warehouseId);
+			model.addAttribute("selectedStatusFrom", statusFrom.equals("ALL") ? "" : statusFrom);
+			model.addAttribute("selectedStatusTo", statusTo.equals("ALL") ? "" : statusTo);
+			model.addAttribute("selectedCreatedFrom", dateFrom.equals("ALL") ? "" : dateFrom);
+			model.addAttribute("selectedCreatedTo", dateTo.equals("ALL") ? "" : dateTo);
+			model.addAttribute("selectedItemId", itemId.equals("ALL") ? "" : itemId);
+
+			model.addAttribute("customers", customersService.getAllCustomers());
+
+			if (customerId.equals("ALL")) {
+				model.addAttribute("warehouses", warehousesService.getAllWarehouses());
+			} else {
+				model.addAttribute("warehouses", shipmentsService.getWarehousesByCustomer(customerId));
+			}
+
+			return "show-all-shipments-with-advanced-filters";
+
+		}
+
+	@GetMapping("/shipments/showShipmentsByFilters")
+	public String showShipmentsByBasicFilters(@RequestParam(required = false) String shipmentId,
+			@RequestParam(required = false) String customerId, @RequestParam(required = false) String shipmentStatus,
+			@RequestParam(required = false) String warehouseId, Model model) {
+
+		System.out.println(shipmentId);
+		System.out.println(customerId);
+		System.out.println(warehouseId);
+		System.out.println(shipmentStatus);
+		System.out.println(
+				"/shipments/showShipmentsByFilters::Get()/{shipmentId}/{customerId}/{warehouseId}/{shipmentStatus}: "
+						+ shipmentId + " / " + customerId + " / " + warehouseId + " / " + shipmentStatus);
+
+		if (shipmentId.trim() == "") {
+			shipmentId = "ALL";
+		}
+
+		List<Shipments> shipmentsList = shipmentsService.getShipmentList(shipmentId, customerId, warehouseId,
+				shipmentStatus);
+
+		model.addAttribute("shipments", shipmentsList);
+		model.addAttribute("enteredShipmentId", shipmentId.equals("ALL") ? "" : shipmentId);
+		model.addAttribute("selectedCustomer", customerId);
+		model.addAttribute("selectedWarehouse", warehouseId);
+		model.addAttribute("selectedStatus", shipmentStatus.equals("ALL") ? "" : shipmentStatus);
+		model.addAttribute("customers", customersService.getAllCustomers());
+
+		if (customerId.equals("ALL")) {
+			model.addAttribute("warehouses", warehousesService.getAllWarehouses());
+		} else {
+			model.addAttribute("warehouses", shipmentsService.getWarehousesByCustomer(customerId));
+		}
+
+		return "show-all-shipments";
 	}
 
 	// SHOW SHIPMENTS LIST BASED ON INPUT ADVANCED FILTERS
-	@PostMapping("/shipments/showShipmentsByAdvancedFilters/{shipmentId}/{customerId}/{warehouseId}/{statusFrom}/{statusTo}/{dateFrom}/{dateTo}/{itemId}")
-	public String filter(@PathVariable String shipmentId,@PathVariable String customerId, @PathVariable String warehouseId,
-			@PathVariable String statusFrom, @PathVariable String statusTo, @PathVariable String dateFrom,
-			@PathVariable String dateTo, @PathVariable String itemId, Model model) {
+	@GetMapping("/shipments/showShipmentsByAdvancedFilters")
+	public String showShipmentsByAdvancedFilters(@RequestParam(required = false) String shipmentId, @RequestParam(required = false) String customerId,
+			@RequestParam(required = false) String warehouseId, @RequestParam(required = false) String statusFrom, @RequestParam(required = false) String statusTo,
+			@RequestParam(required = false) String createdFrom, @RequestParam(required = false) String createdTo, @RequestParam(required = false) String itemId, Model model) {
 
 		System.out.println(
-				"/shipments/showShipmentsByAdvancedFilters/{shipmentId}/{customerId}/{warehouseId}/{statusFrom}/{statusTo}/{dateFrom}/{dateTo}/{itemId}: "
-						+ shipmentId + " / "	+ customerId + " / " + warehouseId + " / " + statusFrom + " / " + statusTo + " / " + dateFrom
-						+ " / " + dateTo+ " / " + itemId);
+				"/shipments/showShipmentsByAdvancedFilters::GET()/{shipmentId}/{customerId}/{warehouseId}/{statusFrom}/{statusTo}/{createdFrom}/{createdTo}/{itemId}: "
+						+ shipmentId + " / " + customerId + " / " + warehouseId + " / " + statusFrom + " / " + statusTo
+						+ " / " + createdFrom + " / " + createdTo + " / " + itemId);
 
-	//	List<Shipments> shipmentsList = shipmentsService.getShipmentList(customerId, warehouseId, statusFrom);
+		// List<Shipments> shipmentsList = shipmentsService.getShipmentList(customerId,
+		// warehouseId, statusFrom);
 
-		List<Shipments> shipmentsList = shipmentsService.getShipmentListByAdvancedFilters(customerId, warehouseId, statusFrom, statusTo, dateFrom, dateTo, itemId);
+		if(shipmentId.trim() == "") shipmentId="ALL";
+		if(createdFrom.trim() == "") createdFrom="ALL";
+		if(createdTo.trim() == "") createdTo="ALL";
+		
+		List<Shipments> shipmentsList = shipmentsService.getShipmentListByAdvancedFilters(shipmentId, customerId,
+				warehouseId, statusFrom, statusTo, createdFrom, createdTo, itemId);
 
 		model.addAttribute("shipments", shipmentsList);
 		model.addAttribute("selectedCustomer", customerId);
 		model.addAttribute("selectedWarehouse", warehouseId);
-		model.addAttribute("selectedStatusFrom", statusFrom.equals("ALL") ? "" : statusFrom);
-		model.addAttribute("selectedStatusTo", statusTo.equals("ALL") ? "" : statusTo);
-		model.addAttribute("selectedCreatedFrom",dateFrom.equals("ALL") ? "" : dateFrom);
-		model.addAttribute("selectedCreatedTo",dateTo.equals("ALL") ? "" : dateTo);
-		model.addAttribute("selectedItemId",itemId.equals("ALL") ? "" : itemId);		
-		
+		model.addAttribute("selectedStatusFrom", statusFrom );
+		model.addAttribute("selectedStatusTo", statusTo );
+		model.addAttribute("enteredShipmentId", shipmentId.equals("ALL") ? "" : shipmentId);
+		model.addAttribute("selectedCreatedFrom", createdFrom.equals("ALL") ? "" : createdFrom);
+		model.addAttribute("selectedCreatedTo", createdTo.equals("ALL") ? "" : createdTo);
+		model.addAttribute("selectedItemId", itemId.equals("ALL") ? "" : itemId);
+
 		model.addAttribute("customers", customersService.getAllCustomers());
 
 		if (customerId.equals("ALL")) {
@@ -128,7 +210,13 @@ public class ShipmentsController {
 	// CREATE SHIPMENT
 	// ─────────────────────────────────────────────
 
+	// Adding this addittional method, just incase I missed to update the URL from goToCreateShipmentPage to createShipmentPage in any pages, this will route correctly instead of giving error
 	@GetMapping("/shipments/goToCreateShipmentPage")
+	public String goToCreateShipmentPage(Model model) {
+		return "redirect:/shipments/createShipmentPage";
+	}
+
+	@GetMapping("/shipments/createShipmentPage")
 	public String addShipmentsPage(Model model) {
 		model.addAttribute("shipment", new Shipments());
 		model.addAttribute("customers", shipmentsService.getActiveAndValidCustomers());
@@ -166,7 +254,7 @@ public class ShipmentsController {
 			redirectAttributes.addFlashAttribute("textColor", "#721c24");
 		}
 
-		return "redirect:/shipments/goToCreateShipmentPage";
+		return "redirect:/shipments/createShipmentPage";
 	}
 
 	// ─────────────────────────────────────────────
@@ -209,8 +297,9 @@ public class ShipmentsController {
 			redirectAttributes.addFlashAttribute("disableButtonActions", true);
 			redirectAttributes.addFlashAttribute("bgColor", "#d95f6c");
 			redirectAttributes.addFlashAttribute("textColor", "#ffffff");
+			redirectAttributes.addFlashAttribute("autoHide", false); // this will prevent the message in red ribbon to always show & not disapper after 10secs
 		} else {
-
+			redirectAttributes.addFlashAttribute("autoHide", true);
 			redirectAttributes.addFlashAttribute("bgColor", "#d4edda");
 			redirectAttributes.addFlashAttribute("textColor", "#155724");
 		}

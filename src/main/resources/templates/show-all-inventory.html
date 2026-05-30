@@ -380,7 +380,7 @@ td {
 		<!-- ── TOP BAR ── -->
 		<div class="top-bar">
 			<h2>🗄️ Inventory</h2>
-			<a href="/inventory/goToAddOrUpdateInventoryPage" class="btn-add">＋
+			<a href="/inventory/addOrUpdateInventoryPage" class="btn-add">＋
 				Add / Update Inventory</a>
 		</div>
 		<p style="font-size: 12.5px">💡 While filtering, Changing the
@@ -486,7 +486,7 @@ td {
 		<!-- ── EMPTY STATE ── -->
 		<div th:if="${#lists.isEmpty(inventory)}" class="empty-state">
 			<p>No inventory records to display.</p>
-			<a href="/inventory/goToAddOrUpdateInventoryPage"
+			<a href="/inventory/addOrUpdateInventoryPage"
 				style="background: #4CAF50; color: white; padding: 9px 20px; border-radius: 8px; text-decoration: none; font-weight: bold;">
 				＋ Add / Update Inventory </a>
 		</div>
