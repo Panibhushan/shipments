@@ -525,8 +525,8 @@ thead th.sortable:hover {
 }
 
 thead th.sort-asc, thead th.sort-desc {
-	background: #e0e7ff;
-	color: #3730a3;
+	background: #c8d1f1;
+	color: #1b0db1;
 }
 
 thead th.sortable .sort-arrow {
@@ -666,7 +666,7 @@ thead th.sort-asc .sort-arrow, thead th.sort-desc .sort-arrow {
 			<!-- ══ RIGHT: TABLE (scrollable) ══ -->
 			<div class="table-section">
 
-				<div class="table-wrapper" th:if="${not #lists.isEmpty(shipments)}">
+				<div class="table-wrapper">
 					<table id="shipmentsTable">
 						<thead>
 							<tr>
@@ -683,7 +683,7 @@ thead th.sort-asc .sort-arrow, thead th.sort-desc .sort-arrow {
 								<th>Details</th>
 							</tr>
 						</thead>
-						<tbody>
+						<tbody th:if="${not #lists.isEmpty(shipments)}">
 							<tr th:each="s : ${shipments}"
 								th:data-href="@{'/shipments/showShipmentDetails/' + ${s.shipmentId}}"
 								th:data-shipment-id="${s.shipmentId}"
@@ -731,15 +731,22 @@ thead th.sort-asc .sort-arrow, thead th.sort-desc .sort-arrow {
 					</table>
 				</div>
 
-				<div th:if="${#lists.isEmpty(shipments)}" class="empty-state">
+				<div th:if="${#lists.isEmpty(shipments) && !filterApplied}"
+					class="empty-state">
 					<p>No shipment records to display.</p>
 					<a href="/shipments/createShipmentPage"
-						style="background: #4CAF50; color: white; padding: 9px 20px; border-radius: 8px; text-decoration: none; font-weight: bold;">
-						＋ Create New Shipment </a> <br /> <br /> <br /> <a
-						href="/shipments/"
-						style="background-color: #ee5a5a; color: #fff; padding: 9px 20px; border-radius: 8px; text-decoration: none; font-weight: bold;">
-						✕ Clear Filters </a>  
+						style="background: #4CAF50; color: white; padding: 9px 20px; border-radius: 8px; text-decoration: none; font-weight: bold;">＋
+						Create New Shipment</a>
 				</div>
+
+				<div th:if="${#lists.isEmpty(shipments) && filterApplied}"
+					class="empty-state">
+					<p>No shipment records found for the provided inputs.</p>
+					<a href="/shipments/"
+						style="background-color: #ee5a5a; color: #fff; padding: 9px 20px; border-radius: 8px; text-decoration: none; font-weight: bold;">
+						✕ Clear Filters </a>
+				</div>
+
 
 			</div>
 			<!-- /table-section -->

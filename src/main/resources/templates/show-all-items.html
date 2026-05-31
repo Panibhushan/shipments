@@ -393,15 +393,14 @@ td {
 
 		<div class="top-bar">
 			<h2>📦 Items</h2>
-			<a href="/items/createItemPage" class="btn-add">＋ Create New
-				Item</a>
+			<a href="/items/createItemPage" class="btn-add">＋ Create New Item</a>
 		</div>
 
 		<!-- FILTER BAR -->
 		<div class="filter-bar">
-			<form id="customerAndItemForm"
-				th:action="@{/items/showItemsByCustomerAndItem/ALL/ALL}"
-				method="post">
+			<form id="itemFilterForm"
+				th:action="@{/items/showItemsByFilter}"
+				method="get">
 				<label for="customerId">Filter by Customer</label> <select
 					name="customerId" id="customerId" required>
 					<option value="ALL">— ALL —</option>
@@ -411,12 +410,19 @@ td {
 				</select> <label for="itemId">Item ID</label> <input type="text"
 					name="itemId" id="itemId" placeholder="e.g. ITM-001"
 					th:value="${selectedItemId != null} ? ${selectedItemId} : ''"
-					oninput="this.value = this.value.toUpperCase()" />
+					oninput="this.value = this.value.toUpperCase()" /> <label
+					for="itemUom">UOM</label> <select name="itemUom" id="itemUom"
+					required>
+					<option value="ALL">— ALL —</option>
+					<option th:each="opt : ${itemUomsList}" th:value="${opt}"
+					th:selected="${opt == selectedItemUom}"
+						th:text="${opt}"></option>
+				</select>
 
 				<div class="tooltip-wrapper show-tip" id="submitBtnWrapper">
 					<button type="submit" class="btn-filter" id="applyFiltersBtn"
 						disabled>Apply Filter</button>
-					<span class="tip">Change Customer ot item-id to enable
+					<span class="tip">Change Customer or item-id to enable
 						filter submission</span>
 				</div>
 				<div>
@@ -449,8 +455,8 @@ td {
 						<th>Delete</th>
 					</tr>
 				</thead>
-				
-				
+
+
 				<tbody>
 					<tr th:each="i : ${items}"
 						th:data-href="@{'/items/viewOrEditItem/' + ${i.itemCustomerUomId}}"
@@ -504,11 +510,20 @@ td {
 			</table>
 		</div>
 
-		<div th:if="${#lists.isEmpty(items)}" class="empty-state">
+		<div th:if="${#lists.isEmpty(items) && !filterApplied}"
+			class="empty-state">
 			<p>No item records to display.</p>
-			<a href="/items/createItemPage"
+			<br /> <a href="/items/createItemPage"
 				style="background: #4CAF50; color: white; padding: 9px 20px; border-radius: 8px; text-decoration: none; font-weight: bold;">
-				＋ Create New Item </a>
+				＋ Create New Item</a>
+		</div>
+
+		<div th:if="${#lists.isEmpty(items) && filterApplied}"
+			class="empty-state">
+			<p>No item records found for the provided inputs.</p>
+			<br /> <a href="/items/"
+				style="background-color: #ee5a5a; color: #fff; padding: 9px 20px; border-radius: 8px; text-decoration: none; font-weight: bold;">
+				✕ Clear Filters </a>
 		</div>
 
 	</div>
@@ -519,11 +534,12 @@ td {
 
 			const c = document.getElementById('customerId').value;
 			const i = document.getElementById('itemId').value.trim();
+			const iu = document.getElementById('itemUom').value;
 
-			console.log("c:", c, ", i:", i);
+			console.log("c:", c, ", i:", i, ", iu:", iu);
 
 			const clearFiltersLink = document.getElementById("clearFiltersLink");
-			if (c === 'ALL' && (i === 'ALL' || i === '')) {
+			if (c === 'ALL' && (i === 'ALL' || i === '') && iu === 'ALL') {
 				clearFiltersLink.classList.add("disabled-link");
 			} else {
 				clearFiltersLink.classList.remove("disabled-link");
@@ -544,12 +560,13 @@ td {
 
 			const c = document.getElementById('customerId').value;
 			const i = document.getElementById('itemId').value.trim();
+			const iu = document.getElementById('itemUom').value;
 
 			const clearFiltersLink = document.getElementById("clearFiltersLink");
 
 			console.log("c:", c, ", i:", i);
 
-			if (c === 'ALL' && (i === 'ALL' || i === '')) {
+			if (c === 'ALL' && (i === 'ALL' || i === '') && iu === 'ALL') {
 				clearFiltersLink.classList.add("disabled-link");
 			} else {
 				clearFiltersLink.classList.remove("disabled-link");
@@ -557,20 +574,10 @@ td {
 
 		}
 
-		function rowClick(event, row) { window.location.href = row.getAttribute('data-href'); }
-		document.getElementById('itemId').addEventListener('input', enableFilter);
+ 		document.getElementById('itemId').addEventListener('input', enableFilter);
 		document.getElementById('customerId').addEventListener('change', enableFilter);
+ 		document.getElementById('itemUom').addEventListener('change', enableFilter);
 
-
-		// Update form action and submit
-		document.getElementById('customerAndItemForm').addEventListener('submit', function (e) {
-			e.preventDefault();
-			if (!filtersChanged) return;
-			const c = document.getElementById('customerId').value;
-			const i = document.getElementById('itemId').value.trim() || 'ALL';
-			this.action = `/items/showItemsByCustomerAndItem/${c}/${i}`;
-			this.submit();
-		});
 		
 		/* ══ TABLE SORT ══ */
 		

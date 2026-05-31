@@ -254,98 +254,105 @@ td {
 </style>
 </head>
 <body>
+
 	<div th:replace="~{fragments/navbar :: navbar}"></div>
+
 	<p th:if="${msg}" id="msgBox"
 		th:style="'background:' + ${bgColor} + '; color:' + ${textColor} + ';'">
 		<span th:text="${msg}"></span> <span
 			onclick="this.parentElement.style.display='none'"
 			style="position: absolute; right: 14px; top: 50%; transform: translateY(-50%); cursor: pointer; font-weight: bold;">✕</span>
 	</p>
+
 	<div class="page-content">
+
 		<div class="top-bar">
-			<h2>🧑‍💼 Customers</h2>
-			<a href="/customers/goToCreateCustomerPage" class="btn-add">＋
-				Create New Customer</a>
+			<h2>🏭 Warehouses</h2>
+			<a href="/warehouses/createWarehousePage" class="btn-add">＋
+				Create New Warehouse</a>
 		</div>
-		<div class="table-wrapper" th:if="${not #lists.isEmpty(customers)}">
-			<table id="customersTable">
+
+		<div class="table-wrapper" th:if="${not #lists.isEmpty(warehouses)}">
+			<table id="warehousesTable">
 				<thead>
 					<tr>
 						<th class="sortable" data-col="0">ID<span class="sort-arrow">⇅</span></th>
 						<th class="sortable" data-col="1">Name<span
 							class="sort-arrow">⇅</span></th>
-						<th class="sortable" data-col="2">Valid Up To<span
+						<th class="sortable" data-col="2">Address<span
 							class="sort-arrow">⇅</span></th>
 						<th class="sortable" data-col="3">Status<span
 							class="sort-arrow">⇅</span></th>
-						<th class="sortable" data-col="4">Email<span
+						<th class="sortable" data-col="4">Created At<span
 							class="sort-arrow">⇅</span></th>
-						<th class="sortable" data-col="5">Created At<span
-							class="sort-arrow">⇅</span></th>
-						<th class="sortable" data-col="6">Modified At<span
+						<th class="sortable" data-col="5">Modified At<span
 							class="sort-arrow">⇅</span></th>
 						<th>Details</th>
 						<th>Delete</th>
 					</tr>
 				</thead>
 				<tbody>
-					<tr th:each="c : ${customers}"
-						th:data-href="@{'/customers/editCustomer/' + ${c.customerId}}"
+					<tr th:each="w : ${warehouses}"
+						th:data-href="@{'/warehouses/viewOrEditWarehouse/' + ${w.warehouseId}}"
 						onclick="rowClick(event, this)">
-						<td><span class="cell-link"><a
-								th:href="@{'/customers/editCustomer/' + ${c.customerId}}"
-								th:text="${c.customerId}" onclick="event.stopPropagation()"></a><span
-								class="cell-tip">View or edit customer</span></span></td>
-						<td th:text="${c.customerName}"></td>
-						<!-- 						<td th:text="${c.validUpto}"></td>
- -->
-						<td th:attr="data-sort=${c.validUpto}"><span
-							th:text="${c.validUpto != null ? #strings.toUpperCase(c.validUpto) + ' PM IST' : ''}">
-						</span> <span
-							th:if="${c.validUpto != null and 
-        T(java.time.LocalDateTime)
-        .parse(
-            c.validUpto.toString(),
-            T(java.time.format.DateTimeFormatter)
-            .ofPattern('dd-MMM-yyyy HH:mm:ss')
-        )
-        .toLocalDate()
-        .isBefore(T(java.time.LocalDate).now())}"
-							style="color: red; font-weight: bold; margin-left: 6px;"
-							class="badge badge-inactive"> Expired </span></td>
+
+
+						<td><span class="cell-link"> <a
+								th:href="@{'/warehouses/viewOrEditWarehouse/' + ${w.warehouseId}}"
+								th:text="${w.warehouseId}" onclick="event.stopPropagation()"></a>
+								<span class="cell-tip">View or edit warehouse</span>
+						</span></td>
+
+						<td th:text="${w.warehouseName}"></td>
+						<td th:text="${w.warehouseAddress}"></td>
+
 						<td><span class="badge"
-							th:classappend="${c.customerStatus == 'Active'} ? 'badge-active' : 'badge-inactive'"
-							th:text="${c.customerStatus}"></span></td>
-						<td th:text="${c.customerEmail}"></td>
-						<td th:text="${c.createdAt}"></td>
-						<td th:text="${c.modifiedAt}"></td>
+							th:classappend="${w.warehouseStatus == 'Active'} ? 'badge-active' : 'badge-inactive'"
+							th:text="${w.warehouseStatus}"></span></td>
+
+						<td
+							th:text="${formattedCreatedAt != null} ? ${formattedCreatedAt} : ${w.createdAt}"></td>
+						<td
+							th:text="${formattedModifiedAt != null} ? ${formattedModifiedAt} : ${w.modifiedAt}"></td>
+
 						<td><a
-							th:href="@{'/customers/editCustomer/' + ${c.customerId}}"
-							class="btn-view" onclick="event.stopPropagation()">✏️ View /
-								Edit<span class="cell-tip">View or edit customer</span>
+							th:href="@{'/warehouses/viewOrEditWarehouse/' + ${w.warehouseId}}"
+							class="btn-view" onclick="event.stopPropagation()"> ✏️ View /
+								Edit <span class="cell-tip">View or edit warehouse</span>
 						</a></td>
-						<td><form
-								th:action="@{'/customers/deleteCustomer/' + ${c.customerId}}"
+
+						<td>
+							<form
+								th:action="@{'/warehouses/deleteWarehouse/' + ${w.warehouseId}}"
 								method="post" onclick="event.stopPropagation()">
 								<button type="submit" class="btn-delete"
-									onclick="return confirm('Are you sure you want to delete this customer?')">🗑
-									Delete</button>
-							</form></td>
+									onclick="return confirm('Are you sure you want to delete this warehouse?')">
+									🗑 Delete</button>
+							</form>
+						</td>
+
 					</tr>
 				</tbody>
 			</table>
 		</div>
-		<div th:if="${#lists.isEmpty(customers)}" class="empty-state">
-			<p>No customer records to display.</p>
-			<a href="/customers/goToCreateCustomerPage"
-				style="background: #4CAF50; color: white; padding: 9px 20px; border-radius: 8px; text-decoration: none; font-weight: bold;">＋
-				Create New Customer</a>
+
+		<div th:if="${#lists.isEmpty(warehouses)}" class="empty-state">
+			<p>No warehouse records to display.</p>
+			<a href="/warehouses/createWarehousePage"
+				style="background: #4CAF50; color: white; padding: 9px 20px; border-radius: 8px; text-decoration: none; font-weight: bold;">
+				＋ Create New Warehouse </a>
 		</div>
+
 	</div>
+
 	<script>
     function rowClick(event, row) { window.location.href = row.getAttribute('data-href'); }
-    window.addEventListener("load", function () { var msg = document.getElementById("msgBox"); if (msg) setTimeout(() => msg.style.display = "none", 10000); });
-  
+    window.addEventListener("load", function () {
+      var msg = document.getElementById("msgBox");
+      if (msg) setTimeout(() => msg.style.display = "none", 10000);
+    });
+    
+    
     /* ══ TABLE SORT ══ */
 	
 	function rowClick(event, row) { window.location.href = row.getAttribute('data-href'); }
@@ -365,7 +372,7 @@ td {
           this.classList.add(sortState.asc ? 'sort-asc' : 'sort-desc');
           this.querySelector('.sort-arrow').textContent = sortState.asc ? '↑' : '↓';
 
-          const tbody = document.querySelector('#customersTable tbody');
+          const tbody = document.querySelector('#warehousesTable tbody');
           const rows  = Array.from(tbody.querySelectorAll('tr'));
 
           rows.sort((a, b) => {
@@ -373,16 +380,12 @@ td {
             const cellB = getCellText(b, col);
             let cmp;
 
-         if ( col === 5 || col === 6) {
+         if (col === 4 || col === 5) {
               // replace space with T for cross-browser ISO parsing
               const dA = new Date(cellA.trim().replace(' ', 'T'));
               const dB = new Date(cellB.trim().replace(' ', 'T'));
               cmp = (isNaN(dA) || isNaN(dB)) ? cellA.localeCompare(cellB) : dA - dB;
-            }else if (col === 2){
-            	const dA = parseCustomDate(cellA);
-            	const dB = parseCustomDate(cellB);
-            	cmp = (!dA || !dB)  ? cellA.localeCompare(cellB) : dA - dB;
-            }else {
+            } else {
               cmp = cellA.localeCompare(cellB, undefined, { numeric: true, sensitivity: 'base' });
             }
             return sortState.asc ? cmp : -cmp;
@@ -395,42 +398,13 @@ td {
       function getCellText(row, col) {
         const cell = row.querySelectorAll('td')[col];
         if (!cell) return '';
-        if ((col === 2 || col === 5 || col === 6) && cell.dataset.sort) return cell.dataset.sort;
+        if ((col === 4 || col === 5) && cell.dataset.sort) return cell.dataset.sort;
         const link = cell.querySelector('a');
         return (link ? link.textContent : cell.textContent).trim();
       }
     })();
     
-    //parsing for validUpto
-    function parseCustomDate(str) {
-
-        if (!str) return null;
-
-        // Example:
-        // 29-May-2026 23:59:59
-
-        const parts = str.match(
-            /^(\d{2})-([A-Za-z]{3})-(\d{4}) (\d{2}):(\d{2}):(\d{2})$/
-        );
-
-        if (!parts) return null;
-
-        const months = {
-            Jan: 0, Feb: 1, Mar: 2, Apr: 3,
-            May: 4, Jun: 5, Jul: 6, Aug: 7,
-            Sep: 8, Oct: 9, Nov: 10, Dec: 11
-        };
-
-        return new Date(
-            parseInt(parts[3]),             // year
-            months[parts[2]],              // month
-            parseInt(parts[1]),            // day
-            parseInt(parts[4]),            // hour
-            parseInt(parts[5]),            // minute
-            parseInt(parts[6])             // second
-        );
-    }
     
-    </script>
+  </script>
 </body>
 </html>

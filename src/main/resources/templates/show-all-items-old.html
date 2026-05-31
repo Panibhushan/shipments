@@ -393,7 +393,7 @@ td {
 
 		<div class="top-bar">
 			<h2>📦 Items</h2>
-			<a href="/items/goToCreateItemPage" class="btn-add">＋ Create New
+			<a href="/items/createItemPage" class="btn-add">＋ Create New
 				Item</a>
 		</div>
 
@@ -416,7 +416,7 @@ td {
 				<div class="tooltip-wrapper show-tip" id="submitBtnWrapper">
 					<button type="submit" class="btn-filter" id="applyFiltersBtn"
 						disabled>Apply Filter</button>
-					<span class="tip">Change Customer ot item-id to enable
+					<span class="tip">Change Customer or item-id to enable
 						filter submission</span>
 				</div>
 				<div>
@@ -429,21 +429,28 @@ td {
 
 		<!-- TABLE -->
 		<div class="table-wrapper" th:if="${not #lists.isEmpty(items)}">
-			<table>
+			<table id="itemsTable">
 				<thead>
 					<tr>
-
-						<th>Item</th>
-						<th>Customer</th>
-						<th>Description</th>
-						<th>UOM</th>
-						<th>Status</th>
-						<th>Created At</th>
-						<th>Modified At</th>
+						<th class="sortable" data-col="0">Item<span
+							class="sort-arrow">⇅</span></th>
+						<th class="sortable" data-col="1">Customer<span
+							class="sort-arrow">⇅</span></th>
+						<th class="sortable" data-col="2">Description<span
+							class="sort-arrow">⇅</span></th>
+						<th class="sortable" data-col="3">UOM<span class="sort-arrow">⇅</span></th>
+						<th class="sortable" data-col="4">Status<span
+							class="sort-arrow">⇅</span></th>
+						<th class="sortable" data-col="5">Created At<span
+							class="sort-arrow">⇅</span></th>
+						<th class="sortable" data-col="6">Modified At<span
+							class="sort-arrow">⇅</span></th>
 						<th>Details</th>
 						<th>Delete</th>
 					</tr>
 				</thead>
+				
+				
 				<tbody>
 					<tr th:each="i : ${items}"
 						th:data-href="@{'/items/viewOrEditItem/' + ${i.itemCustomerUomId}}"
@@ -499,7 +506,7 @@ td {
 
 		<div th:if="${#lists.isEmpty(items)}" class="empty-state">
 			<p>No item records to display.</p>
-			<a href="/items/goToCreateItemPage"
+			<a href="/items/createItemPage"
 				style="background: #4CAF50; color: white; padding: 9px 20px; border-radius: 8px; text-decoration: none; font-weight: bold;">
 				＋ Create New Item </a>
 		</div>
@@ -550,8 +557,7 @@ td {
 
 		}
 
-		function rowClick(event, row) { window.location.href = row.getAttribute('data-href'); }
-		document.getElementById('itemId').addEventListener('input', enableFilter);
+ 		document.getElementById('itemId').addEventListener('input', enableFilter);
 		document.getElementById('customerId').addEventListener('change', enableFilter);
 
 
@@ -564,6 +570,57 @@ td {
 			this.action = `/items/showItemsByCustomerAndItem/${c}/${i}`;
 			this.submit();
 		});
+		
+		/* ══ TABLE SORT ══ */
+		
+		function rowClick(event, row) { window.location.href = row.getAttribute('data-href'); }
+		
+	    (function () {
+	      let sortState = { col: -1, asc: true };
+
+	      document.querySelectorAll('thead th.sortable').forEach(th => {
+	        th.addEventListener('click', function () {
+	          const col = parseInt(this.dataset.col, 10);
+	          sortState.col === col ? (sortState.asc = !sortState.asc) : (sortState.col = col, sortState.asc = true);
+
+	          document.querySelectorAll('thead th.sortable').forEach(h => {
+	            h.classList.remove('sort-asc', 'sort-desc');
+	            h.querySelector('.sort-arrow').textContent = '⇅';
+	          });
+	          this.classList.add(sortState.asc ? 'sort-asc' : 'sort-desc');
+	          this.querySelector('.sort-arrow').textContent = sortState.asc ? '↑' : '↓';
+
+	          const tbody = document.querySelector('#itemsTable tbody');
+	          const rows  = Array.from(tbody.querySelectorAll('tr'));
+
+	          rows.sort((a, b) => {
+	            const cellA = getCellText(a, col);
+	            const cellB = getCellText(b, col);
+	            let cmp;
+
+	         if (col === 5 || col === 6) {
+	              // replace space with T for cross-browser ISO parsing
+	              const dA = new Date(cellA.trim().replace(' ', 'T'));
+	              const dB = new Date(cellB.trim().replace(' ', 'T'));
+	              cmp = (isNaN(dA) || isNaN(dB)) ? cellA.localeCompare(cellB) : dA - dB;
+	            } else {
+	              cmp = cellA.localeCompare(cellB, undefined, { numeric: true, sensitivity: 'base' });
+	            }
+	            return sortState.asc ? cmp : -cmp;
+	          });
+
+	          rows.forEach(r => tbody.appendChild(r)); 
+	        });
+	      });
+
+	      function getCellText(row, col) {
+	        const cell = row.querySelectorAll('td')[col];
+	        if (!cell) return '';
+	        if ((col === 5 || col === 6) && cell.dataset.sort) return cell.dataset.sort;
+	        const link = cell.querySelector('a');
+	        return (link ? link.textContent : cell.textContent).trim();
+	      }
+	    })();
 
 	</script>
 </body>

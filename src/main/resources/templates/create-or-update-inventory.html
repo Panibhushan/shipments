@@ -225,6 +225,11 @@
 
       <div class="form-card">
         <form action="/inventory/addOrUpdateInventory" method="post" id="addInventoryForm">
+        
+        <!--This is to tell from which screen you are adding the inventory: create-or-update-inventory.html or add-inventory.html
+				if its done via add-inventory.html is when you try to add the inventory from the viewOrEditItem page then the input box value will be "CREATE_INVENTORY_FROM_ADD_INVENTORY_PAGE" and based on this, the router will route to viewOrEditInventory page
+				if its done via create-or-update-inventory.html the value will be as below and the controller will route to addOrUpdateInventoryPage -->
+        <input type="hidden" value="CREATE_INVENTORY_FROM_CREATE_OR_UPDATE_INVENTORY_PAGE" id="inventoryCreationPageType" name="inventoryCreationPageType"/>
 
           <!-- ── CUSTOMER & WAREHOUSE ── -->
           <div class="section-title">Customer & Warehouse</div>
@@ -240,7 +245,7 @@
                         th:value="${c.customerId}"
                         th:text="|${c.customerId} = ${c.customerName}|"></option>
               </select>
-              <a href="/customers/goToCreateCustomerPage" class="helper-link">
+              <a href="/customers/createCustomerPage" class="helper-link">
                 ＋ Customer doesn't exist? Create one
               </a>
             </div>

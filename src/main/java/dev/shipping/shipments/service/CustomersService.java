@@ -5,24 +5,35 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.hibernate.internal.build.AllowSysOut;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 
 import dev.shipping.shipments.model.CustomerWarehouses;
 import dev.shipping.shipments.model.Customers;
+import dev.shipping.shipments.model.Shipments;
 import dev.shipping.shipments.model.Warehouses;
 import dev.shipping.shipments.repo.CustomerWarehousesRepository;
 import dev.shipping.shipments.repo.CustomersRepository;
 import dev.shipping.shipments.repo.WarehousesRepository;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.TypedQuery;
+import jakarta.persistence.Query;
 
 @Service
 public class CustomersService {
+
+	@Autowired
+	private EntityManager entityManager;
 
 	private final CustomersRepository customersRepo;
 	private final WarehousesRepository warehousesRepo;
@@ -70,11 +81,11 @@ public class CustomersService {
 		// Convert stored datetime string → plain date string for the calendar input
 		LocalDateTime dateTime = LocalDateTime.parse(customer.getValidUpto(),
 				DateTimeFormatter.ofPattern("dd-MMM-yyyy HH:mm:ss"));
-		
+
 		boolean isExpired = dateTime.toLocalDate().isBefore(LocalDate.now());
 		String validUptoJustDate = dateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 		model.addAttribute("validUptoJustDate", validUptoJustDate);
-		if(isExpired) {
+		if (isExpired) {
 			model.addAttribute("bgColorForValidUpto", "red");
 			model.addAttribute("textColorForValidUpto", "yellow");
 			model.addAttribute("isExpired", isExpired);
@@ -96,21 +107,25 @@ public class CustomersService {
 		String validUpto = customer.getValidUpto();
 
 		// Customer ID checks
-		if (customerId.matches(".*\\s.*")) {
-			errors.add("Customer ID cannot contain any whitespaces (spaces, tabs, next-line characters)!!");
-		} else {
+		if (!customerId.matches("^[a-zA-Z0-9-]+$")) {
+			errors.add("Customer ID can contain only alphabets, numbers and hyphens (other symbols, spaces, tabs, next-line characters are not allowed)!!");
+ 		} else {
 			if (customerId.length() < 3) {
-				errors.add("Cannot useCustomer ID \""+customerName+"\"\nCustomer ID must be atleast 3 characters long !!");
+				errors.add("Cannot useCustomer ID \"" + customerName
+						+ "\"\nCustomer ID must be atleast 3 characters long !!");
 			} else if (customerId.length() > 5) {
-				errors.add("Cannot useCustomer ID \""+customerName+"\"\nCustomer ID must be maximum 5 characters only !!");
+				errors.add("Cannot useCustomer ID \"" + customerName
+						+ "\"\nCustomer ID must be maximum 5 characters only !!");
 			}
 		}
 
 		// Customer Name checks
 		if (customerName.trim().length() < 5) {
-			errors.add("Cannot update Customer Name to \""+customerName+"\"\nCustomer Name must be atleast 5 characters long !!");
+			errors.add("Cannot update Customer Name to \"" + customerName
+					+ "\"\nCustomer Name must be atleast 5 characters long !!");
 		} else if (customerName.trim().length() > 30) {
-			errors.add("Cannot update Customer Name to \""+customerName+"\"\nCustomer Name must be maximum 30 characters only !!");
+			errors.add("Cannot update Customer Name to \"" + customerName
+					+ "\"\nCustomer Name must be maximum 30 characters only !!");
 		}
 
 		/*
@@ -121,7 +136,7 @@ public class CustomersService {
 		 * errors.add("Valid Upto date cannot be older than tomorrow!"); }
 		 */
 
-		System.out.println("validateNewCustomer: "+validUpto);
+		System.out.println("validateNewCustomer: " + validUpto);
 		if (validUpto != null && !validUpto.isEmpty()) {
 			try {
 				// Parse — throws exception if date is invalid (e.g. April 31)
@@ -138,7 +153,7 @@ public class CustomersService {
 			} catch (DateTimeParseException e) {
 				// Catches invalid dates like April 31, February 30 etc.
 				errors.add("Invalid date! Please enter a valid date.");
-				System.out.println("DateTimeParseException: "+e.getMessage());
+				System.out.println("DateTimeParseException: " + e.getMessage());
 			}
 		}
 
@@ -152,19 +167,22 @@ public class CustomersService {
 	public List<String> validateCustomerUpdate(String customerName, String validUpto) {
 		List<String> errors = new ArrayList<>();
 
-		System.out.println("CustomerService:: validateCustomerUpdate(): "+customerName+" -- "+validUpto);
+		System.out.println("CustomerService:: validateCustomerUpdate(): " + customerName + " -- " + validUpto);
 
 		// Customer Name checks
 		if (customerName.trim().length() < 5) {
-			errors.add("Cannot update Customer Name to \""+customerName+"\"\nCustomer Name must be atleast 5 characters long !!");
+			errors.add("Cannot update Customer Name to \"" + customerName
+					+ "\"\nCustomer Name must be atleast 5 characters long !!");
 		} else if (customerName.trim().length() > 30) {
-			errors.add("Cannot update Customer Name to \""+customerName+"\"\nCustomer Name must be maximum 30 characters only !!");
+			errors.add("Cannot update Customer Name to \"" + customerName
+					+ "\"\nCustomer Name must be maximum 30 characters only !!");
 		}
 
-		// Check if the selected date is valid & if that date is of future (must be at least tomorrow) 		
+		// Check if the selected date is valid & if that date is of future (must be at
+		// least tomorrow)
 		if (validUpto != null && !validUpto.isEmpty()) {
 			try {
-				System.out.println(" Try inside SERVICE validUpto :: "+validUpto);
+				System.out.println(" Try inside SERVICE validUpto :: " + validUpto);
 				// Parse — throws exception if date is invalid (e.g. April 31)
 				LocalDate selectedDate = LocalDate.parse(validUpto, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
@@ -177,12 +195,12 @@ public class CustomersService {
 
 			} catch (DateTimeParseException e) {
 				System.out.println("Hitting Exception in SERVICE");
-				System.out.println("Exception "+e.toString());
+				System.out.println("Exception " + e.toString());
 				// Catches invalid dates like April 31, February 30 etc.
-				 errors.add("You have selected an Invalid date!! Please select/enter a valid date.");
+				errors.add("You have selected an Invalid date!! Please select/enter a valid date.");
 			}
-		}else {
-			 errors.add("You have selected an Invalid date!! Please select/enter a valid date.");
+		} else {
+			errors.add("You have selected an Invalid date!! Please select/enter a valid date.");
 		}
 
 		return errors;
@@ -220,9 +238,10 @@ public class CustomersService {
 		// Update customer fields
 		Customers customer = customersRepo.findById(customerId)
 				.orElseThrow(() -> new RuntimeException("Customer not found: " + customerId));
-		
-		System.out.println("CustomerService:: updateCustomer:: "+customerId+" -- " +customerName+" -- " +customerStatus+" -- " +validUpto+" -- " +selectedWarehouses.toString());
-		
+
+		System.out.println("CustomerService:: updateCustomer:: " + customerId + " -- " + customerName + " -- "
+				+ customerStatus + " -- " + validUpto + " -- " + selectedWarehouses.toString());
+
 		customer.setCustomerName(customerName);
 		customer.setValidUpto(validUpto);
 		customer.setCustomerStatus(customerStatus);
@@ -262,6 +281,111 @@ public class CustomersService {
 	public void deleteCustomer(String customerId) {
 		customersRepo.deleteById(customerId);
 		customerWarehousesRepo.deleteAllWarehousesByCustomerId(customerId);
+	}
+
+	// Dynamically setting the conditions and running a custom query in service
+	// instead of calling individual methods in Repo
+	@Transactional
+	public List<Customers> getCustomersListOld(String customerId, String customerStatus, int expireNumber,
+			String expiringInSelect) {
+		StringBuilder query = new StringBuilder("SELECT * FROM Customers c");
+
+		// Dynamically build WHERE clause
+		List<String> conditions = new ArrayList<>();
+
+		if (!customerId.equals("ALL"))
+			conditions.add("c.customerId = :customerId");
+		if (!customerStatus.equals("ALL"))
+			conditions.add("c.customerStatus = :customerStatus");
+		if (!(expireNumber == 0) && !expiringInSelect.equals("ALL"))
+			conditions.add("c.validUpto >= CURDATE() AND c.validUpto <= (CURDATE() + INTERVAL " + expireNumber + " "
+					+ expiringInSelect + ")");
+
+		// Append WHERE + AND automatically
+		if (!conditions.isEmpty()) {
+			query.append(" WHERE ").append(String.join(" AND ", conditions));
+		}
+
+		// Create query
+		TypedQuery<Customers> typedQuery = (TypedQuery<Customers>) entityManager.createNativeQuery(query.toString(),
+				Customers.class);
+
+		// Bind only non-null parameters
+		if (!customerId.equals("ALL"))
+			typedQuery.setParameter("customerId", customerId);
+		if (!customerStatus.equals("ALL"))
+			typedQuery.setParameter("customerStatus", customerStatus);
+
+		/*
+		 * if (!(expireNumber == 0) && !expiringInSelect.equals("ALL")) {
+		 * typedQuery.setParameter("expireNumber", expireNumber);
+		 * typedQuery.setParameter("expiringInSelect", expiringInSelect); }
+		 */
+		List<Customers> resultList = typedQuery.getResultList();
+
+		System.out.println("final Query: " + query.toString() + "\nresultList: " + resultList.toString());
+
+		return resultList;
+	}
+
+	@Transactional
+	public List<Customers> getCustomersList(String customerId, String customerStatus, int expireNumber,
+			String expiringInSelect) {
+		// 1. Base native SQL query (Targeting the physical database table)
+		StringBuilder query = new StringBuilder("SELECT * FROM customers");
+
+		List<String> conditions = new ArrayList<>();
+		// Use Map interface with HashMap implementation
+		Map<String, Object> parameters = new HashMap<>();
+
+		// 2. Build conditions safely using parameterized binding (.put() for Map)
+		if (customerId != null && !customerId.equalsIgnoreCase("ALL")) {
+			conditions.add("customer_id = :customerId");
+			parameters.put("customerId", customerId);
+		}
+
+		if (customerStatus != null && !customerStatus.equalsIgnoreCase("ALL")) {
+			conditions.add("customer_status = :customerStatus");
+			parameters.put("customerStatus", customerStatus);
+		}
+
+		if (expireNumber > 0 && expiringInSelect != null && !expiringInSelect.equalsIgnoreCase("ALL")) {
+			String timeUnit = expiringInSelect.toUpperCase().trim();
+			List<String> validUnits = Arrays.asList("DAY", "WEEK", "MONTH", "QUARTER", "YEAR");
+
+			if (validUnits.contains(timeUnit)) {
+				// 1. The string closes properly right here with a double quote and semicolon
+				conditions.add("valid_upto >= NOW(6) AND valid_upto <= NOW(6) + INTERVAL :expireNumber " + timeUnit);
+
+				// 2. Put the numeric value into your parameters map
+				parameters.put("expireNumber", expireNumber);
+			} // <--- The IF statement ends cleanly right here!
+
+		}
+
+		// Append WHERE + AND automatically
+		if (!conditions.isEmpty()) {
+			query.append(" WHERE ").append(String.join(" AND ", conditions));
+		}
+
+		Query nativeQuery = entityManager.createNativeQuery(query.toString(), Customers.class);
+
+		if (!customerId.equals("ALL"))
+			nativeQuery.setParameter("customerId", customerId);
+		if (!customerStatus.equals("ALL"))
+			nativeQuery.setParameter("customerStatus", customerStatus);
+
+		if (!(expireNumber == 0) && !expiringInSelect.equals("ALL")) {
+			nativeQuery.setParameter("expireNumber", expireNumber);
+		//	nativeQuery.setParameter("expiringInSelect", expiringInSelect);
+		}
+
+		@SuppressWarnings("unchecked")
+		List<Customers> resultList = nativeQuery.getResultList();
+
+		System.out.println("Final Query: " + query.toString() + "\nResult List Size: " + resultList.size());
+
+		return resultList;
 	}
 
 }

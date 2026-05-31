@@ -120,9 +120,9 @@ input:focus, select:focus {
 	gap: 10px;
 }
 
-.btn-update {
-	background-color: #6a73b2;
-	color: #fff;
+.btn-add-inventory {
+	background-color: #4CAF50;
+	color: #ffffff;
 	font-weight: 700;
 	font-size: 0.9rem;
 	padding: 10px 26px;
@@ -130,6 +130,43 @@ input:focus, select:focus {
 	border-radius: 8px;
 	cursor: pointer;
 	transition: background-color 0.2s, transform 0.15s;
+	text-decoration: none;
+}
+
+.btn-view-inventory {
+	background-color: #f1f5f9;
+	color: #374151;
+	border: 1.5px solid #cbd5e1;
+	font-weight: 700;
+	font-size: 0.9rem;
+	padding: 10px 26px;
+	border-radius: 8px;
+	cursor: pointer;
+	transition: background-color 0.2s, transform 0.15s;
+	text-decoration: none;
+}
+
+.btn-update {
+	background-color: #6a73b2;
+	color: #ffffff;
+	font-weight: 700;
+	font-size: 0.9rem;
+	padding: 10px 26px;
+	border: none;
+	border-radius: 8px;
+	cursor: pointer;
+	transition: background-color 0.2s, transform 0.15s;
+}
+
+.btn-add-inventory:hover {
+	background-color: #3d9140;
+	transform: translateY(-1px);
+}
+
+.btn-view-inventory:hover {
+	background-color: #e2e8f0;
+	color: #1e293b;
+	transform: translateY(-1px);
 }
 
 .btn-update:hover {
@@ -138,19 +175,22 @@ input:focus, select:focus {
 }
 
 .btn-delete {
-	background-color: #ed4758;
-	color: #fff;
+	background-color: #fee2e2;
+	color: #991b1b;
+	border: 1.5px solid #fca5a5;
 	font-weight: 700;
 	font-size: 0.9rem;
 	padding: 10px 26px;
-	border: none;
 	border-radius: 8px;
 	cursor: pointer;
 	transition: background-color 0.2s, transform 0.15s;
+	margin-left: auto;
 }
 
 .btn-delete:hover {
-	background-color: #c73444;
+	background-color: #ed4758;
+	color: #ffffff;
+	border-color: #ed4758;
 	transform: translateY(-1px);
 }
 
@@ -236,6 +276,11 @@ input:focus, select:focus {
 					<div class="button-row">
 						<button type="button" class="btn-update"
 							onclick="submitIfChanged(event)">✔ Update Item</button>
+						<a class="btn-view-inventory"
+							th:href="@{'/inventory/viewInventory/' + ${item.itemCustomerUomId}}">
+							👁️ View Inventory</a> <a class="btn-add-inventory"
+							th:href="@{'/inventory/addInventory/' + ${item.itemCustomerUomId}}">
+							＋ Add Inventory</a>
 						<button type="button" class="btn-delete" onclick="confirmDelete()">🗑
 							Delete Item</button>
 					</div>

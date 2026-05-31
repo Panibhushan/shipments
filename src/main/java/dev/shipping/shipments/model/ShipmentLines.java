@@ -1,0 +1,132 @@
+package dev.shipping.shipments.model;
+import jakarta.persistence.*;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Locale;
+
+import dev.shipping.shipments.config.AppProperties;
+
+@Entity
+public class ShipmentLines {
+
+	@Id
+	@Column(name = "shipment_line_id")
+	private String shipmentLineId;
+
+	@Column(name = "shipment_id")
+	private String shipmentId;
+
+	@Column(name = "warehouse_id")
+	private String warehouseId;
+
+	@Column(name = "line_no")
+	private int lineNo  ;
+	
+	@Column(name = "quantity")
+	private int quantity = 0;
+	
+	@Column(name = "shortage_qty")
+	private int shortageQty = 0;
+
+	// Store as LocalDateTime in DB (no timezone conversion by Hibernate)
+	@Column(name = "created_at", updatable = false, columnDefinition = "DATETIME(6)")
+	private LocalDateTime createdAt;
+
+	// Store as LocalDateTime in DB (no timezone conversion by Hibernate)
+	@Column(name = "modified_at", columnDefinition = "DATETIME(6)")
+	private LocalDateTime modifiedAt;
+
+	@PrePersist
+	public void generateFields() {
+
+		// Generate shipment_id: SHIP + YYYYMMDDHHMMSS + millis (for uniqueness)
+		DateTimeFormatter idFormat = DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS");
+
+		this.shipmentLineId = shipmentId + lineNo ;
+
+		// Get current IST time as LocalDateTime (no timezone stored, but value is IST)
+		this.createdAt = LocalDateTime.now(ZoneId.of("Asia/Kolkata"));
+		this.modifiedAt = LocalDateTime.now(ZoneId.of("Asia/Kolkata"));
+	}
+
+	// Update modified date-time every time you make update to the table i.e.,
+	// shipment status
+	@PreUpdate
+	public void setModifiedAt() {
+		this.modifiedAt = LocalDateTime.now(ZoneId.of("Asia/Kolkata"));
+	}
+
+	// Getters and Setters
+
+	public String getShipmentId() {
+		return shipmentId;
+	}
+ 
+	// Returning string for createdAt in DD-MMM-YYYY hh:mm:ss AM/PM IST format
+	public String getCreatedAt() {
+		if (createdAt == null)
+			return null;
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MMM-yyyy hh:mm:ss a");
+		return createdAt.format(formatter).toUpperCase() + " IST";
+	}
+
+	// Returning string for modifiedAt in DD-MMM-YYYY hh:mm:ss AM/PM IST format
+	public String getModifiedAt() {
+		if (modifiedAt == null)
+			return null;
+		DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MMM-yyyy hh:mm:ss a");
+		return modifiedAt.format(formatter).toUpperCase() + " IST";
+	}
+
+	public String getWarehouseId() {
+		return warehouseId;
+	}
+
+	public void setWarehouseId(String warehouseId) {
+		this.warehouseId = warehouseId;
+	}
+
+	public String getShipmentLineId() {
+		return shipmentLineId;
+	} 
+	
+	public int getLineNo() {
+		return lineNo;
+	}
+
+	public void setLineNo(int lineNo) {
+		this.lineNo = lineNo;
+	}
+
+	public int getQuantity() {
+		return quantity;
+	}
+
+	public void setQuantity(int quantity) {
+		this.quantity = quantity;
+	}
+
+	public int getShortageQty() {
+		return shortageQty;
+	}
+
+	public void setShortageQty(int shortageQty) {
+		this.shortageQty = shortageQty;
+	}
+
+	public void setShipmentId(String shipmentId) {
+		this.shipmentId = shipmentId;
+	}
+
+	@Override
+	public String toString() {
+		return "ShipmentLines [shipmentLineId=" + shipmentLineId + ", shipmentId=" + shipmentId + ", warehouseId="
+				+ warehouseId + ", lineNo=" + lineNo + ", quantity=" + quantity + ", shortageQty=" + shortageQty
+				+ ", createdAt=" + createdAt + ", modifiedAt=" + modifiedAt + "]";
+	} 
+
+	
+	
+}

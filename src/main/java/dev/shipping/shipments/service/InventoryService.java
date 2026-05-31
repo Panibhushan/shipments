@@ -79,7 +79,7 @@ public class InventoryService {
 	
 	//Dynamically setting the conditions and running a custom query in service instead of calling individual methods in Repo
 	@Transactional
-	public List<Inventory> getInventoryDetails(String customerId, String warehouseId, String itemId) {
+	public List<Inventory> getInventoryDetails(String customerId, String warehouseId, String itemId, String itemUom) {
 
 	    StringBuilder query = new StringBuilder("SELECT i FROM Inventory i");
 
@@ -89,6 +89,7 @@ public class InventoryService {
 	    if (!customerId.equals("ALL")) conditions.add("i.customerId = :customerId");
 	    if (!warehouseId.equals("ALL")) conditions.add("i.warehouseId = :warehouseId");
 	    if (!itemId.equals("ALL")) conditions.add("i.itemId = :itemId");
+	    if (!itemUom.equals("ALL")) conditions.add("i.itemUom = :itemUom");
 
 	    // Append WHERE + AND automatically
 	    if (!conditions.isEmpty()) {
@@ -102,6 +103,7 @@ public class InventoryService {
 	    if (!customerId.equals("ALL")) typedQuery.setParameter("customerId", customerId);
 	    if (!warehouseId.equals("ALL")) typedQuery.setParameter("warehouseId", warehouseId);
 	    if (!itemId.equals("ALL")) typedQuery.setParameter("itemId", itemId);
+	    if (!itemUom.equals("ALL")) typedQuery.setParameter("itemUom", itemUom);
 
 	    List<Inventory> resultList =  typedQuery.getResultList();
 	    

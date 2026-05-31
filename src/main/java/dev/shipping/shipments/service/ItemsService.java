@@ -103,13 +103,13 @@ public class ItemsService {
 		String itemDescription = item.getItemDescription();
 
 		// Item ID checks
-		if (itemId.matches(".*\\s.*")) {
-			errors.add("Item ID cannot contain any whitespaces (spaces, tabs, next-line characters)!!");
+		if (!itemId.matches("^[a-zA-Z0-9-]+$")) {
+			errors.add("Item ID can contain only alphabets, numbers and hyphens (other symbols, spaces, tabs, next-line characters are not allowed)!!");
 		} else {
-			if (itemId.length() < 3) {
-				errors.add("Cannot use Item ID as  \"" + itemId + "\"\nItem ID must be atleast 3 characters long !!");
-			} else if (itemId.length() > 5) {
-				errors.add("Cannot use Item ID as \"" + itemId + "\"\nItem ID must be maximum 5 characters only !!");
+			if (itemId.length() < 5) {
+				errors.add("Cannot use Item ID as  \"" + itemId + "\nItem ID must be atleast 5 characters long !!");
+			} else if (itemId.length() > 15) {
+				errors.add("Cannot use Item ID as \"" + itemId + "\nItem ID must be maximum 15 characters only !!");
 			}
 		}
 
@@ -117,16 +117,16 @@ public class ItemsService {
 
 		boolean uomExists = itemUomsList.contains(itemUom); // returns true
 		if (!uomExists) {
-			errors.add("Invalid Item UOM: " + itemUom + " \nPlease select cirrect UOM from the dropdown !!");
+			errors.add("Invalid Item UOM: " + itemUom + "\nPlease select cirrect UOM from the dropdown !!");
 		}
 
 		// Item Description checks
 		if (itemDescription.trim().length() < 10) {
 			errors.add("Cannot update Item Description to \"" + itemDescription
-					+ "\"\nItem Description must be atleast 10 characters long !!");
+					+ "\nItem Description must be atleast 10 characters long !!");
 		} else if (itemDescription.trim().length() > 50) {
 			errors.add("Cannot update Item Description to \"" + itemDescription
-					+ "\"\nItem Description must be maximum 50 characters only !!");
+					+ "\nItem Description must be maximum 50 characters only !!");
 		}
 
 		return errors;
@@ -185,7 +185,7 @@ public class ItemsService {
 	// Dynamically setting the conditions and running a custom query in service
 	// instead of calling individual methods in Repo
 	@Transactional
-	public List<Items> getItemsList(String customerId, String itemId) {
+	public List<Items> getItemsList(String customerId, String itemId, String itemUom) {
 
 		StringBuilder query = new StringBuilder("SELECT i FROM Items i");
 
@@ -196,6 +196,8 @@ public class ItemsService {
 			conditions.add("i.customerId = :customerId");
 		if (!itemId.equals("ALL"))
 			conditions.add("i.itemId = :itemId");
+		if (!itemUom.equals("ALL"))
+			conditions.add("i.itemUom = :itemUom");
 
 		// Append WHERE + AND automatically
 		if (!conditions.isEmpty()) {
@@ -210,6 +212,8 @@ public class ItemsService {
 			typedQuery.setParameter("customerId", customerId);
 		if (!itemId.equals("ALL"))
 			typedQuery.setParameter("itemId", itemId);
+		if (!itemUom.equals("ALL"))
+			typedQuery.setParameter("itemUom", itemUom);
 
 		List<Items> resultList = typedQuery.getResultList();
 

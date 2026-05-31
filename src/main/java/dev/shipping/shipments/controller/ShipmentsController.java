@@ -48,6 +48,7 @@ public class ShipmentsController {
 		model.addAttribute("selectedCustomer", "ALL");
 		model.addAttribute("customers", customersService.getAllCustomers());
 		model.addAttribute("warehouses", warehousesService.getAllWarehouses());
+		model.addAttribute("filterApplied", false);
 		return "show-all-shipments";
 	}
 
@@ -59,74 +60,10 @@ public class ShipmentsController {
 		model.addAttribute("selectedCustomer", "ALL");
 		model.addAttribute("customers", customersService.getAllCustomers());
 		model.addAttribute("warehouses", warehousesService.getAllWarehouses());
+		model.addAttribute("filterApplied", false);
 		return "show-all-shipments-with-advanced-filters";
-	}
-
-	// SHOW SHIPMENTS LIST BASED ON INPUT FILTERS
-	@PostMapping("/shipments/showShipmentsByFilters/{shipmentId}/{customerId}/{warehouseId}/{status}")
-	public String showShipmentsByCustomerAndWarehouse(@PathVariable String shipmentId, @PathVariable String customerId,
-			@PathVariable String warehouseId, @PathVariable String status, Model model) {
-
-		System.out.println("/shipments/showShipmentsByFilters/{shipmentId}/{customerId}/{warehouseId}: " + shipmentId
-				+ " / " + customerId + " / " + warehouseId + " / " + status);
-
-		List<Shipments> shipmentsList = shipmentsService.getShipmentList(shipmentId, customerId, warehouseId, status);
-
-		model.addAttribute("shipments", shipmentsList);
-		model.addAttribute("enteredShipmentId", shipmentId);
-		model.addAttribute("selectedCustomer", customerId);
-		model.addAttribute("selectedWarehouse", warehouseId);
-		model.addAttribute("selectedStatus", status.equals("ALL") ? "" : status);
-		model.addAttribute("customers", customersService.getAllCustomers());
-
-		if (customerId.equals("ALL")) {
-			model.addAttribute("warehouses", warehousesService.getAllWarehouses());
-		} else {
-			model.addAttribute("warehouses", shipmentsService.getWarehousesByCustomer(customerId));
-		}
-
-		return "show-all-shipments";
-	}
+	} 
 	
-	// SHOW SHIPMENTS LIST BASED ON INPUT ADVANCED FILTERS
-		@PostMapping("/shipments/showShipmentsByAdvancedFilters/{shipmentId}/{customerId}/{warehouseId}/{statusFrom}/{statusTo}/{dateFrom}/{dateTo}/{itemId}")
-		public String filter(@PathVariable String shipmentId, @PathVariable String customerId,
-				@PathVariable String warehouseId, @PathVariable String statusFrom, @PathVariable String statusTo,
-				@PathVariable String dateFrom, @PathVariable String dateTo, @PathVariable String itemId, Model model) {
-
-			System.out.println(
-					"/shipments/showShipmentsByAdvancedFilters/{shipmentId}/{customerId}/{warehouseId}/{statusFrom}/{statusTo}/{dateFrom}/{dateTo}/{itemId}: "
-							+ shipmentId + " / " + customerId + " / " + warehouseId + " / " + statusFrom + " / " + statusTo
-							+ " / " + dateFrom + " / " + dateTo + " / " + itemId);
-
-			// List<Shipments> shipmentsList = shipmentsService.getShipmentList(customerId,
-			// warehouseId, statusFrom);
-
-			List<Shipments> shipmentsList = shipmentsService.getShipmentListByAdvancedFilters(shipmentId, customerId,
-					warehouseId, statusFrom, statusTo, dateFrom, dateTo, itemId);
-
-			model.addAttribute("shipments", shipmentsList);
-			model.addAttribute("enteredShipmentId", shipmentId);
-			model.addAttribute("selectedCustomer", customerId);
-			model.addAttribute("selectedWarehouse", warehouseId);
-			model.addAttribute("selectedStatusFrom", statusFrom.equals("ALL") ? "" : statusFrom);
-			model.addAttribute("selectedStatusTo", statusTo.equals("ALL") ? "" : statusTo);
-			model.addAttribute("selectedCreatedFrom", dateFrom.equals("ALL") ? "" : dateFrom);
-			model.addAttribute("selectedCreatedTo", dateTo.equals("ALL") ? "" : dateTo);
-			model.addAttribute("selectedItemId", itemId.equals("ALL") ? "" : itemId);
-
-			model.addAttribute("customers", customersService.getAllCustomers());
-
-			if (customerId.equals("ALL")) {
-				model.addAttribute("warehouses", warehousesService.getAllWarehouses());
-			} else {
-				model.addAttribute("warehouses", shipmentsService.getWarehousesByCustomer(customerId));
-			}
-
-			return "show-all-shipments-with-advanced-filters";
-
-		}
-
 	@GetMapping("/shipments/showShipmentsByFilters")
 	public String showShipmentsByBasicFilters(@RequestParam(required = false) String shipmentId,
 			@RequestParam(required = false) String customerId, @RequestParam(required = false) String shipmentStatus,
@@ -160,26 +97,20 @@ public class ShipmentsController {
 			model.addAttribute("warehouses", shipmentsService.getWarehousesByCustomer(customerId));
 		}
 
+		model.addAttribute("filterApplied", true);
 		return "show-all-shipments";
 	}
 
 	// SHOW SHIPMENTS LIST BASED ON INPUT ADVANCED FILTERS
 	@GetMapping("/shipments/showShipmentsByAdvancedFilters")
-	public String showShipmentsByAdvancedFilters(@RequestParam(required = false) String shipmentId, @RequestParam(required = false) String customerId,
+	public String showShipmentsByAdvancedFilters(@RequestParam(required = false, defaultValue = "ALL") String shipmentId, @RequestParam(required = false) String customerId,
 			@RequestParam(required = false) String warehouseId, @RequestParam(required = false) String statusFrom, @RequestParam(required = false) String statusTo,
-			@RequestParam(required = false) String createdFrom, @RequestParam(required = false) String createdTo, @RequestParam(required = false) String itemId, Model model) {
+			@RequestParam(required = false, defaultValue = "ALL") String createdFrom, @RequestParam(required = false, defaultValue = "ALL") String createdTo, @RequestParam(required = false) String itemId, Model model) {
 
 		System.out.println(
 				"/shipments/showShipmentsByAdvancedFilters::GET()/{shipmentId}/{customerId}/{warehouseId}/{statusFrom}/{statusTo}/{createdFrom}/{createdTo}/{itemId}: "
 						+ shipmentId + " / " + customerId + " / " + warehouseId + " / " + statusFrom + " / " + statusTo
-						+ " / " + createdFrom + " / " + createdTo + " / " + itemId);
-
-		// List<Shipments> shipmentsList = shipmentsService.getShipmentList(customerId,
-		// warehouseId, statusFrom);
-
-		if(shipmentId.trim() == "") shipmentId="ALL";
-		if(createdFrom.trim() == "") createdFrom="ALL";
-		if(createdTo.trim() == "") createdTo="ALL";
+						+ " / " + createdFrom + " / " + createdTo + " / " + itemId); 
 		
 		List<Shipments> shipmentsList = shipmentsService.getShipmentListByAdvancedFilters(shipmentId, customerId,
 				warehouseId, statusFrom, statusTo, createdFrom, createdTo, itemId);
@@ -202,6 +133,7 @@ public class ShipmentsController {
 			model.addAttribute("warehouses", shipmentsService.getWarehousesByCustomer(customerId));
 		}
 
+		model.addAttribute("filterApplied", true);
 		return "show-all-shipments-with-advanced-filters";
 
 	}

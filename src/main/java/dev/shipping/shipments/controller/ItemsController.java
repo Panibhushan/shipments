@@ -43,22 +43,47 @@ public class ItemsController {
 		model.addAttribute("selectedCustomer", "ALL");
 		model.addAttribute("customers", customersService.getAllCustomers());
 		model.addAttribute("activePage", "allItems"); // ← this is show which dropdown is active in the navbar
+		model.addAttribute("itemUomsList", itemUomsList);
+		
+		model.addAttribute("filterApplied", false);
 		return "show-all-items";
 	}
+	/*
+	 * @PostMapping("/items/showItemsByCustomerAndItem/{customerId}/{itemId}")
+	 * public String showItemsByCustomer(@PathVariable String
+	 * customerId, @PathVariable String itemId, Model model) {
+	 * 
+	 * System.out.
+	 * println("/items/showItemsByCustomerAndItem/{customerId}/{itemId}: " +
+	 * customerId + " / " + itemId); if (customerId.equals("ALL")) { return
+	 * "redirect:/items/"; } else { model.addAttribute("items",
+	 * itemsService.getItemsList(customerId, itemId));
+	 * model.addAttribute("selectedCustomer", customerId);
+	 * model.addAttribute("selectedItemId", itemId.equals("ALL") ? "" : itemId);
+	 * model.addAttribute("customers", customersService.getAllCustomers()); return
+	 * "show-all-items"; } }
+	 */
 
-	@PostMapping("/items/showItemsByCustomerAndItem/{customerId}/{itemId}")
-	public String showItemsByCustomer(@PathVariable String customerId, @PathVariable String itemId, Model model) {
+	@GetMapping("/items/showItemsByFilter")
+	public String showItemsByFilter(@RequestParam(required = false) String customerId,
+			@RequestParam(required = false, defaultValue = "ALL") String itemId, @RequestParam(required = false) String itemUom, Model model) {
 
-		System.out.println("/items/showItemsByCustomerAndItem/{customerId}/{itemId}: " + customerId + " / " + itemId);
-		if (customerId.equals("ALL")) {
+		System.out.println("/items/showItemsByFilter/{customerId}/{itemId}/{itemUom}: " + customerId + " / " + itemId+ " / " + itemUom);
+		if (customerId.equals("ALL") && itemId.equals("ALL") && itemUom.equals("ALL")) {
 			return "redirect:/items/";
-		} else {
-			model.addAttribute("items", itemsService.getItemsList(customerId, itemId));
-			model.addAttribute("selectedCustomer", customerId);
-			model.addAttribute("selectedItemId", itemId.equals("ALL") ? "" : itemId);
-			model.addAttribute("customers", customersService.getAllCustomers());
-			return "show-all-items";
 		}
+
+		model.addAttribute("items", itemsService.getItemsList(customerId, itemId, itemUom));
+		model.addAttribute("selectedCustomer", customerId);
+		model.addAttribute("selectedItemId", itemId.equals("ALL") ? "" : itemId);
+		model.addAttribute("selectedItemUom", itemUom);
+		model.addAttribute("customers", customersService.getAllCustomers());
+		model.addAttribute("itemUomsList", itemUomsList);
+		
+		model.addAttribute("filterApplied", true);
+
+		return "show-all-items";
+
 	}
 
 	// Adding this addittional method, just incase I missed to update the URL from
@@ -95,21 +120,23 @@ public class ItemsController {
 					+ customerId + " & uom: " + itemUom + " !!!");
 			redirectAttributes.addFlashAttribute("bgColor", "#d95f6c");
 			redirectAttributes.addFlashAttribute("textColor", "#ffffff");
-			return "redirect:/items/goToCreateItemPage";
+			return "redirect:/items/createItemPage";
 		}
 
 		List<String> errors = itemsService.validateNewItem(item, itemUomsList);
 
 		if (!errors.isEmpty()) {
 			redirectAttributes.addFlashAttribute("msg", String.join("\n", errors));
-			redirectAttributes.addFlashAttribute("itemIdFromController", itemId);
-			redirectAttributes.addFlashAttribute("itemDescriptionFromController", item.getItemDescription());
-			redirectAttributes.addFlashAttribute("itemUomFromController", item.getItemUom());
+			redirectAttributes.addFlashAttribute("selectedCustomer", customerId);
+			redirectAttributes.addFlashAttribute("enteredItemId", itemId);
+			redirectAttributes.addFlashAttribute("enteredItemDescription", item.getItemDescription());
+			redirectAttributes.addFlashAttribute("selectedItemUom", item.getItemUom());
+			redirectAttributes.addFlashAttribute("selectedItemStatus", item.getItemStatus() );			
 			redirectAttributes.addFlashAttribute("bgColor", "#f03a5b");
 			redirectAttributes.addFlashAttribute("textColor", "#f5f0f1");
 		} else {
 			itemsService.createItem(item);
-			redirectAttributes.addFlashAttribute("msg", "Created Item: " + itemId + " !!!");
+			redirectAttributes.addFlashAttribute("msg", "Created Item: " + itemId + " !!! &nbsp;&nbsp;<a href='/items/showItemDetails/" +itemCustomerUomId+"'>View Item Details</a>" );
 			redirectAttributes.addFlashAttribute("itemCustomerUomId", itemCustomerUomId);
 			redirectAttributes.addFlashAttribute("bgColor", "#d1fae5;");
 			redirectAttributes.addFlashAttribute("textColor", "#45484d");
@@ -117,7 +144,7 @@ public class ItemsController {
 
 		redirectAttributes.addFlashAttribute("itemUomsList", itemUomsList);
 
-		return "redirect:/items/goToCreateItemPage";
+		return "redirect:/items/createItemPage";
 	}
 
 	@GetMapping("/items/viewOrEditItem/{itemCustomerUomId}")

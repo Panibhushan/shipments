@@ -387,9 +387,8 @@ td {
 			Customer will reload the Warehouses options.</p>
 		<!-- ── FILTER BAR ── -->
 		<div class="filter-bar">
-			<form id="customerAndItemAndWarehouseForm"
-				th:action="@{/inventory/showInventoryByCustomerAndItemAndWarehouse/ALL/ALL/ALL}"
-				method="post">
+			<form id="warehouseFilterForm"
+				th:action="@{/inventory/showInventoryByFilters}" method="get">
 
 				<label for="customerId">Customer</label> <select name="customerId"
 					id="customerId" onchange="loadWarehouses(this.value)" required>
@@ -403,15 +402,20 @@ td {
 					<option th:each="w : ${warehouses}" th:value="${w.warehouseId}"
 						th:selected="${w.warehouseId == selectedWarehouse}"
 						th:text="|${w.warehouseId} = ${w.warehouseName}|"></option>
-				</select> <label for="itemId">Item ID</label> <input type="text"
+				</select> <label for="itemId">Item</label> <input type="text"
 					name="itemId" id="itemId" placeholder="e.g. ITM-001"
 					th:value="${selectedItemId != null} ? ${selectedItemId} : ''"
-					oninput="this.value = this.value.toUpperCase()" />
-
+					oninput="this.value = this.value.toUpperCase()" /> <label
+					for="itemUom">UOM</label><select name="itemUom" id="itemUom"
+					required>
+					<option value="ALL">— ALL —</option>
+					<option th:each="opt : ${itemUomsList}" th:value="${opt}"
+						th:selected="${opt == selectedItemUom}" th:text="${opt}"></option>
+				</select>
 				<div class="tooltip-wrapper show-tip" id="submitBtnWrapper">
 					<button type="submit" class="btn-filter" id="applyFiltersBtn"
 						disabled>Apply Filters</button>
-					<span class="tip">Change Customer or Warehouse or Item ID to
+					<span class="tip">Change Customer or Warehouse or Item ID or Item UOM to
 						enable filter submission</span>
 				</div>
 				<div>
@@ -484,11 +488,20 @@ td {
 		</div>
 
 		<!-- ── EMPTY STATE ── -->
-		<div th:if="${#lists.isEmpty(inventory)}" class="empty-state">
+		<div th:if="${#lists.isEmpty(inventory) && !filterApplied}"
+			class="empty-state">
 			<p>No inventory records to display.</p>
-			<a href="/inventory/addOrUpdateInventoryPage"
+			<br /> <a href="/inventory/addOrUpdateInventoryPage"
 				style="background: #4CAF50; color: white; padding: 9px 20px; border-radius: 8px; text-decoration: none; font-weight: bold;">
-				＋ Add / Update Inventory </a>
+				＋ Create New Item</a>
+		</div>
+
+		<div th:if="${#lists.isEmpty(inventory) && filterApplied}"
+			class="empty-state">
+			<p>No inventory records found for the provided inputs.</p>
+			<br /> <a href="/inventory/"
+				style="background-color: #ee5a5a; color: #fff; padding: 9px 20px; border-radius: 8px; text-decoration: none; font-weight: bold;">
+				✕ Clear Filters </a>
 		</div>
 
 	</div>
@@ -503,12 +516,13 @@ td {
 			const c = document.getElementById('customerId').value;
 			const w = document.getElementById('warehouseSelect').value;
 			const i = document.getElementById('itemId').value.trim();
+			const iu = document.getElementById('itemUom').value;
 
 			const clearFiltersLink = document.getElementById("clearFiltersLink");
 
-			console.log("c:", c, ", w:", w, ", i:", i);
+			console.log("c:", c, ", w:", w, ", i:", i, ", iu:", iu);
 
-			if (c === 'ALL' && w == 'ALL' && (i === 'ALL' || i === '')) {
+			if (c === 'ALL' && w == 'ALL' && iu == 'ALL' && (i === 'ALL' || i === '')) {
 				clearFiltersLink.classList.add("disabled-link");
 			} else {
 				clearFiltersLink.classList.remove("disabled-link");
@@ -533,12 +547,13 @@ td {
 			const c = document.getElementById('customerId').value;
 			const w = document.getElementById('warehouseSelect').value;
 			const i = document.getElementById('itemId').value.trim();
+			const iu = document.getElementById('itemUom').value;
 
 			const clearFiltersLink = document.getElementById("clearFiltersLink");
 
-			console.log("c:", c, ", w:", w, ", i:", i);
+			console.log("c:", c, ", w:", w, ", i:", i, ", iu:", iu);
 
-			if (c === 'ALL' && w == 'ALL' && (i === 'ALL' || i === '')) {
+			if (c === 'ALL' && w == 'ALL' && iu == 'ALL' && (i === 'ALL' || i === '')) {
 				clearFiltersLink.classList.add("disabled-link");
 			} else {
 				clearFiltersLink.classList.remove("disabled-link");
@@ -550,20 +565,10 @@ td {
 			enableFilter();
 			loadWarehouses(this.value);
 		});
-
 		document.getElementById('warehouseSelect').addEventListener('change', enableFilter);
+		document.getElementById('itemUom').addEventListener('change', enableFilter);
 		document.getElementById('itemId').addEventListener('input', enableFilter);
-
-		// Update form action and submit
-		document.getElementById('customerAndItemAndWarehouseForm').addEventListener('submit', function (e) {
-			e.preventDefault();
-			if (!filtersChanged) return;
-			const c = document.getElementById('customerId').value;
-			const w = document.getElementById('warehouseSelect').value;
-			const i = document.getElementById('itemId').value.trim() || 'ALL';
-			this.action = `/inventory/showInventoryByCustomerAndItemAndWarehouse/${c}/${w}/${i}`;
-			this.submit();
-		});
+ 
 
 		// Dynamically load warehouses
 		function loadWarehouses(customerId) {

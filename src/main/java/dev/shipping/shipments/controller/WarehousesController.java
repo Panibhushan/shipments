@@ -1,5 +1,6 @@
 package dev.shipping.shipments.controller;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -29,14 +30,35 @@ public class WarehousesController {
 	public String showAllWarehouses(Model model) {
 
 		List<Warehouses> warehouses = warehousesService.getAllWarehouses();
-
-		/*
-		 * for(Warehouses w : warehouses) {
-		 * System.out.println("w.getCreatedAt: "+w.getCreatedAt()); }
-		 */
-		model.addAttribute("warehouses", warehousesService.getAllWarehouses());
+ 
+		model.addAttribute("warehouses", warehouses );
+		model.addAttribute("warehousesList", warehouses);
 		model.addAttribute("activePage", "allWarehouses"); // ← this is show which dropdown is active in the navbar
+		model.addAttribute("warehouseStatusList", Arrays.asList("Active", "Disabled"));
+		model.addAttribute("filterApplied", false);
 		return "show-all-warehouses";
+	}
+
+	@GetMapping("/warehouses/showWarehousesByFilter")
+	public String showWarehousesByFilter(@RequestParam(required = false) String warehouseId,
+			@RequestParam(required = false) String warehouseStatus, Model model) {
+
+		System.out.println("/warehouses/showWarehousesByFilter/{warehouseId}/{warehouseStatus}/{itemUom}: "
+				+ warehouseId + " / " + warehouseStatus);
+		if (warehouseId.equals("ALL") && warehouseStatus.equals("ALL")) {
+			return "redirect:/warehouses/";
+		}
+
+		model.addAttribute("warehouses", warehousesService.getAllWarehouses()); // this is to display in filter dropdown
+		model.addAttribute("warehousesList", warehousesService.getWarehousesList(warehouseId, warehouseStatus)); // this is the resultant filtered warehouses list
+		model.addAttribute("selectedWarehouse", warehouseId);
+		model.addAttribute("selectedWarehouseStatus", warehouseStatus);
+		model.addAttribute("warehouseStatusList", Arrays.asList("Active", "Disabled"));
+
+		model.addAttribute("filterApplied", true);
+
+		return "show-all-warehouses";
+
 	}
 
 	// Adding this addittional method, just incase I missed to update the URL from
@@ -66,7 +88,7 @@ public class WarehousesController {
 							+ warehouseId + "'>View " + warehouseId + "</a>");
 			redirectAttributes.addFlashAttribute("bgColor", "#d95f6c");
 			redirectAttributes.addFlashAttribute("textColor", "#ffffff");
-			return "redirect:/warehouses/goToCreateWarehousePage";
+			return "redirect:/warehouses/createWarehousePage";
 		}
 
 		List<String> errors = warehousesService.validateNewWarehouse(warehouse);
@@ -87,7 +109,7 @@ public class WarehousesController {
 			redirectAttributes.addFlashAttribute("textColor", "#45484d");
 		}
 
-		return "redirect:/warehouses/goToCreateWarehousePage";
+		return "redirect:/warehouses/createWarehousePage";
 	}
 
 	@PostMapping("/warehouses/deleteWarehouse/{warehouseId}")

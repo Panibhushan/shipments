@@ -3,16 +3,24 @@ package dev.shipping.shipments.service;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.jspecify.annotations.Nullable;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 
+import dev.shipping.shipments.model.Items;
 import dev.shipping.shipments.model.Warehouses;
 import dev.shipping.shipments.repo.WarehousesRepository;
 import dev.shipping.shipments.utils.MyResourceUtils;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.TypedQuery;
 
 @Service
 public class WarehousesService {
+
+	@Autowired
+	private EntityManager entityManager;
 
 	private final WarehousesRepository warehousesRepo;
 
@@ -33,16 +41,18 @@ public class WarehousesService {
 	}
 
 	/**
-	 * Populates all model attributes needed for the edit-warehouse page.
-	 * Called only after confirming the warehouse exists.
+	 * Populates all model attributes needed for the edit-warehouse page. Called
+	 * only after confirming the warehouse exists.
 	 */
 	public void populateEditWarehouseModel(String warehouseId, Model model) {
 		Warehouses warehouse = warehousesRepo.findById(warehouseId)
 				.orElseThrow(() -> new RuntimeException("Warehouse not found: " + warehouseId));
 
 		model.addAttribute("warehouse", warehouse);
-		// model.addAttribute("formattedCreatedAt", MyResourceUtils.getFormattedDateTime(warehouse.getCreatedAt()));
-		// model.addAttribute("formattedModifiedAt", MyResourceUtils.getFormattedDateTime(warehouse.getModifiedAt()));
+		// model.addAttribute("formattedCreatedAt",
+		// MyResourceUtils.getFormattedDateTime(warehouse.getCreatedAt()));
+		// model.addAttribute("formattedModifiedAt",
+		// MyResourceUtils.getFormattedDateTime(warehouse.getModifiedAt()));
 		model.addAttribute("options", List.of("Active", "Disabled"));
 		model.addAttribute("selectedStatus", warehouse.getWarehouseStatus());
 	}
@@ -52,8 +62,8 @@ public class WarehousesService {
 	// ─────────────────────────────────────────────
 
 	/**
-	 * Validates fields when creating a new warehouse.
-	 * Returns a list of error messages; empty list means no errors.
+	 * Validates fields when creating a new warehouse. Returns a list of error
+	 * messages; empty list means no errors.
 	 */
 	public List<String> validateNewWarehouse(Warehouses warehouse) {
 		List<String> errors = new ArrayList<>();
@@ -62,52 +72,63 @@ public class WarehousesService {
 		String warehouseAddress = warehouse.getWarehouseAddress();
 
 		// Warehouse ID checks
-		if (warehouseId.matches(".*\\s.*")) {
-			errors.add("Warehouse ID cannot contain any whitespaces (spaces, tabs, next-line characters)!!");
+		if (!warehouseId.matches("^[a-zA-Z0-9-]+$")) {
+			errors.add(
+					"Warehouse ID can contain only alphabets, numbers and hyphens (other symbols, spaces, tabs, next-line characters are not allowed)!!");
 		} else {
 			if (warehouseId.length() < 3) {
-				errors.add("Cannot use Warehouse ID as  \""+warehouseId+"\"\nWarehouse ID must be atleast 3 characters long !!");
+				errors.add("Cannot use Warehouse ID as  \"" + warehouseId
+						+ "\"\nWarehouse ID must be atleast 3 characters long !!");
 			} else if (warehouseId.length() > 5) {
-				errors.add("Cannot use Warehouse ID as \""+warehouseId+"\"\nWarehouse ID must be maximum 5 characters only !!");
+				errors.add("Cannot use Warehouse ID as \"" + warehouseId
+						+ "\"\nWarehouse ID must be maximum 5 characters only !!");
 			}
 		}
 
 		// Warehouse Name checks
 		if (warehouseName.trim().length() < 5) {
-			errors.add("Cannot update Warehouse Name to \""+warehouseName+"\"\nWarehouse Name must be atleast 5 characters long !!");
+			errors.add("Cannot update Warehouse Name to \"" + warehouseName
+					+ "\"\nWarehouse Name must be atleast 5 characters long !!");
 		} else if (warehouseName.trim().length() > 15) {
-			errors.add("Cannot update Warehouse Name to \""+warehouseName+"\"\nWarehouse Name must be maximum 15 characters only !!");
+			errors.add("Cannot update Warehouse Name to \"" + warehouseName
+					+ "\"\nWarehouse Name must be maximum 15 characters only !!");
 		}
 
 		// Warehouse Address checks
 		if (warehouseAddress.trim().length() < 10) {
-			errors.add("Cannot update Warehouse Address to \""+warehouseAddress+"\"\nWarehouse Address must be atleast 10 characters long !!");
+			errors.add("Cannot update Warehouse Address to \"" + warehouseAddress
+					+ "\"\nWarehouse Address must be atleast 10 characters long !!");
 		} else if (warehouseAddress.trim().length() > 50) {
-			errors.add("Cannot update Warehouse Address to \""+warehouseAddress+"\"\nWarehouse Address must be maximum 50 characters only !!");
+			errors.add("Cannot update Warehouse Address to \"" + warehouseAddress
+					+ "\"\nWarehouse Address must be maximum 50 characters only !!");
 		}
 
 		return errors;
 	}
 
 	/**
-	 * Validates fields when updating an existing warehouse.
-	 * Returns a list of error messages; empty list means no errors.
+	 * Validates fields when updating an existing warehouse. Returns a list of error
+	 * messages; empty list means no errors.
 	 */
 	public List<String> validateWarehouseUpdate(String warehouseName, String warehouseAddress) {
 		List<String> errors = new ArrayList<>();
 
 		// Warehouse Name checks
 		if (warehouseName.trim().length() < 5) {
-			errors.add("Cannot update Warehouse Name to \""+warehouseName+"\"\nWarehouse Name must be atleast 5 characters long !!");
+			errors.add("Cannot update Warehouse Name to \"" + warehouseName
+					+ "\"\nWarehouse Name must be atleast 5 characters long !!");
 		} else if (warehouseName.trim().length() > 15) {
-			errors.add("Cannot update Warehouse Name to \""+warehouseName+"\"\nWarehouse Name must be maximum 15 characters only !!");
+			errors.add("Cannot update Warehouse Name to \"" + warehouseName
+					+ "\"\nWarehouse Name must be maximum 15 characters only !!");
 		}
 
 		// Warehouse Address checks
 		if (warehouseAddress.trim().length() < 10) {
-			errors.add("Cannot update Warehouse Address to \""+warehouseAddress+"\"\nWarehouse Address must be atleast 10 characters long !!");
+			errors.add("Cannot update Warehouse Address to \"" + warehouseAddress
+					+ "\"\nWarehouse Address must be atleast 10 characters long !!");
 		} else if (warehouseAddress.trim().length() > 50) {
-			errors.add("Cannot update Warehouse Address to \""+warehouseAddress+"\"\nWarehouse Address must be maximum 50 characters only !!");
+			errors.add("Cannot update Warehouse Address to \"" + warehouseAddress
+					+ "\"\nWarehouse Address must be maximum 50 characters only !!");
 		}
 
 		return errors;
@@ -123,8 +144,8 @@ public class WarehousesService {
 	}
 
 	@Transactional
-	public void updateWarehouse(String warehouseId, String warehouseName,
-			String warehouseStatus, String warehouseAddress) {
+	public void updateWarehouse(String warehouseId, String warehouseName, String warehouseStatus,
+			String warehouseAddress) {
 		Warehouses warehouse = warehousesRepo.findById(warehouseId)
 				.orElseThrow(() -> new RuntimeException("Warehouse not found: " + warehouseId));
 
@@ -138,6 +159,42 @@ public class WarehousesService {
 	@Transactional
 	public void deleteWarehouse(String warehouseId) {
 		warehousesRepo.deleteById(warehouseId);
+	}
+
+	// Dynamically setting the conditions and running a custom query in service
+	// instead of calling individual methods in Repo
+	@Transactional
+	public List<Warehouses> getWarehousesList(String warehouseId, String warehouseStatus) {
+
+		StringBuilder query = new StringBuilder("SELECT w FROM Warehouses w");
+
+		// Dynamically build WHERE clause
+		List<String> conditions = new ArrayList<>();
+
+		if (!warehouseId.equals("ALL"))
+			conditions.add("w.warehouseId = :warehouseId");
+		if (!warehouseStatus.equals("ALL"))
+			conditions.add("w.warehouseStatus = :warehouseStatus");
+
+		// Append WHERE + AND automatically
+		if (!conditions.isEmpty()) {
+			query.append(" WHERE ").append(String.join(" AND ", conditions));
+		}
+
+		// Create query
+		TypedQuery<Warehouses> typedQuery = entityManager.createQuery(query.toString(), Warehouses.class);
+
+		// Bind only non-null parameters
+		if (!warehouseId.equals("ALL"))
+			typedQuery.setParameter("warehouseId", warehouseId);
+		if (!warehouseStatus.equals("ALL"))
+			typedQuery.setParameter("warehouseStatus", warehouseStatus);
+
+		List<Warehouses> resultList = typedQuery.getResultList();
+
+		System.out.println("final Query: " + query.toString() + "\nresultList: " + resultList.toString());
+
+		return resultList;
 	}
 
 }

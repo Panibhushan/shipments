@@ -15,6 +15,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import dev.shipping.shipments.model.Inventory;
 import dev.shipping.shipments.model.Items;
+import dev.shipping.shipments.model.Warehouses;
 import dev.shipping.shipments.service.CustomersService;
 import dev.shipping.shipments.service.InventoryService;
 import dev.shipping.shipments.service.ItemsService;
@@ -50,11 +51,14 @@ public class InventoryController {
 		model.addAttribute("warehouses", warehousesService.getAllWarehouses());
 		model.addAttribute("customers", customersService.getAllCustomers());
 		model.addAttribute("activePage", "allInventory"); // ← this is show which dropdown is active in the navbar
+		model.addAttribute("itemUomsList", itemUomsList);
+		model.addAttribute("filterApplied", false);
 		return "show-all-inventory";
 	}
 
 	// Adding this addittional method, just incase I missed to update the URL from
-	// goToAddOrUpdateInventoryPage to addOrUpdateInventoryPage in any pages, this will route
+	// goToAddOrUpdateInventoryPage to addOrUpdateInventoryPage in any pages, this
+	// will route
 	// correctly instead of giving error
 	@GetMapping("/inventory/goToAddOrUpdateInventoryPage")
 	public String goToAddOrUpdateInventoryPage(Model model) {
@@ -65,14 +69,14 @@ public class InventoryController {
 	public String addOrUpdateInventoryPage(Model model) {
 		model.addAttribute("inventory", new Inventory());
 		model.addAttribute("customers", itemsService.getActiveAndValidCustomers());
-		model.addAttribute("activePage", "addOrUpdateInventory"); //this is show which dropdown is active in the navbar
+		model.addAttribute("activePage", "addOrUpdateInventory"); // this is show which dropdown is active in the navbar
 		model.addAttribute("itemUomsList", itemUomsList);
 		return "create-or-update-inventory";
 	}
 
 	@PostMapping("/inventory/addOrUpdateInventory")
 	public String saveInventory(@ModelAttribute Inventory inventory, @RequestParam String adjustmentType,
-			RedirectAttributes redirectAttributes, Model model) {
+			@RequestParam String inventoryCreationPageType, RedirectAttributes redirectAttributes, Model model) {
 
 		String itemId = inventory.getItemId();
 		String customerId = inventory.getCustomerId();
@@ -81,8 +85,8 @@ public class InventoryController {
 		String itemCustomerUomId = itemId + "_" + customerId + "_" + itemUom;
 		String itemCustomerUomWarehouseId = itemId + "_" + customerId + "_" + itemUom + "_" + warehouse_Id;
 		int quantity = inventory.getQuantity();
-		System.out.println("itemCustomerUomWarehouseId: " + itemCustomerUomWarehouseId + " -- quantity: " + quantity
-				+ " -- adjustmentType: " + adjustmentType);
+		System.out.println("/inventory/addOrUpdateInventory::saveInventory():: itemCustomerUomWarehouseId: "
+				+ itemCustomerUomWarehouseId + " -- quantity: " + quantity + " -- adjustmentType: " + adjustmentType);
 
 		String result = inventoryService.createOrUpdateInventory(inventory, itemCustomerUomId,
 				itemCustomerUomWarehouseId, quantity, adjustmentType);
@@ -103,28 +107,47 @@ public class InventoryController {
 		redirectAttributes.addFlashAttribute("itemUomsList", itemUomsList);
 		model.addAttribute("activePage", "addOrUpdateInventory");
 
-		return "redirect:/inventory/goToAddOrUpdateInventoryPage";
+		if (inventoryCreationPageType.equals("CREATE_INVENTORY_FROM_CREATE_OR_UPDATE_INVENTORY_PAGE")) {
+			return "redirect:/inventory/addOrUpdateInventoryPage";
+		} else {
+			redirectAttributes.addFlashAttribute("msg", "Inventory has been updated !! ");
+			return "redirect:/inventory/viewOrEditInventory/" + itemCustomerUomWarehouseId;
+		}
+
 	}
 
-	@PostMapping("/inventory/showInventoryByCustomerAndItemAndWarehouse/{customerId}/{warehouseId}/{itemId}")
-	public String showShipmentsByCustomerAndItemAndWarehouse(@PathVariable String customerId,
-			@PathVariable String itemId, @PathVariable String warehouseId, RedirectAttributes redirectAttributes,
+	@GetMapping("/inventory/showInventoryByFilters")
+	public String showInventoryByFilters(@RequestParam(required = false, defaultValue = "ALL") String itemId,
+			@RequestParam(required = false) String itemUom, @RequestParam(required = false) String customerId,
+			@RequestParam(value = "warehouseSelect", required = false) String warehouseId,
+			RedirectAttributes redirectAttributes, Model model) {
+
+		System.out.println("/inventory/showInventoryByFilters/{itemId}/{itemUom}/{customerId}/{warehouseId}: " + itemId
+				+ " / " + itemUom + " / " + customerId + " / " + warehouseId);
+
+		return populateInventoryModel(itemId, itemUom, customerId, warehouseId, model);
+
+	}
+
+	// Helper method thatpopulates the model, returns the view name for showing inventory by using filters
+	// using the same functionality to view the inventory from viewOrEditItem page
+	private String populateInventoryModel(String itemId, String itemUom, String customerId, String warehouseId,
 			Model model) {
-
-		System.out.println("/inventory/showInventoryByCustomerAndItemAndWarehouse/{customerId}/{warehouseIdId}/{item}: "
-				+ customerId + " / " + warehouseId + " / " + itemId);
-
-		model.addAttribute("inventory", inventoryService.getInventoryDetails(customerId, warehouseId, itemId));
+		model.addAttribute("inventory", inventoryService.getInventoryDetails(customerId, warehouseId, itemId, itemUom));
 		model.addAttribute("selectedCustomer", customerId);
 		model.addAttribute("selectedWarehouse", warehouseId);
+		model.addAttribute("selectedItemUom", itemUom);
 		model.addAttribute("selectedItemId", itemId.equals("ALL") ? "" : itemId);
 		model.addAttribute("customers", customersService.getAllCustomers());
+		model.addAttribute("itemUomsList", itemUomsList);
 
 		if (customerId.equals("ALL")) {
 			model.addAttribute("warehouses", warehousesService.getAllWarehouses());
 		} else {
 			model.addAttribute("warehouses", shipmentsService.getWarehousesByCustomer(customerId));
 		}
+
+		model.addAttribute("filterApplied", true);
 
 		return "show-all-inventory";
 
@@ -164,9 +187,10 @@ public class InventoryController {
 	@PostMapping("/inventory/updateInventory/{itemCustomerUomWarehouseId}")
 	public String updateInventory(@PathVariable String itemCustomerUomWarehouseId, @RequestParam String adjustmentType,
 			@RequestParam int quantity, @RequestParam String itemId, @RequestParam String customerId,
-			@RequestParam String itemUom, RedirectAttributes redirectAttributes, Model model) {
+			@RequestParam String warehouseId, @RequestParam String itemUom, RedirectAttributes redirectAttributes,
+			Model model) {
 		System.out.println("/inventory/updateInventory: " + itemCustomerUomWarehouseId + " -- adjustmentType: "
-				+ adjustmentType + " -- Qty: " + quantity);
+				+ adjustmentType + " -- Qty: " + quantity + " -- WarehouseId: " + warehouseId);
 
 		String itemCustomerUomId = itemId + "_" + customerId + "_" + itemUom;
 
@@ -180,6 +204,56 @@ public class InventoryController {
 		redirectAttributes.addFlashAttribute("textColor", "#45484d");
 		redirectAttributes.addFlashAttribute("msg", "Inventory has been updated !!");
 		return "redirect:/inventory/viewOrEditInventory/" + itemCustomerUomWarehouseId;
+	}
+
+	// This is to add inventory from viewOrEditItem (yes, viewOrEditItem not viewOrEditInventory)
+	// page
+	@GetMapping("/inventory/addInventory/{itemCustomerUomId}")
+	public String addInventoryFromItemsPage(@PathVariable String itemCustomerUomId,
+			RedirectAttributes redirectAttributes, Model model) {
+		System.out.println("/inventory/addInventoryFromItemsPage():: itemCustomerUomId: " + itemCustomerUomId);
+
+		String[] parts = itemCustomerUomId.split("_");
+
+		String itemId = parts[0];
+		String customerId = parts[1];
+		String itemUom = parts[2];
+
+		Optional<Items> item = itemsService.getItemById(itemCustomerUomId);
+
+		if (item.isEmpty()) {
+
+			model.addAttribute("msg", "Inventory could not be added because below combination doesnt exist!!\n\nItem: "
+					+ itemId + "\nCustomer: " + customerId + "\nUOM: " + itemUom);
+			model.addAttribute("bgColor", "#ffffff");
+			model.addAttribute("textColor", "#d95f6c");
+			return "custom-error";
+		}
+
+		model.addAttribute("item", item.get());
+
+		List<Warehouses> warehouses = shipmentsService.getWarehousesByCustomer(customerId);
+		model.addAttribute("warehouses", warehouses);
+
+		return "add-inventory";
+
+	}
+
+	// This is to view inventory from viewOrEditItem (yes, viewOrEditItem not viewOrEditInventory) page
+	@GetMapping("/inventory/viewInventory/{itemCustomerUomId}")
+	public String viewInventoryFromItemsPage(@PathVariable String itemCustomerUomId,
+			RedirectAttributes redirectAttributes, Model model) {
+		System.out.println("/inventory/viewInventory():: itemCustomerUomId: " + itemCustomerUomId);
+
+		String[] parts = itemCustomerUomId.split("_");
+
+		String itemId = parts[0];
+		String customerId = parts[1];
+		String itemUom = parts[2];
+
+		// Calling the method with item & customer details, and setting warehouses as
+		// "ALL" to get inventory from all warehouses
+		return populateInventoryModel(itemId, itemUom, customerId, "ALL", model);
 	}
 
 }
