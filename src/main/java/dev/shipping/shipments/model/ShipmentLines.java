@@ -18,8 +18,8 @@ public class ShipmentLines {
 	@Column(name = "shipment_id")
 	private String shipmentId;
 
-	@Column(name = "warehouse_id")
-	private String warehouseId;
+	@Column(name = "item_id")
+	private String itemId;
 
 	@Column(name = "line_no")
 	private int lineNo  ;
@@ -80,12 +80,12 @@ public class ShipmentLines {
 		return modifiedAt.format(formatter).toUpperCase() + " IST";
 	}
 
-	public String getWarehouseId() {
-		return warehouseId;
+	public String getItemId() {
+		return itemId;
 	}
 
-	public void setWarehouseId(String warehouseId) {
-		this.warehouseId = warehouseId;
+	public void setItemId(String itemId) {
+		this.itemId = itemId;
 	}
 
 	public String getShipmentLineId() {
@@ -122,8 +122,8 @@ public class ShipmentLines {
 
 	@Override
 	public String toString() {
-		return "ShipmentLines [shipmentLineId=" + shipmentLineId + ", shipmentId=" + shipmentId + ", warehouseId="
-				+ warehouseId + ", lineNo=" + lineNo + ", quantity=" + quantity + ", shortageQty=" + shortageQty
+		return "ShipmentLines [shipmentLineId=" + shipmentLineId + ", shipmentId=" + shipmentId + ", itemId="
+				+ itemId + ", lineNo=" + lineNo + ", quantity=" + quantity + ", shortageQty=" + shortageQty
 				+ ", createdAt=" + createdAt + ", modifiedAt=" + modifiedAt + "]";
 	} 
 

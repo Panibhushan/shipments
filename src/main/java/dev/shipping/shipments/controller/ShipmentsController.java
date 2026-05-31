@@ -1,13 +1,16 @@
 package dev.shipping.shipments.controller;
 
+import dev.shipping.shipments.model.ShipmentLines;
 import dev.shipping.shipments.model.Shipments;
 import dev.shipping.shipments.service.CustomersService;
 import dev.shipping.shipments.service.ShipmentsService;
 import dev.shipping.shipments.service.WarehousesService;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
@@ -20,6 +23,10 @@ import dev.shipping.shipments.model.Warehouses;
 @Controller
 public class ShipmentsController {
 
+	
+	List<String> itemUomsList = Arrays.asList("EACH", "MTR", "CMTR", "PAIR");
+
+	
 	private final ShipmentsService shipmentsService;
 	private final CustomersService customersService;
 	private final WarehousesService warehousesService;
@@ -152,8 +159,9 @@ public class ShipmentsController {
 	public String addShipmentsPage(Model model) {
 		model.addAttribute("shipment", new Shipments());
 		model.addAttribute("customers", shipmentsService.getActiveAndValidCustomers());
+	//	model.addAttribute("itemUomsList", itemUomsList);
 		model.addAttribute("activePage", "createShipment"); // ← this is show which dropdown is active in the navbar
-		return "create-shipment";
+		return "create-shipment-with-lines";
 	}
 
 	@GetMapping("/shipments/getWarehousesByCustomer")
@@ -257,6 +265,46 @@ public class ShipmentsController {
 
 		System.out.println("/shipments/getShipmentAudit/{shipmentId}: shipmentsAudit: " + shipmentsAudit);
 		return shipmentsAudit;
+	}
+	
+	@PostMapping("/shipments/checkInventoryAvailability")
+	@ResponseBody
+	public void checkInventory(@RequestParam String customerId, 
+	        @RequestBody List<ShipmentLines> lines) {
+
+		System.out.println("/shipments/checkInventoryAvailability::: checkInventory(): customerId: "+customerId); 
+
+		System.out.println("/shipments/checkInventoryAvailability::: checkInventory(): lines: "+lines.toString()); 
+	  
+		// 1. Group items and sum their quantities
+		Map<String, Integer> groupedResults = lines.stream()
+		    .collect(Collectors.groupingBy(
+		        line -> {
+		            String itemId = (line.getItemId() != null) ? line.getItemId() : "UNKNOWN";
+		            // Replace "EACH" with line.getItemUom() if your class has a UOM getter
+		            String itemUom = "EACH"; 
+		            
+		            // Create a compound key using a clear separator symbol like '::'
+		            return itemId + "::" + itemUom;
+		        },
+		        Collectors.summingInt(ShipmentLines::getQuantity)
+		    ));
+
+		// 2. Loop through the map, extract parameters, and call your checking method
+		for (Map.Entry<String, Integer> entry : groupedResults.entrySet()) {
+		    // Split the compound key back into individual components
+		    String[] keyParts = entry.getKey().split("::");
+		    
+		    String itemId = keyParts[0];
+		    String itemUom = keyParts[1];
+		    int totalQty = entry.getValue();
+
+		    // 3. Invoke your target method with individual parameters
+		    // checkInventoryAvailability(itemId, itemUom, totalQty);
+		    
+		    System.out.println("calling checkInventoryAvailability("+itemId+", "+itemUom+", "+totalQty+")");
+		}
+		
 	}
 
 }
