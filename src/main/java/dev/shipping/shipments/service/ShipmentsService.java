@@ -8,6 +8,7 @@ import dev.shipping.shipments.model.Shipments;
 import dev.shipping.shipments.model.Warehouses;
 import dev.shipping.shipments.repo.CustomerWarehousesRepository;
 import dev.shipping.shipments.repo.CustomersRepository;
+import dev.shipping.shipments.repo.InventoryRepository;
 import dev.shipping.shipments.repo.ShipmentsRepository;
 import dev.shipping.shipments.repo.WarehousesRepository;
 import jakarta.persistence.TypedQuery;
@@ -35,6 +36,7 @@ public class ShipmentsService {
 	private EntityManager entityManager;
 
 	private final ShipmentsRepository shipmentsRepo;
+	private final InventoryRepository inventoryRepo;
 	private final CustomersRepository customersRepo;
 	private final CustomerWarehousesRepository customerWarehousesRepo;
 	private final WarehousesRepository warehousesRepo;
@@ -43,12 +45,13 @@ public class ShipmentsService {
 	private final SqsSenderService sqsService;
 
 	public ShipmentsService(ShipmentsRepository shipmentsRepo, CustomersRepository customersRepo,
-			CustomerWarehousesRepository customerWarehousesRepo, WarehousesRepository warehousesRepo,
+			CustomerWarehousesRepository customerWarehousesRepo, WarehousesRepository warehousesRepo, InventoryRepository inventoryRepo,
 			DynamoDbService dynamoDbService, SnsPublisherService snsService, SqsSenderService sqsService) {
 		this.shipmentsRepo = shipmentsRepo;
 		this.customersRepo = customersRepo;
 		this.customerWarehousesRepo = customerWarehousesRepo;
 		this.warehousesRepo = warehousesRepo;
+		this.inventoryRepo = inventoryRepo;
 		this.dynamoDbService = dynamoDbService;
 		this.snsService = snsService;
 		this.sqsService = sqsService;
@@ -393,6 +396,20 @@ public class ShipmentsService {
 
 		return resultList;
 
+	}
+
+	public List<Inventory> checkInventoryAvailability(String customerId, String itemId, String itemUom, int requestedQty) {
+
+		List<Inventory> inventory = inventoryRepo.getInventoryDetailsToVerifyAvailability(customerId, itemId, itemUom);
+		List<Inventory> inventoryAvailableInWarehouses = new ArrayList<Inventory>();  
+		
+		for(Inventory inv : inventory) {
+			if(inv.getAvailableQuantity() > requestedQty) {
+				inventoryAvailableInWarehouses.add(inv);
+			}
+		}
+		
+		return inventoryAvailableInWarehouses;
 	} 
 
 }

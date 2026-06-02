@@ -21,4 +21,7 @@ public interface InventoryRepository extends JpaRepository<Inventory, String> {
 	@Query("SELECT inv FROM Inventory inv WHERE inv.quantity > 0")
 	List<Inventory> getValidInventory();
 
+	@Query("SELECT inv FROM Inventory inv WHERE inv.customerId = :customerId and inv.itemId = :itemId and inv.itemUom = :itemUom")
+	List<Inventory> getInventoryDetailsToVerifyAvailability(String customerId, String itemId, String itemUom);
+
 }

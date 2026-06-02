@@ -197,4 +197,8 @@ public class WarehousesService {
 		return resultList;
 	}
 
+	public String getWarehouseNameById(String warehouseId) {
+		return warehousesRepo.findById(warehouseId).get().getWarehouseName();
+	}
+
 }

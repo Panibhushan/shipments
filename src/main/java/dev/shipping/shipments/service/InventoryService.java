@@ -6,13 +6,14 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.Random;
 
 import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
- 
+
 import dev.shipping.shipments.model.Customers;
 import dev.shipping.shipments.model.Inventory;
 import dev.shipping.shipments.model.Items;
@@ -27,10 +28,9 @@ import jakarta.persistence.TypedQuery;
 @Service
 public class InventoryService {
 
-	
 	@Autowired
-    private EntityManager entityManager;
-	
+	private EntityManager entityManager;
+
 	private final InventoryRepository inventoryRepo;
 
 	private final ItemsRepository itemsRepo;
@@ -38,78 +38,105 @@ public class InventoryService {
 
 	// List<String> itemUomsList = Arrays.asList("EACH", "MTR", "CMTR", "PAIR");
 
-	public InventoryService(InventoryRepository inventoryRepo, ItemsRepository itemsRepo, CustomersRepository customersRepo) {
-			this.inventoryRepo = inventoryRepo;
-			this.itemsRepo = itemsRepo;
-			this.customersRepo = customersRepo;
-		}
-	
+	public InventoryService(InventoryRepository inventoryRepo, ItemsRepository itemsRepo,
+			CustomersRepository customersRepo) {
+		this.inventoryRepo = inventoryRepo;
+		this.itemsRepo = itemsRepo;
+		this.customersRepo = customersRepo;
+	}
+
 	public List<Inventory> getAllInventory() {
 		return inventoryRepo.getValidInventory();
 	}
-	
+
 	public Optional<Inventory> getInventoryByItemCustomerUomWarehouseId(String itemCustomerUomWarehouseId) {
 		return inventoryRepo.findById(itemCustomerUomWarehouseId);
 	}
-	
-	@Transactional
-	public String createOrUpdateInventory(Inventory inventory, String itemCustomerUomId, String itemCustomerUomWarehouseId, int quantity, String adjustmentType) {
 
-		if(itemsRepo.findById(itemCustomerUomId).isEmpty()) {
+	@Transactional
+	public String createOrUpdateInventory(Inventory inventory, String itemCustomerUomId,
+			String itemCustomerUomWarehouseId, int quantity, String adjustmentType) {
+
+		Optional<Items> item = itemsRepo.findById(itemCustomerUomId);
+
+		if (item.isEmpty()) {
+			System.out.println("InventoryService.createOrUpdateInventory(): ITEM_NOT_FOUND");
 			return "ITEM_NOT_FOUND";
 		}
-		
-	    Optional<Inventory> existing = inventoryRepo.findById(itemCustomerUomWarehouseId);
 
-	    if (existing.isPresent()) {
-	        // Update the FETCHED entity, not the passed-in one
-	        Inventory toUpdate = existing.get();
-	     // if the adjustmentType is increaseBy then add inventory else multiply it by -1 so that it becomes negative value and decrease the qty
-	        quantity = adjustmentType.equals("increaseBy") ? quantity : quantity * -1;
-	        toUpdate.setQuantity(toUpdate.getQuantity() + quantity); // only update quantity to existing qty
-	        inventoryRepo.save(toUpdate);
-	    } else {
-	        // New record — save the passed-in entity
-	        inventoryRepo.save(inventory);
-	    }
-	    
-	    return "INVENTORY_UPDATED";
- 
+		if (item.get().getItemStatus().toUpperCase().equals("DISABLED")) {
+			System.out.println("InventoryService.createOrUpdateInventory(): DISABLED");
+			return "ITEM_DISABLED";
+		}
+
+		Optional<Inventory> existing = inventoryRepo.findById(itemCustomerUomWarehouseId);
+
+		if (existing.isPresent()) {
+			// Update the FETCHED entity, not the passed-in one
+			Inventory toUpdate = existing.get();
+			
+			// When adjustingout inventory, if the entered quantity is more that current quantity then throw error
+			if(adjustmentType.equals("decreaseBy") && quantity > toUpdate.getQuantity())
+					return "CANNOT_MAKE_INVENTORY_NEGATIVE";
+			
+			// if the adjustmentType is increaseBy then add inventory else multiply it by -1
+			// so that it becomes negative value and decrease the qty
+			quantity = adjustmentType.equals("increaseBy") ? quantity : quantity * -1;
+			toUpdate.setQuantity(toUpdate.getQuantity() + quantity); // only update quantity to existing qty
+
+			toUpdate.setAllocatedQuantity(10);
+			inventoryRepo.save(toUpdate);
+		} else {
+			// New record — save the passed-in entity
+			inventoryRepo.save(inventory);
+		}
+
+		return "INVENTORY_UPDATED";
+
 	}
-	
-	//Dynamically setting the conditions and running a custom query in service instead of calling individual methods in Repo
+
+	// Dynamically setting the conditions and running a custom query in service
+	// instead of calling individual methods in Repo
 	@Transactional
 	public List<Inventory> getInventoryDetails(String customerId, String warehouseId, String itemId, String itemUom) {
 
-	    StringBuilder query = new StringBuilder("SELECT i FROM Inventory i");
+		StringBuilder query = new StringBuilder("SELECT i FROM Inventory i");
 
-	    // Dynamically build WHERE clause
-	    List<String> conditions = new ArrayList<>();
+		// Dynamically build WHERE clause
+		List<String> conditions = new ArrayList<>();
 
-	    if (!customerId.equals("ALL")) conditions.add("i.customerId = :customerId");
-	    if (!warehouseId.equals("ALL")) conditions.add("i.warehouseId = :warehouseId");
-	    if (!itemId.equals("ALL")) conditions.add("i.itemId = :itemId");
-	    if (!itemUom.equals("ALL")) conditions.add("i.itemUom = :itemUom");
+		if (!customerId.equals("ALL"))
+			conditions.add("i.customerId = :customerId");
+		if (!warehouseId.equals("ALL"))
+			conditions.add("i.warehouseId = :warehouseId");
+		if (!itemId.equals("ALL"))
+			conditions.add("i.itemId = :itemId");
+		if (!itemUom.equals("ALL"))
+			conditions.add("i.itemUom = :itemUom");
 
-	    // Append WHERE + AND automatically
-	    if (!conditions.isEmpty()) {
-	        query.append(" WHERE ").append(String.join(" AND ", conditions));
-	    }
+		// Append WHERE + AND automatically
+		if (!conditions.isEmpty()) {
+			query.append(" WHERE ").append(String.join(" AND ", conditions));
+		}
 
-	    // Create query
-	    TypedQuery<Inventory> typedQuery = entityManager.createQuery(query.toString(), Inventory.class);
+		// Create query
+		TypedQuery<Inventory> typedQuery = entityManager.createQuery(query.toString(), Inventory.class);
 
-	    // Bind only non-null parameters
-	    if (!customerId.equals("ALL")) typedQuery.setParameter("customerId", customerId);
-	    if (!warehouseId.equals("ALL")) typedQuery.setParameter("warehouseId", warehouseId);
-	    if (!itemId.equals("ALL")) typedQuery.setParameter("itemId", itemId);
-	    if (!itemUom.equals("ALL")) typedQuery.setParameter("itemUom", itemUom);
+		// Bind only non-null parameters
+		if (!customerId.equals("ALL"))
+			typedQuery.setParameter("customerId", customerId);
+		if (!warehouseId.equals("ALL"))
+			typedQuery.setParameter("warehouseId", warehouseId);
+		if (!itemId.equals("ALL"))
+			typedQuery.setParameter("itemId", itemId);
+		if (!itemUom.equals("ALL"))
+			typedQuery.setParameter("itemUom", itemUom);
 
-	    List<Inventory> resultList =  typedQuery.getResultList();
-	    
-	    System.out.println("final Query: "+query.toString()+"\nresultList: "+resultList.toString());
-	    
-	    return resultList;
+		List<Inventory> resultList = typedQuery.getResultList();
+
+		System.out.println("final Query: " + query.toString() + "\nresultList: " + resultList.toString());
+
+		return resultList;
 	}
-	
+
 }

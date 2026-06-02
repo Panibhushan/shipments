@@ -38,6 +38,12 @@ public class Inventory {
 	@Column(name = "quantity")
 	private int quantity;
 
+	@Column(name = "allocated_quantity")
+	private int allocatedQuantity = 0;
+	
+	@Column(name = "available_quantity")
+	private int availableQuantity;
+	
 	@Column(name = "item_uom")
 	private String itemUom;
 
@@ -47,12 +53,14 @@ public class Inventory {
 		this.createdAt = LocalDateTime.now(ZoneId.of("Asia/Kolkata"));
 		this.modifiedAt = LocalDateTime.now(ZoneId.of("Asia/Kolkata"));
 		this.itemCustomerUomWarehouseId = itemId + "_" + customerId + "_" + itemUom + "_" + warehouseId;
+		this.availableQuantity=  quantity - allocatedQuantity;
 	}
 
 	// Update modified date-time every time you make update to the inventory
 	@PreUpdate
-	public void setModifiedAt() {
+	public void setModifiedAtAndAvailableQuantity() {
 		this.modifiedAt = LocalDateTime.now(ZoneId.of("Asia/Kolkata"));
+		this.availableQuantity =  quantity - allocatedQuantity;
 	}
 
 	// Returning string for createdAt in DD-MMM-YYYY hh:mm:ss AM/PM IST format
@@ -115,11 +123,24 @@ public class Inventory {
 		this.quantity = quantity;
 	}
 
+	public int getAllocatedQuantity() {
+		return allocatedQuantity;
+	}
+
+	public void setAllocatedQuantity(int allocatedQuantity) {
+		this.allocatedQuantity = allocatedQuantity;
+	}
+
+	public int getAvailableQuantity() {
+		return availableQuantity;
+	}
+
 	@Override
 	public String toString() {
 		return "Inventory [itemCustomerUomWarehouseId=" + itemCustomerUomWarehouseId + ", itemId=" + itemId
 				+ ", customerId=" + customerId + ", warehouseId=" + warehouseId + ", createdAt=" + createdAt
-				+ ", modifiedAt=" + modifiedAt + ", quantity=" + quantity + ", itemUom=" + itemUom + "]";
+				+ ", modifiedAt=" + modifiedAt + ", quantity=" + quantity + ", allocatedQuantity=" + allocatedQuantity
+				+ ", availableQuantity=" + availableQuantity + ", itemUom=" + itemUom + "]";
 	}
 
 }

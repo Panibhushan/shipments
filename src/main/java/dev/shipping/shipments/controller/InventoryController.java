@@ -91,11 +91,26 @@ public class InventoryController {
 		String result = inventoryService.createOrUpdateInventory(inventory, itemCustomerUomId,
 				itemCustomerUomWarehouseId, quantity, adjustmentType);
 
+		boolean hasError = false;
+		
 		if (result.equals("ITEM_NOT_FOUND")) {
+			hasError = true;
 			redirectAttributes.addFlashAttribute("msg", "This combination doesnt exist!!\nItem: " + itemId
 					+ ", Customer: " + customerId + ", UOM: " + itemUom);
 			redirectAttributes.addFlashAttribute("bgColor", "#f8d7da");
 			redirectAttributes.addFlashAttribute("textColor", "#721c24");
+		} else if (result.equals("ITEM_DISABLED")) {
+			hasError = true;
+ 			redirectAttributes.addFlashAttribute("msg", "Item is in Disabled status, make it Active to update inventory!! &nbsp;&nbsp;&nbsp;&nbsp;<a style='color: #3474eb;' href='/items/viewOrEditItem/" + itemCustomerUomId + "'>Update Item</a>");
+			redirectAttributes.addFlashAttribute("bgColor", "#f8d7da");
+			redirectAttributes.addFlashAttribute("textColor", "#721c24");
+		} else if (result.equals("CANNOT_MAKE_INVENTORY_NEGATIVE")) {
+ 			redirectAttributes.addFlashAttribute("msg", "Cannot update the inventory to negative quantity!! Below is the existing inventory details.");
+ 			redirectAttributes.addFlashAttribute("quantityFromController", quantity);
+ 			redirectAttributes.addFlashAttribute("selectedAdjustmentType", adjustmentType);
+			redirectAttributes.addFlashAttribute("bgColor", "#f8d7da");
+			redirectAttributes.addFlashAttribute("textColor", "#721c24");
+			return "redirect:/inventory/viewOrEditInventory/" + itemCustomerUomWarehouseId;
 		} else {
 			redirectAttributes.addFlashAttribute("msg",
 					"Inventory has been updated !! &nbsp;&nbsp;&nbsp;&nbsp;<a style='color: #3474eb;' href='/inventory/showInventoryDetails/"
@@ -105,17 +120,21 @@ public class InventoryController {
 		}
 
 		redirectAttributes.addFlashAttribute("itemUomsList", itemUomsList);
-		model.addAttribute("activePage", "addOrUpdateInventory");
+		// model.addAttribute("activePage", "addOrUpdateInventory");
 
 		if (inventoryCreationPageType.equals("CREATE_INVENTORY_FROM_CREATE_OR_UPDATE_INVENTORY_PAGE")) {
 			return "redirect:/inventory/addOrUpdateInventoryPage";
 		} else {
-			redirectAttributes.addFlashAttribute("msg", "Inventory has been updated !! ");
-			return "redirect:/inventory/viewOrEditInventory/" + itemCustomerUomWarehouseId;
+			if(hasError)
+				return "redirect:/inventory/addInventory/"+itemCustomerUomId;
+			else {
+				redirectAttributes.addFlashAttribute("msg","Inventory has been updated !!");
+				return "redirect:/inventory/viewOrEditInventory/" + itemCustomerUomWarehouseId;
+			}
 		}
 
-	}
-
+	} 
+	
 	@GetMapping("/inventory/showInventoryByFilters")
 	public String showInventoryByFilters(@RequestParam(required = false, defaultValue = "ALL") String itemId,
 			@RequestParam(required = false) String itemUom, @RequestParam(required = false) String customerId,
@@ -194,15 +213,35 @@ public class InventoryController {
 
 		String itemCustomerUomId = itemId + "_" + customerId + "_" + itemUom;
 
-		inventoryService.createOrUpdateInventory(new Inventory(), itemCustomerUomId, itemCustomerUomWarehouseId,
+		String result =	inventoryService.createOrUpdateInventory(new Inventory(), itemCustomerUomId, itemCustomerUomWarehouseId,
 				quantity, adjustmentType);
 
+ 		if (result.equals("ITEM_NOT_FOUND")) {
+ 			redirectAttributes.addFlashAttribute("msg", "This combination doesnt exist!!\nItem: " + itemId
+					+ ", Customer: " + customerId + ", UOM: " + itemUom);
+			redirectAttributes.addFlashAttribute("bgColor", "#f8d7da");
+			redirectAttributes.addFlashAttribute("textColor", "#721c24");
+		} else if (result.equals("ITEM_DISABLED")) {
+ 			redirectAttributes.addFlashAttribute("msg", "Item is in Disabled status, make it Active to update inventory!! &nbsp;&nbsp;&nbsp;&nbsp;<a style='color: #3474eb;' href='/items/viewOrEditItem/" + itemCustomerUomId + "'>Update Item</a>");
+			redirectAttributes.addFlashAttribute("bgColor", "#f8d7da");
+			redirectAttributes.addFlashAttribute("textColor", "#721c24");
+		} else if (result.equals("CANNOT_MAKE_INVENTORY_NEGATIVE")) {
+ 			redirectAttributes.addFlashAttribute("msg", "Cannot update the inventory to negative quantity");
+ 			redirectAttributes.addFlashAttribute("quantityFromController", quantity);
+ 			redirectAttributes.addFlashAttribute("selectedAdjustmentType", adjustmentType);
+			redirectAttributes.addFlashAttribute("bgColor", "#f8d7da");
+			redirectAttributes.addFlashAttribute("textColor", "#721c24");
+		} 
+		else {
+			redirectAttributes.addFlashAttribute("msg",
+					"Inventory has been updated !!");
+			redirectAttributes.addFlashAttribute("bgColor", "#d1fae5;");
+			redirectAttributes.addFlashAttribute("textColor", "#45484d");
+		}
+		
 		Optional<Inventory> inventory = inventoryService
 				.getInventoryByItemCustomerUomWarehouseId(itemCustomerUomWarehouseId);
 		model.addAttribute("inventory", inventory.get());
-		redirectAttributes.addFlashAttribute("bgColor", "#d1fae5;");
-		redirectAttributes.addFlashAttribute("textColor", "#45484d");
-		redirectAttributes.addFlashAttribute("msg", "Inventory has been updated !!");
 		return "redirect:/inventory/viewOrEditInventory/" + itemCustomerUomWarehouseId;
 	}
 

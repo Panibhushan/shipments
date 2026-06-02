@@ -20,6 +20,9 @@ public class ShipmentLines {
 
 	@Column(name = "item_id")
 	private String itemId;
+	
+	@Column(name = "item_uom")
+	private String itemUom;
 
 	@Column(name = "line_no")
 	private int lineNo  ;
@@ -120,13 +123,19 @@ public class ShipmentLines {
 		this.shipmentId = shipmentId;
 	}
 
+	public String getItemUom() {
+		return itemUom;
+	}
+
+	public void setItemUom(String itemUom) {
+		this.itemUom = itemUom;
+	}
+
 	@Override
 	public String toString() {
-		return "ShipmentLines [shipmentLineId=" + shipmentLineId + ", shipmentId=" + shipmentId + ", itemId="
-				+ itemId + ", lineNo=" + lineNo + ", quantity=" + quantity + ", shortageQty=" + shortageQty
-				+ ", createdAt=" + createdAt + ", modifiedAt=" + modifiedAt + "]";
-	} 
-
-	
+		return "ShipmentLines [shipmentLineId=" + shipmentLineId + ", shipmentId=" + shipmentId + ", itemId=" + itemId
+				+ ", itemUom=" + itemUom + ", lineNo=" + lineNo + ", quantity=" + quantity + ", shortageQty="
+				+ shortageQty + ", createdAt=" + createdAt + ", modifiedAt=" + modifiedAt + "]";
+	}
 	
 }
