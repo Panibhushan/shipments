@@ -15,6 +15,8 @@ import org.springframework.data.repository.query.Param;
 
 public interface WarehousesRepository extends JpaRepository<Warehouses, String> {
 	
+	// JPA is case-sesitive so use the reserved words like SELECT, FROM, WHERE, AND, OR, ORDER BY, GROUP BY in uppercase
+
 	  @Query("SELECT w FROM Warehouses w WHERE w.warehouseStatus = :status")
 	  List<Warehouses> findByWarehousesByStatusActive(@Param("status") String
 	  status);

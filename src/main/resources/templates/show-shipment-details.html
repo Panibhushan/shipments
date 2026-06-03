@@ -302,7 +302,7 @@
             <tr>
               <th>Shipment Status</th>
               <th>Event Date &amp; Time</th>
-              <th>Reason</th>
+              <th>Comments</th>
             </tr>
           </thead>
           <tbody id="auditTableBody"></tbody>
@@ -429,13 +429,13 @@
 
                 const status  = row.shipmentStatus || '—';
                 const dateTime = row.eventDate || '—';
-                const reason  = row.reason || '—';
+                const comment  = row.comment || '—';
 
                 tbody.innerHTML += `
                     <tr>
                         <td>${status}</td>
                         <td>${dateTime}</td>
-                        <td>${reason}</td>
+                        <td>${comment}</td>
                     </tr>
                 `;
             });

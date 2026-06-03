@@ -13,6 +13,8 @@ import jakarta.transaction.Transactional;
 
 public interface CustomerWarehousesRepository extends JpaRepository<CustomerWarehouses, String> {
 
+	// JPA is case-sesitive so use the reserved words like SELECT, FROM, WHERE, AND, OR, ORDER BY, GROUP BY in uppercase
+
 	@Query("SELECT w FROM Warehouses w WHERE w.warehouseId IN "
 			+ "(SELECT cw.warehouseId FROM CustomerWarehouses cw WHERE cw.customerId = :customerId)")	
 	List<Warehouses> findAllocatedWarehousesByCustomerId(@Param("customerId") String customerId);

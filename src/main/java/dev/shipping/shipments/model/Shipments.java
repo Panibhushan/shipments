@@ -44,9 +44,9 @@ public class Shipments {
 		String profile = AppProperties.activeProfile; // "devLocal", "devCloud", "dev", "prod" etc.
 
 		if (profile.equals("devLocal")) {
-			this.shipmentId = customerId + "_LOCAL_SHIPMENT_" + LocalDateTime.now().format(idFormat);
+			this.shipmentId = customerId+ "_"+ warehouseId + "_LOCAL_SHIPMENT_" + LocalDateTime.now().format(idFormat);
 		} else {
-			this.shipmentId = customerId + "_CLOUD_SHIPMENT_" + LocalDateTime.now().format(idFormat);
+			this.shipmentId = customerId+ "_"+ warehouseId  + "_CLOUD_SHIPMENT_" + LocalDateTime.now().format(idFormat);
 		}
 
 		// Get current IST time as LocalDateTime (no timezone stored, but value is IST)

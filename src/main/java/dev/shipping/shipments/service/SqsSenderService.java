@@ -23,12 +23,12 @@ public class SqsSenderService {
         this.sqsClient = sqsClient;
     }
 
-    public void sendShipmentStatus(String shipmentId, String shipmentStatusAndDesc, String reason) {
+    public void sendShipmentStatus(String shipmentId, String shipmentStatusAndDesc, String comment) {
 
 		/*
 		 * String message = "{" + "\"shipmentId\":\"" + shipmentId + "\"," +
 		 * "\"shipmentStatusAndDesc\":\"" + shipmentStatusAndDesc + "\"," +
-		 * "\"reason\":\"" + reason + "\"" + "}";
+		 * "\"comment\":\"" + comment + "\"" + "}";
 		 */
     	
     	//Building a JSON object to send to SQS
@@ -37,7 +37,7 @@ public class SqsSenderService {
     	ObjectNode json = mapper.createObjectNode();
     	json.put("shipmentId", shipmentId);
     	json.put("shipmentStatusAndDesc", shipmentStatusAndDesc);
-    		json.put("reason", reason); 
+    		json.put("comment", comment); 
 
     	String message = mapper.writeValueAsString(json);
 

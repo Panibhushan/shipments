@@ -4,11 +4,13 @@ import dev.shipping.shipments.model.Inventory;
 import dev.shipping.shipments.model.ShipmentLines;
 import dev.shipping.shipments.model.Shipments;
 import dev.shipping.shipments.service.CustomersService;
+import dev.shipping.shipments.service.ShipmentLinesService;
 import dev.shipping.shipments.service.ShipmentsService;
 import dev.shipping.shipments.service.WarehousesService;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -21,6 +23,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import dev.shipping.shipments.model.Warehouses;
+import dev.shipping.shipments.repo.ShipmentLinesRepository;
 
 @Controller
 public class ShipmentsController {
@@ -30,12 +33,14 @@ public class ShipmentsController {
 	private final ShipmentsService shipmentsService;
 	private final CustomersService customersService;
 	private final WarehousesService warehousesService;
+	private final ShipmentLinesService shipmentLinesService;
 
 	public ShipmentsController(ShipmentsService shipmentsService, CustomersService customersService,
-			WarehousesService warehousesService) {
+			WarehousesService warehousesService, ShipmentLinesService shipmentLinesService) {
 		this.shipmentsService = shipmentsService;
 		this.customersService = customersService;
 		this.warehousesService = warehousesService;
+		this.shipmentLinesService = shipmentLinesService;
 	}
 
 	// ─────────────────────────────────────────────
@@ -50,7 +55,7 @@ public class ShipmentsController {
 	// SHOW ALL SHIPMENTS AS LIST
 	@GetMapping("/shipments/")
 	public String showAllShipments(Model model) {
-		model.addAttribute("shipments", shipmentsService.getAllShipments());
+		model.addAttribute("shipments", shipmentsService.getAllShipmentsByCreatedTimeDesc());
 		model.addAttribute("activePage", "allShipments"); // ← this shows which dropdown is active in the navbar
 		model.addAttribute("selectedCustomer", "ALL");
 		model.addAttribute("customers", customersService.getAllCustomers());
@@ -62,7 +67,7 @@ public class ShipmentsController {
 	// SHOW ALL SHIPMENTS AS LIST
 	@GetMapping("/shipments/advancedShipmentFilters/")
 	public String showAllShipmentsWithadvancedFilters(Model model) {
-		model.addAttribute("shipments", shipmentsService.getAllShipments());
+		model.addAttribute("shipments", shipmentsService.getAllShipmentsByCreatedTimeDesc());
 		model.addAttribute("activePage", "allShipments"); // ← this shows which dropdown is active in the navbar
 		model.addAttribute("selectedCustomer", "ALL");
 		model.addAttribute("customers", customersService.getAllCustomers());
@@ -167,7 +172,9 @@ public class ShipmentsController {
 		model.addAttribute("customers", shipmentsService.getActiveAndValidCustomers());
 		// model.addAttribute("itemUomsList", itemUomsList);
 		model.addAttribute("activePage", "createShipment"); // ← this is show which dropdown is active in the navbar
+		// return "create-shipment";
 		return "create-shipment-with-lines";
+
 	}
 
 	@GetMapping("/shipments/getWarehousesByCustomer")
@@ -215,7 +222,9 @@ public class ShipmentsController {
 
 		if (shipment.isPresent()) {
 			model.addAttribute("shipment", shipment.get());
-			return "show-shipment-details";
+			// return "show-shipment-details";
+			model.addAttribute("shipmentLines", shipmentLinesService.getShipmentLinesByShipmentId(shipmentId));
+			return "show-shipment-details-with-lines";
 		} else {
 			redirectAttributes.addFlashAttribute("msg", "Shipment " + shipmentId + " doesnt exist !!!");
 			return "redirect:/shipments/";
@@ -358,12 +367,102 @@ public class ShipmentsController {
 	 * return listMapOfAvailableIventory; }
 	 */
 
+	/*
+	 * Latest code which accepts multiple lines with unique item-uom combination
+	 * 
+	 * @PostMapping("/shipments/checkInventoryAvailability")
+	 * 
+	 * @ResponseBody public List<Map<String, String>>
+	 * checkInventoryAvailability(@RequestParam String customerId,
+	 * 
+	 * @RequestBody List<ShipmentLines> lines) {
+	 * 
+	 * List<List<Inventory>> listOfAvailableIventory = new ArrayList<>();
+	 * 
+	 * System.out.
+	 * println("/shipments/checkInventoryAvailability::: checkInventory(): customerId: "
+	 * + customerId);
+	 * 
+	 * System.out.
+	 * println("/shipments/checkInventoryAvailability::: checkInventory(): lines: "
+	 * + lines.toString());
+	 * 
+	 * // 1. Group items and sum their quantities Map<String, Integer>
+	 * groupedResults = lines.stream().collect(Collectors.groupingBy(line -> {
+	 * String itemId = (line.getItemId() != null) ? line.getItemId() : "UNKNOWN"; //
+	 * Replace "EACH" with line.getItemUom() if your class has a UOM getter String
+	 * itemUom = line.getItemUom();
+	 * 
+	 * // Create a compound key using a clear separator symbol like '::' return
+	 * itemId + "::" + itemUom; },
+	 * Collectors.summingInt(ShipmentLines::getQuantity)));
+	 * 
+	 * System.out.println("groupedResults: " + groupedResults.toString());
+	 * 
+	 * // 2. Loop through the map, extract parameters, and call your checking method
+	 * for (Map.Entry<String, Integer> entry : groupedResults.entrySet()) { // Split
+	 * the compound key back into individual components String[] keyParts =
+	 * entry.getKey().split("::");
+	 * 
+	 * String itemId = keyParts[0]; String itemUom = keyParts[1]; int totalQty =
+	 * entry.getValue();
+	 * 
+	 * // 3. Invoke your target method with individual parameters //
+	 * checkInventoryAvailability(itemId, itemUom, totalQty);
+	 * 
+	 * System.out.println("calling checkInventoryAvailability(" + customerId + ", "
+	 * + itemId + ", " + itemUom + ", " + totalQty + ")");
+	 * 
+	 * List<Inventory> invList =
+	 * shipmentsService.checkInventoryAvailability(customerId, itemId, itemUom,
+	 * totalQty); ;
+	 * 
+	 * listOfAvailableIventory.add(invList);
+	 * 
+	 * System.out.
+	 * println("calling checkInventoryAvailability():: output:: listOfAvailableIventory: "
+	 * + listOfAvailableIventory.toString());
+	 * 
+	 * }
+	 * 
+	 * List<Map<String, String>> listMapOfAvailableIventory = new ArrayList<>();
+	 * 
+	 * if (listOfAvailableIventory == null) return List.of();
+	 * 
+	 * String itemId = ""; String itemUom = ""; String requestedQty = "0"; String
+	 * availableQty = "0"; String warehouseId = ""; String warehouseName = ""; int i
+	 * = 0;
+	 * 
+	 * for (List<Inventory> invList : listOfAvailableIventory) { for (Inventory inv
+	 * : invList) {
+	 * 
+	 * ++i; itemId = inv.getItemId() != null ? inv.getItemId() : ""; itemUom =
+	 * inv.getItemUom() != null ? inv.getItemUom() : ""; requestedQty =
+	 * Integer.toString(groupedResults.getOrDefault((itemId + "::" + itemUom), 0));
+	 * availableQty = Integer.toString(inv.getAvailableQuantity()) != null ?
+	 * String.valueOf(inv.getAvailableQuantity()) : "0"; warehouseId =
+	 * inv.getWarehouseId() != null ? inv.getWarehouseId() : ""; warehouseName =
+	 * warehousesService.getWarehouseNameById(warehouseId);
+	 * 
+	 * listMapOfAvailableIventory.add(Map.of("lineNumber", Integer.toString(i),
+	 * "itemId", itemId, "itemUom", itemUom, "requestedQty", requestedQty,
+	 * "availableQty", availableQty, "warehouseId", warehouseId, "warehouseName",
+	 * warehouseName)); } }
+	 * 
+	 * System.out.
+	 * println("ShipmentsController: checkInventoryAvailability():: listMapOfAvailableIventory: "
+	 * + listMapOfAvailableIventory);
+	 * 
+	 * return listMapOfAvailableIventory; }
+	 * 
+	 */
+
 	@PostMapping("/shipments/checkInventoryAvailability")
 	@ResponseBody
 	public List<Map<String, String>> checkInventoryAvailability(@RequestParam String customerId,
 			@RequestBody List<ShipmentLines> lines) {
 
-		List<List<Inventory>> listOfAvailableIventory = new ArrayList<>();
+		Map<String, List<Inventory>> listOfAvailableIventory = new HashMap<>();
 
 		System.out.println("/shipments/checkInventoryAvailability::: checkInventory(): customerId: " + customerId);
 
@@ -371,12 +470,14 @@ public class ShipmentsController {
 
 		// 1. Group items and sum their quantities
 		Map<String, Integer> groupedResults = lines.stream().collect(Collectors.groupingBy(line -> {
+
+			String lineNo = (Integer.toString(line.getLineNo()) != "0") ? Integer.toString(line.getLineNo()) : "NOLINE";
 			String itemId = (line.getItemId() != null) ? line.getItemId() : "UNKNOWN";
 			// Replace "EACH" with line.getItemUom() if your class has a UOM getter
 			String itemUom = line.getItemUom();
 
 			// Create a compound key using a clear separator symbol like '::'
-			return itemId + "::" + itemUom;
+			return lineNo + "::" + itemId + "::" + itemUom;
 		}, Collectors.summingInt(ShipmentLines::getQuantity)));
 
 		System.out.println("groupedResults: " + groupedResults.toString());
@@ -386,21 +487,22 @@ public class ShipmentsController {
 			// Split the compound key back into individual components
 			String[] keyParts = entry.getKey().split("::");
 
-			String itemId = keyParts[0];
-			String itemUom = keyParts[1];
+			String lineNo = keyParts[0];
+			String itemId = keyParts[1];
+			String itemUom = keyParts[2];
 			int totalQty = entry.getValue();
 
 			// 3. Invoke your target method with individual parameters
 			// checkInventoryAvailability(itemId, itemUom, totalQty);
 
-			System.out.println("calling checkInventoryAvailability(" + customerId + ", " + itemId + ", " + itemUom
-					+ ", " + totalQty + ")");
+			System.out.println("lineNo: " + lineNo + " ...calling checkInventoryAvailability(" + customerId + ", "
+					+ itemId + ", " + itemUom + ", " + totalQty + ")");
 
 			List<Inventory> invList = shipmentsService.checkInventoryAvailability(customerId, itemId, itemUom,
 					totalQty);
-			;
 
-			listOfAvailableIventory.add(invList);
+			if (invList != null)
+				listOfAvailableIventory.put(lineNo, invList);
 
 			System.out.println("calling checkInventoryAvailability():: output:: listOfAvailableIventory: "
 					+ listOfAvailableIventory.toString());
@@ -418,23 +520,28 @@ public class ShipmentsController {
 		String availableQty = "0";
 		String warehouseId = "";
 		String warehouseName = "";
-		int i = 0;
 
-		for (List<Inventory> invList : listOfAvailableIventory) {
+		for (Map.Entry<String, List<Inventory>> entry : listOfAvailableIventory.entrySet()) {
+
+			String lineNoAsKey = entry.getKey();
+			List<Inventory> invList = entry.getValue();
+
+			System.out.println("lineNoAsKey: " + lineNoAsKey);
+
 			for (Inventory inv : invList) {
 
-				++i;
 				itemId = inv.getItemId() != null ? inv.getItemId() : "";
 				itemUom = inv.getItemUom() != null ? inv.getItemUom() : "";
-				requestedQty = Integer.toString(groupedResults.getOrDefault((itemId + "::" + itemUom), 0));
+				requestedQty = Integer
+						.toString(groupedResults.getOrDefault((lineNoAsKey + "::" + itemId + "::" + itemUom), 0));
 				availableQty = Integer.toString(inv.getAvailableQuantity()) != null
 						? String.valueOf(inv.getAvailableQuantity())
 						: "0";
 				warehouseId = inv.getWarehouseId() != null ? inv.getWarehouseId() : "";
 				warehouseName = warehousesService.getWarehouseNameById(warehouseId);
 
-				listMapOfAvailableIventory.add(Map.of("lineNumber", Integer.toString(i), "itemId", itemId, "itemUom",
-						itemUom, "requestedQty", requestedQty, "availableQty", availableQty, "warehouseId", warehouseId,
+				listMapOfAvailableIventory.add(Map.of("lineNumber", lineNoAsKey, "itemId", itemId, "itemUom", itemUom,
+						"requestedQty", requestedQty, "availableQty", availableQty, "warehouseId", warehouseId,
 						"warehouseName", warehouseName));
 			}
 		}
@@ -443,6 +550,69 @@ public class ShipmentsController {
 				+ listMapOfAvailableIventory);
 
 		return listMapOfAvailableIventory;
+	}
+
+	@PostMapping("/shipments/createShipmentWithLines")
+	@ResponseBody
+	public String createShipmentWithLines(@RequestParam String customerId, @RequestParam String warehouseId,
+			@RequestBody List<ShipmentLines> lines) {
+
+		System.out.println("shipments/createShipmentWithLines:: createShipmentWithLines(): " + customerId + " -- "
+				+ warehouseId + " -- " + lines.toString());
+
+		String[] resultArray = shipmentsService.createShipment(new Shipments(), customerId, warehouseId);
+
+		String resultMessage = resultArray[0], shipmentId = resultArray[1];
+		System.out.println("resultArray: " + resultMessage + " -- " + shipmentId);
+
+		int shipmentLineNo = 0, quantity = 0;
+		String itemId = "NO_ITEM_ID", itemUom = "NO_ITEM_UOM", itemCustomerUomWarehouseId = null, createdShipmentLineId = null;
+
+		if (resultArray[0].equals("SUCCESS")) {
+			for (ShipmentLines line : lines) {
+
+				shipmentLineNo = line.getLineNo();
+				itemId = line.getItemId();
+				itemUom = line.getItemUom();
+				quantity = line.getQuantity();
+
+				ShipmentLines shipmentLinesToCreate = new ShipmentLines();
+				shipmentLinesToCreate.setShipmentId(shipmentId);
+				shipmentLinesToCreate.setLineNo(shipmentLineNo);
+				shipmentLinesToCreate.setItemId(itemId);
+				shipmentLinesToCreate.setItemUom(itemUom);
+				shipmentLinesToCreate.setQuantity(quantity);
+				shipmentLinesToCreate.setShortageQuantity(0);
+
+				createdShipmentLineId = shipmentLinesService.createShipmentLines(shipmentLinesToCreate);
+
+				if (!(createdShipmentLineId == null)) {
+					System.out.println("SHIPMENT_LINE_CREATED_WITH_ID: "+createdShipmentLineId+"\nUPDATING INVENTORY_ALLOCATED_QTY");
+					itemCustomerUomWarehouseId = itemId + "_" + customerId + "_" + itemUom + "_" + warehouseId;
+					shipmentsService.updateInventoryAllocatedQuantity(itemCustomerUomWarehouseId, quantity);
+				}else {
+					System.out.println("FAILED_TO_CREATE_SHIPMENT_LINE");
+
+				}
+			}
+		}
+
+		/*
+		 * Map<String, Integer> groupedResults =
+		 * lines.stream().collect(Collectors.groupingBy(line -> {
+		 * 
+		 * String lineNo = (Integer.toString(line.getLineNo())!= "0") ?
+		 * Integer.toString(line.getLineNo()) :"NOLINE" ; String itemId =
+		 * (line.getItemId() != null) ? line.getItemId() : "UNKNOWN"; // Replace "EACH"
+		 * with line.getItemUom() if your class has a UOM getter String itemUom =
+		 * line.getItemUom();
+		 * 
+		 * // Create a compound key using a clear separator symbol like '::' return
+		 * lineNo + "::" + itemId + "::" + itemUom; },
+		 * Collectors.summingInt(ShipmentLines::getQuantity)));
+		 */
+		System.out.println("SHIPMENT_CREATED");
+		return "SHIPMENT_CREATED";
 	}
 
 }

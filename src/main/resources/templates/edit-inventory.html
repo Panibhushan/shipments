@@ -282,7 +282,7 @@ input[type=number].input-error {
 					<div class="section-title">Inventory Details</div>
 
 					<div class="form-grid">
-						
+
 						<!-- Data ro pass for @RequestMapping -->
 						<input type="hidden" th:value="${inventory.itemId}" name="itemId"
 							id="itemId" /> <input type="hidden"
@@ -304,11 +304,11 @@ input[type=number].input-error {
 							<label>Warehouse</label>
 							<div class="readonly-value" th:text="${inventory.warehouseId}">MUMWH</div>
 
+							<label></label>
+							<div class="readonly-value" style="border-bottom: none;"></div>
 							<label>Current Quantity</label>
 							<div class="readonly-value" th:text="${inventory.quantity}">0</div>
-							
-							
-							
+
 						</div>
 
 						<!-- Column 2: UOM, Created At, Modified At -->
@@ -324,12 +324,14 @@ input[type=number].input-error {
 							<label>Modified At</label>
 							<div class="readonly-value" th:text="${inventory.modifiedAt}">2024-06-15
 								14:30</div>
-								
-								<label>Allocated Quantity</label>
-							<div class="readonly-value" th:text="${inventory.allocatedQuantity}">0</div>
-							
+
+							<label>Allocated Quantity</label>
+							<div class="readonly-value"
+								th:text="${inventory.allocatedQuantity}">0</div>
+
 							<label>Available Quantity</label>
-							<div class="readonly-value" th:text="${inventory.availableQuantity}">0</div>
+							<div class="readonly-value"
+								th:text="${inventory.availableQuantity}">0</div>
 						</div>
 
 					</div>
@@ -341,8 +343,10 @@ input[type=number].input-error {
 						<div>
 							<label for="adjustmentType">Adjustment Type</label> <select
 								name="adjustmentType" id="adjustmentType" required>
-								<option th:selected="${selectedAdjustmentType == 'increaseBy'}"value="increaseBy">Increase By</option>
-								<option th:selected="${selectedAdjustmentType == 'decreaseBy'}"value="decreaseBy">Decrease By</option>
+								<option th:selected="${selectedAdjustmentType == 'increaseBy'}"
+									value="increaseBy">Increase By</option>
+								<option th:selected="${selectedAdjustmentType == 'decreaseBy'}"
+									value="decreaseBy">Decrease By</option>
 							</select>
 						</div>
 

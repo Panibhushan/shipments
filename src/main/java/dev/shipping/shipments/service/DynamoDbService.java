@@ -48,7 +48,7 @@ public class DynamoDbService {
 			map.put("shipmentId", audit.get("ShipmentId").s());
 			map.put("eventDate", audit.get("EventDate").s());
 			map.put("shipmentStatus", audit.get("ShipmentStatus").s());
-			map.put("reason", audit.get("Reason").s());
+			map.put("comment", audit.get("Comments").s());
 
 			singleShipmentAuditDetails.add(map);
 		}

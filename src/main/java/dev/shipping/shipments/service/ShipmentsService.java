@@ -4,11 +4,13 @@ import dev.shipping.shipments.model.CustomerWarehouses;
 import dev.shipping.shipments.model.Customers;
 import dev.shipping.shipments.model.Inventory;
 import dev.shipping.shipments.model.Items;
+import dev.shipping.shipments.model.ShipmentLines;
 import dev.shipping.shipments.model.Shipments;
 import dev.shipping.shipments.model.Warehouses;
 import dev.shipping.shipments.repo.CustomerWarehousesRepository;
 import dev.shipping.shipments.repo.CustomersRepository;
 import dev.shipping.shipments.repo.InventoryRepository;
+import dev.shipping.shipments.repo.ShipmentLinesRepository;
 import dev.shipping.shipments.repo.ShipmentsRepository;
 import dev.shipping.shipments.repo.WarehousesRepository;
 import jakarta.persistence.TypedQuery;
@@ -36,6 +38,7 @@ public class ShipmentsService {
 	private EntityManager entityManager;
 
 	private final ShipmentsRepository shipmentsRepo;
+	private final ShipmentLinesRepository shipmentLinesRepo;
 	private final InventoryRepository inventoryRepo;
 	private final CustomersRepository customersRepo;
 	private final CustomerWarehousesRepository customerWarehousesRepo;
@@ -46,12 +49,13 @@ public class ShipmentsService {
 
 	public ShipmentsService(ShipmentsRepository shipmentsRepo, CustomersRepository customersRepo,
 			CustomerWarehousesRepository customerWarehousesRepo, WarehousesRepository warehousesRepo, InventoryRepository inventoryRepo,
-			DynamoDbService dynamoDbService, SnsPublisherService snsService, SqsSenderService sqsService) {
+			ShipmentLinesRepository shipmentLinesRepo, DynamoDbService dynamoDbService, SnsPublisherService snsService, SqsSenderService sqsService) {
 		this.shipmentsRepo = shipmentsRepo;
 		this.customersRepo = customersRepo;
 		this.customerWarehousesRepo = customerWarehousesRepo;
 		this.warehousesRepo = warehousesRepo;
 		this.inventoryRepo = inventoryRepo;
+		this.shipmentLinesRepo = shipmentLinesRepo;
 		this.dynamoDbService = dynamoDbService;
 		this.snsService = snsService;
 		this.sqsService = sqsService;
@@ -64,6 +68,11 @@ public class ShipmentsService {
 	public List<Shipments> getAllShipments() {
 		return shipmentsRepo.findAll();
 	}
+	
+	public List<Shipments> getAllShipmentsByCreatedTimeDesc() {
+		return shipmentsRepo.getAllShipmentsByCreatedTimeDesc();
+	} 
+
 
 	/**
 	 * Returns null if not found — controller decides how to handle (redirect vs
@@ -140,8 +149,8 @@ public class ShipmentsService {
 		Shipments savedShipment = shipmentsRepo.save(shipment);
 
 		if (savedShipment != null && savedShipment.getShipmentId() != null) {
-			snsService.publishShipmentStatus(savedShipment.getShipmentId(), "1100 - CREATED", "SHIPMENT_CREATED");
-			sqsService.sendShipmentStatus(savedShipment.getShipmentId(), "1100 - CREATED", "SHIPMENT_CREATED");
+			snsService.publishShipmentStatus(savedShipment.getShipmentId(), "1100 - CREATED", "SHIPMENT_CREATED_SUCCESSFULLY");
+			sqsService.sendShipmentStatus(savedShipment.getShipmentId(), "1100 - CREATED", "SHIPMENT_CREATED_SUCCESSFULLY");
 			return new String[] { "SUCCESS", savedShipment.getShipmentId() };
 		} else {
 			return new String[] { "FAILED", "Failed to create shipment!" };
@@ -197,43 +206,44 @@ public class ShipmentsService {
 				&& isCustomerActiveAndHasValidContract;
 
 		if (allConditionsMet) {
-			String shipmentStatusAndDesc, reason, updatedStatus = "SHIPMENT_STATUS_UPDATED";
+			String shipmentStatusAndDesc, comment, updatedStatus = "SHIPMENT_STATUS_UPDATED";
 
 			switch (action) {
 			case "PICK":
 				shipment.setShipStatus(1200);
 				shipmentStatusAndDesc = "1200 - PICKED";
-				updatedStatus = reason = "SHIPMENT_PICKED";
+				updatedStatus = comment = "SHIPMENT_PICKED_SUCCESSFULLY";
 				break;
 			case "PACK":
 				shipment.setShipStatus(1300);
 				shipmentStatusAndDesc = "1300 - PACKED";
-				updatedStatus = reason = "SHIPMENT_PACKED";
+				updatedStatus = comment = "SHIPMENT_PACKED_SUCCESSFULLY";
 				break;
 			case "SHIP":
 				shipment.setShipStatus(1400);
 				shipmentStatusAndDesc = "1400 - SHIPPED";
-				updatedStatus = reason = "SHIPMENT_SHIPPED";
+				updatedStatus = comment = "SHIPMENT_SHIPPED_SUCCESSFULLY";
+				updatedQuantityFromInventoryWhenShipmentIsShippedOrCancelled(shipmentId, 1400);
 				break;
 			case "CANCEL":
 				shipment.setShipStatus(9000);
 				shipmentStatusAndDesc = "9000 - CANCELLED";
 				updatedStatus = "SHIPMENT_CANCELLED";
-				reason = "SHIPMENT_CANCELLED with reason: " + cancellationReason; // setting cancellation reason entered
-																					// by user in dynamodb reason col
+				comment = "SHIPMENT_CANCELLED with reason: " + cancellationReason; // setting cancellation comment entered by user in dynamodb comment col
+				updatedQuantityFromInventoryWhenShipmentIsShippedOrCancelled(shipmentId, 9000);
 				break;
 			default:
 				throw new RuntimeException("Invalid action: " + action);
 			}
 
-			sqsService.sendShipmentStatus(shipmentId, shipmentStatusAndDesc, reason);
+			sqsService.sendShipmentStatus(shipmentId, shipmentStatusAndDesc, comment);
 			shipmentsRepo.save(shipment);
-			return updatedStatus + "_SUCCESSFULLY";
+			return updatedStatus  ;
 
 		} else {
 			// Build a specific error message for each failed condition
 			StringBuilder errorMessage = new StringBuilder(
-					"Shipment# " + shipmentId + " cannot be updated because of below reason(s) \n");
+					"Shipment# " + shipmentId + " cannot be updated because of below comment(s) \n");
 
 			if (!singleCustomer.isPresent()) {
 				errorMessage.append("Customer: ").append(customerId).append(" is not found !!");
@@ -261,6 +271,39 @@ public class ShipmentsService {
 
 			return errorMessage.toString();
 		}
+	}
+
+	private void updatedQuantityFromInventoryWhenShipmentIsShippedOrCancelled(String shipmentId, int shipStatus) {
+		List<ShipmentLines> shipmentLines = shipmentLinesRepo.getShipmentLinesByShipmentId(shipmentId) ;
+		String itemCustomerUomWarehouseId, itemId, customerId, itemUom, warehouseId;
+		int shipmentLineQuantity, currentAllocatedQuantity, currentInventoryQuantity;
+		
+		String[] keyParts = shipmentId.split("_");
+
+		customerId = keyParts[0];
+		warehouseId = keyParts[1];		
+		
+		for(ShipmentLines sl : shipmentLines) {
+			itemId = sl.getItemId();
+			itemUom = sl.getItemUom();
+			shipmentLineQuantity = sl.getQuantity();
+			
+			itemCustomerUomWarehouseId = itemId+"_"+customerId+"_"+itemUom+"_"+warehouseId;
+			
+			Inventory inv = inventoryRepo.findById(itemCustomerUomWarehouseId).get();
+			
+			currentAllocatedQuantity = inv.getAllocatedQuantity();
+			inv.setAllocatedQuantity(currentAllocatedQuantity - shipmentLineQuantity);
+			
+			if(shipStatus == 1400) {
+				currentInventoryQuantity = inv.getQuantity();
+				inv.setQuantity(currentInventoryQuantity - shipmentLineQuantity);
+			}
+			
+			inventoryRepo.save(inv);
+			
+		}		
+		
 	}
 
 	public List<Shipments> getShipmentsByCustomer(String customerId) {
@@ -404,12 +447,23 @@ public class ShipmentsService {
 		List<Inventory> inventoryAvailableInWarehouses = new ArrayList<Inventory>();  
 		
 		for(Inventory inv : inventory) {
-			if(inv.getAvailableQuantity() > requestedQty) {
+			if(inv.getAvailableQuantity() >= requestedQty) {
 				inventoryAvailableInWarehouses.add(inv);
 			}
 		}
 		
 		return inventoryAvailableInWarehouses;
-	} 
+	}
 
+	public void updateInventoryAllocatedQuantity(String itemCustomerUomWarehouseId, int shipmentLineQuantity) {
+
+		Inventory inv = inventoryRepo.findById(itemCustomerUomWarehouseId).get();
+		int currentAllocatedQuantity = inv.getAllocatedQuantity();
+		inv.setAllocatedQuantity(currentAllocatedQuantity + shipmentLineQuantity);
+		inventoryRepo.save(inv);
+		//inventoryRepo.updateInventoryAllocatedQuantity(itemCustomerUomWarehouseId, shipmentLineQuantity);
+		
+	}
+
+	
 }

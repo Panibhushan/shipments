@@ -31,7 +31,7 @@ public class ShipmentLines {
 	private int quantity = 0;
 	
 	@Column(name = "shortage_qty")
-	private int shortageQty = 0;
+	private int shortageQuantity= 0;
 
 	// Store as LocalDateTime in DB (no timezone conversion by Hibernate)
 	@Column(name = "created_at", updatable = false, columnDefinition = "DATETIME(6)")
@@ -47,7 +47,7 @@ public class ShipmentLines {
 		// Generate shipment_id: SHIP + YYYYMMDDHHMMSS + millis (for uniqueness)
 		DateTimeFormatter idFormat = DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS");
 
-		this.shipmentLineId = shipmentId + lineNo ;
+		this.shipmentLineId = shipmentId +"-LINE-"+ lineNo ;
 
 		// Get current IST time as LocalDateTime (no timezone stored, but value is IST)
 		this.createdAt = LocalDateTime.now(ZoneId.of("Asia/Kolkata"));
@@ -111,12 +111,12 @@ public class ShipmentLines {
 		this.quantity = quantity;
 	}
 
-	public int getShortageQty() {
-		return shortageQty;
+	public int getShortageQuantity() {
+		return shortageQuantity;
 	}
 
-	public void setShortageQty(int shortageQty) {
-		this.shortageQty = shortageQty;
+	public void setShortageQuantity(int shortageQty) {
+		this.shortageQuantity = shortageQty;
 	}
 
 	public void setShipmentId(String shipmentId) {
@@ -134,8 +134,8 @@ public class ShipmentLines {
 	@Override
 	public String toString() {
 		return "ShipmentLines [shipmentLineId=" + shipmentLineId + ", shipmentId=" + shipmentId + ", itemId=" + itemId
-				+ ", itemUom=" + itemUom + ", lineNo=" + lineNo + ", quantity=" + quantity + ", shortageQty="
-				+ shortageQty + ", createdAt=" + createdAt + ", modifiedAt=" + modifiedAt + "]";
+				+ ", itemUom=" + itemUom + ", lineNo=" + lineNo + ", quantity=" + quantity + ", shortageQuantity="
+				+ shortageQuantity + ", createdAt=" + createdAt + ", modifiedAt=" + modifiedAt + "]";
 	}
 	
 }

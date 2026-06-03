@@ -389,8 +389,16 @@ td {
 		<div class="filter-bar">
 			<form id="warehouseFilterForm"
 				th:action="@{/inventory/showInventoryByFilters}" method="get">
-
-				<label for="customerId">Customer</label> <select name="customerId"
+				<label for="itemId">Item</label> <input type="text" name="itemId"
+					id="itemId" placeholder="e.g. ITM-001"
+					th:value="${selectedItemId != null} ? ${selectedItemId} : ''"
+					oninput="this.value = this.value.toUpperCase()" /> <label
+					for="itemUom">UOM</label><select name="itemUom" id="itemUom"
+					required>
+					<option value="ALL">— ALL —</option>
+					<option th:each="opt : ${itemUomsList}" th:value="${opt}"
+						th:selected="${opt == selectedItemUom}" th:text="${opt}"></option>
+				</select> <label for="customerId">Customer</label> <select name="customerId"
 					id="customerId" onchange="loadWarehouses(this.value)" required>
 					<option value="ALL">— ALL —</option>
 					<option th:each="c : ${customers}" th:value="${c.customerId}"
@@ -402,21 +410,12 @@ td {
 					<option th:each="w : ${warehouses}" th:value="${w.warehouseId}"
 						th:selected="${w.warehouseId == selectedWarehouse}"
 						th:text="|${w.warehouseId} = ${w.warehouseName}|"></option>
-				</select> <label for="itemId">Item</label> <input type="text"
-					name="itemId" id="itemId" placeholder="e.g. ITM-001"
-					th:value="${selectedItemId != null} ? ${selectedItemId} : ''"
-					oninput="this.value = this.value.toUpperCase()" /> <label
-					for="itemUom">UOM</label><select name="itemUom" id="itemUom"
-					required>
-					<option value="ALL">— ALL —</option>
-					<option th:each="opt : ${itemUomsList}" th:value="${opt}"
-						th:selected="${opt == selectedItemUom}" th:text="${opt}"></option>
 				</select>
 				<div class="tooltip-wrapper show-tip" id="submitBtnWrapper">
 					<button type="submit" class="btn-filter" id="applyFiltersBtn"
 						disabled>Apply Filters</button>
-					<span class="tip">Change Customer or Warehouse or Item ID or Item UOM to
-						enable filter submission</span>
+					<span class="tip">Change Customer or Warehouse or Item ID or
+						Item UOM to enable filter submission</span>
 				</div>
 				<div>
 					<a href="/inventory/"
@@ -439,6 +438,10 @@ td {
 							class="sort-arrow">⇅</span></th>
 						<th class="sortable" data-col="3">UOM<span class="sort-arrow">⇅</span></th>
 						<th class="sortable" data-col="4">Qty<span class="sort-arrow">⇅</span></th>
+						<th class="sortable" data-col="5">Allocated Qty<span
+							class="sort-arrow">⇅</span></th>
+						<th class="sortable" data-col="6">Available Qty<span
+							class="sort-arrow">⇅</span></th>
 						<th>Actions</th>
 					</tr>
 				</thead>
@@ -448,34 +451,40 @@ td {
 						onclick="rowClick(event, this)">
 
 
-						<!-- Col 2: Item ID -->
+						<!-- Col 1: Item ID -->
 						<td><span class="cell-link"> <a
 								th:href="@{'/items/showItemDetails/' + ${inv.itemId} + '_' + ${inv.customerId} + '_' + ${inv.itemUom}}"
 								th:text="${inv.itemId}" onclick="event.stopPropagation()"></a> <span
 								class="cell-tip">View item details</span>
 						</span></td>
 
-						<!-- Col 3: Customer -->
+						<!-- Col 2: Customer -->
 						<td><span class="cell-link"> <a target="_blank"
 								th:href="@{'/customers/showCustomerDetails/' + ${inv.customerId}}"
 								th:text="${inv.customerId}" onclick="event.stopPropagation()"></a>
 								<span class="cell-tip">View customer details</span>
 						</span></td>
 
-						<!-- Col 4: Warehouse -->
+						<!-- Col 3: Warehouse -->
 						<td><span class="cell-link"> <a target="_blank"
 								th:href="@{'/warehouses/showWarehouseDetails/' + ${inv.warehouseId}}"
 								th:text="${inv.warehouseId}" onclick="event.stopPropagation()"></a>
 								<span class="cell-tip">View warehouse details</span>
 						</span></td>
 
-						<!-- Col 5: UOM -->
+						<!-- Col 4: UOM -->
 						<td><span class="badge badge-uom" th:text="${inv.itemUom}"></span></td>
 
-						<!-- Col 6: Qty -->
+						<!-- Col 5: Qty -->
 						<td><span class="badge badge-qty" th:text="${inv.quantity}"></span></td>
+						
+						<!-- Col 6: Qty -->
+						<td><span class="badge badge-qty" th:text="${inv.allocatedQuantity}"></span></td>
+						
+						<!-- Col 7: Qty -->
+						<td><span class="badge badge-qty" th:text="${inv.availableQuantity}"></span></td>
 
-						<!-- Col 1: View Details button -->
+						<!-- Col 8: View Details button -->
 						<td><a
 							th:href="@{'/inventory/showInventoryDetails/' + ${inv.itemCustomerUomWarehouseId}}"
 							class="btn-view" onclick="event.stopPropagation()"> ✏️ View /
