@@ -648,7 +648,6 @@ content
 					<table class="lines-table" id="linesTable">
 						<thead>
 							<tr>
-								<th style="width: 36px">Line #</th>
 								<th style="width: 120px; text-align: center">Item ID</th>
 								<th style="width: 110px; text-align: center">UOM</th>
 								<th style="width: 90px; text-align: center">Qty</th>
@@ -711,7 +710,6 @@ function addLine(){
   const tr = document.createElement('tr');
   tr.id = 'line-'+ln;
   tr.innerHTML = `
-    <td><span class="line-num">${ln}</span></td>
     <td>
       <input type="hidden" name="shipmentLineId[${ln}]" id="slid-${ln}" value="">
       <input type="text" style="text-align:center;border:1px solid #d2cece" name="itemId[${ln}]" id="item-${ln}" placeholder="e.g. SKU-001" oninput="updateLineId(${ln})">
@@ -783,7 +781,7 @@ function getLines() {
         }
 
         return {
-            lineNumber: idx + 1,
+            lineNo: idx + 1,
             itemId,
             itemUom,
             quantity: parseInt(
@@ -806,7 +804,7 @@ function getLines() {
 	      <div class="ni-icon">⚠️</div>
 	      <div>
 	        ${duplicates.map(d =>
-	            `<div>ITEM: <b>${d.itemId}</b> &amp; UOM: <b>${d.itemUom}</b> exists in multiple lines, correct it and then Check for Availability</div>`
+	            `<div>Combination of Item & UOM for ITEM: <b>${d.itemId}</b> &amp; UOM: <b>${d.itemUom}</b> exists in multiple lines, correct it and then Check for Availability<br />Note: Shipment can have only one line for unique item-uom combination. You cannot enter the same item-uom combination in multiple lines.</div>`
 	        ).join('')}
 	      </div>
 	    </div>
@@ -900,14 +898,13 @@ async function checkInventory(){
 
   await new Promise(r=>setTimeout(r,900));
   
-// const results=fakeFetch(lines);
+ // const results=fakeFetch(lines);
 
   //  Real fetch — uncomment and remove fakeFetch line above:
-	 const resp=await fetch(`/shipments/checkInventoryAvailability?customerId=${encodeURIComponent(customerId)}`,{
+   const resp=await fetch(`/shipments/checkInventoryAvailability?customerId=${encodeURIComponent(customerId)}`,{
 	    method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(lines)
-	  });
- 
-   const results=await resp.json();  
+	  }); 
+	 const results=await resp.json();   
 
   btn.innerHTML='🔍 Check inventory availability';
 
@@ -996,9 +993,12 @@ function renderWarehouseSelection(results, lines){
     const radioId=`wh_radio_${wh.warehouseId}`;
     /* item rows */
     let itemRows='';
+    let itmlinno = 0;
+
     wh.items.forEach(it=>{
+    	itmlinno = itmlinno+1;
       itemRows+=`<tr>
-        <td>Line ${it.lineNumber}</td>
+        <td>Line ${itmlinno}</td>
         <td>
           <span class="item-pill pill-item">${it.itemId}</span>
           <span class="item-pill pill-uom">${it.itemUom}</span>
@@ -1045,13 +1045,22 @@ function selectWarehouse(whId, cardEl){
   if(btn) btn.disabled=false;
 }
 
-function createShipment(){
-  const customerId=document.getElementById('customerId').value;
-  const checked=document.querySelector('input[name="selectedWarehouse"]:checked');
-  if(!checked){alert('Please select a warehouse.');return;}
-  const lines=getLines();
-  alert('Shipment created!\n\n'+JSON.stringify({customerId,warehouseId:checked.value,lines},null,2));
-}
+async function createShipment(){
+	  const customerId=document.getElementById('customerId').value;
+	  const checkedWarehouse=document.querySelector('input[name="selectedWarehouse"]:checked');
+	  if(!checkedWarehouse){alert('Please select a warehouse.');return;}
+	  const lines=getLines();
+	 
+	  //alert('Shipment created!\n\n'+JSON.stringify({customerId,warehouseId:checkedWarehouse.value,lines},null,2));
+	  
+	 const warehouseId=checkedWarehouse.value;
+	  const resp=await fetch(`/shipments/createShipmentWithLines?customerId=${encodeURIComponent(customerId)}&warehouseId=${encodeURIComponent(warehouseId)}`,{
+		    method:'POST',headers:{'Content-Type':'application/json'},
+		    body:JSON.stringify(lines)
+		  });   
+
+	  const results=await resp.json(); 
+	 }
 
 addLine();
 </script>
