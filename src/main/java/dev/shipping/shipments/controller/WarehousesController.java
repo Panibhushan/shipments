@@ -10,9 +10,13 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import dev.shipping.shipments.model.Address;
+import dev.shipping.shipments.model.CreateShipmentRequestWithLinesAndAddress;
 import dev.shipping.shipments.model.Warehouses;
 import dev.shipping.shipments.service.WarehousesService;
 import dev.shipping.shipments.utils.MyResourceUtils;
@@ -30,8 +34,8 @@ public class WarehousesController {
 	public String showAllWarehouses(Model model) {
 
 		List<Warehouses> warehouses = warehousesService.getAllWarehouses();
- 
-		model.addAttribute("warehouses", warehouses );
+
+		model.addAttribute("warehouses", warehouses);
 		model.addAttribute("warehousesList", warehouses);
 		model.addAttribute("activePage", "allWarehouses"); // ← this is show which dropdown is active in the navbar
 		model.addAttribute("warehouseStatusList", Arrays.asList("Active", "Disabled"));
@@ -50,7 +54,13 @@ public class WarehousesController {
 		}
 
 		model.addAttribute("warehouses", warehousesService.getAllWarehouses()); // this is to display in filter dropdown
-		model.addAttribute("warehousesList", warehousesService.getWarehousesList(warehouseId, warehouseStatus)); // this is the resultant filtered warehouses list
+		model.addAttribute("warehousesList", warehousesService.getWarehousesList(warehouseId, warehouseStatus)); // this
+																													// is
+																													// the
+																													// resultant
+																													// filtered
+																													// warehouses
+																													// list
 		model.addAttribute("selectedWarehouse", warehouseId);
 		model.addAttribute("selectedWarehouseStatus", warehouseStatus);
 		model.addAttribute("warehouseStatusList", Arrays.asList("Active", "Disabled"));
@@ -181,6 +191,25 @@ public class WarehousesController {
 		}
 
 		return "redirect:/warehouses/viewOrEditWarehouse/" + warehouseId;
+	}
+
+	@PostMapping("/warehouses/createWarehouseWithAddress")
+	@ResponseBody
+	public String createWarehouseWithAddress(@ModelAttribute Warehouses warehouse, @RequestParam String warehouseId,
+			@RequestParam String warehouseName, @RequestParam String warehouseStatus,
+			@RequestParam String warehouseAddress, @RequestBody Address request) {
+
+		System.out.println("/warehouses/createWarehouseWithAddress: " + warehouse.toString());
+		System.out.println(warehouseId + " -- " + warehouseName + " -- " + warehouseStatus + " -- " + warehouseAddress
+				+ " -- " + request.toString());
+
+		String createdWarehouseId= warehousesService.createWarehouse(warehouse) ;
+
+		String warehouseCreationWithAddressStatus = warehousesService.createWarehouseWithAddress(createdWarehouseId,  request);
+
+		return warehouseCreationWithAddressStatus;
+
+		// return null;
 	}
 
 }

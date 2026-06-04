@@ -24,6 +24,9 @@ public class Shipments {
 
 	@Column(name = "ship_status")
 	private int shipStatus = 1100;
+	
+	@Column(name = "address_id")
+	private String addressId;
 
 	// Store as LocalDateTime in DB (no timezone conversion by Hibernate)
 	@Column(name = "created_at", updatable = false, columnDefinition = "DATETIME(6)")
@@ -107,10 +110,20 @@ public class Shipments {
 		this.warehouseId = warehouseId;
 	}
 
+	public String getAddressId() {
+		return addressId;
+	}
+
+	public void setAddressId(String addressId) {
+		this.addressId = addressId;
+	}
+
 	@Override
 	public String toString() {
 		return "Shipments [shipmentId=" + shipmentId + ", customerId=" + customerId + ", warehouseId=" + warehouseId
-				+ ", shipStatus=" + shipStatus + ", createdAt=" + createdAt + ", modifiedAt=" + modifiedAt + "]";
+				+ ", shipStatus=" + shipStatus + ", addressId=" + addressId + ", createdAt=" + createdAt
+				+ ", modifiedAt=" + modifiedAt + "]";
 	}
 
+	 
 }

@@ -2,6 +2,7 @@ package dev.shipping.shipments.service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,8 +10,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 
+import dev.shipping.shipments.model.Address;
 import dev.shipping.shipments.model.Items;
 import dev.shipping.shipments.model.Warehouses;
+import dev.shipping.shipments.repo.AddressRepository;
 import dev.shipping.shipments.repo.WarehousesRepository;
 import dev.shipping.shipments.utils.MyResourceUtils;
 import jakarta.persistence.EntityManager;
@@ -23,9 +26,12 @@ public class WarehousesService {
 	private EntityManager entityManager;
 
 	private final WarehousesRepository warehousesRepo;
+	private final AddressRepository addressRepo;
 
-	public WarehousesService(WarehousesRepository warehousesRepo) {
+
+	public WarehousesService(WarehousesRepository warehousesRepo, AddressRepository addressRepo) {
 		this.warehousesRepo = warehousesRepo;
+		this.addressRepo = addressRepo;
 	}
 
 	// ─────────────────────────────────────────────
@@ -139,8 +145,8 @@ public class WarehousesService {
 	// ─────────────────────────────────────────────
 
 	@Transactional
-	public void createWarehouse(Warehouses warehouse) {
-		warehousesRepo.save(warehouse);
+	public String createWarehouse(Warehouses warehouse) {
+		return warehousesRepo.save(warehouse).getWarehouseId();
 	}
 
 	@Transactional
@@ -199,6 +205,38 @@ public class WarehousesService {
 
 	public String getWarehouseNameById(String warehouseId) {
 		return warehousesRepo.findById(warehouseId).get().getWarehouseName();
+	}
+
+	public String createWarehouseWithAddress(String warehouseId, Address warehouseAddress) {
+
+		System.out.println("ShipmentsService createAddress():: warehouseAddress: " + warehouseAddress.toString());
+
+		Address address = new Address();
+
+		address.setAddress1(warehouseAddress.getAddress1());
+		address.setAddress2(warehouseAddress.getAddress2());
+		address.setCountry(warehouseAddress.getCountry());
+		address.setDistrict(warehouseAddress.getDistrict());
+		address.setTaluk(warehouseAddress.getTaluk());
+		address.setFirstName(warehouseAddress.getFirstName());
+		address.setLastName(warehouseAddress.getLastName());
+		address.setState(warehouseAddress.getState());
+		address.setZipCode(warehouseAddress.getZipCode());
+
+		String addressId = addressRepo.save(address).getAddressId();
+
+		if (!(addressId.isEmpty()) && addressId != null) {
+			Optional<Warehouses> optWarehouse = warehousesRepo.findById(warehouseId);
+
+			if (optWarehouse.isPresent()) {
+				Warehouses warehouse = optWarehouse.get();
+				warehouse.setAddressId(addressId);
+				warehousesRepo.save(warehouse);
+			}
+
+		}		
+		
+		return "WAREHOUSE_CREATED_SUCCESSFULLY_WITH_ID: "+warehouseId;
 	}
 
 }

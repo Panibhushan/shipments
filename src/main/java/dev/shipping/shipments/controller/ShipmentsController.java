@@ -1,5 +1,7 @@
 package dev.shipping.shipments.controller;
 
+import dev.shipping.shipments.model.Address;
+import dev.shipping.shipments.model.CreateShipmentRequestWithLinesAndAddress;
 import dev.shipping.shipments.model.Inventory;
 import dev.shipping.shipments.model.ShipmentLines;
 import dev.shipping.shipments.model.Shipments;
@@ -219,9 +221,11 @@ public class ShipmentsController {
 			RedirectAttributes redirectAttributes) {
 
 		Optional<Shipments> shipment = shipmentsService.getShipmentById(shipmentId);
+		Optional<Address> address = shipmentsService.getShipingAddressById(shipment.get().getAddressId());
 
 		if (shipment.isPresent()) {
 			model.addAttribute("shipment", shipment.get());
+			model.addAttribute("address", shipmentsService.getFormattedAddress(address.get()));
 			// return "show-shipment-details";
 			model.addAttribute("shipmentLines", shipmentLinesService.getShipmentLinesByShipmentId(shipmentId));
 			return "show-shipment-details-with-lines";
@@ -552,9 +556,10 @@ public class ShipmentsController {
 		return listMapOfAvailableIventory;
 	}
 
-	@PostMapping("/shipments/createShipmentWithLines")
+	@PostMapping("/shipments/createShipmentWithJustLines")
+
 	@ResponseBody
-	public String createShipmentWithLines(@RequestParam String customerId, @RequestParam String warehouseId,
+	public String createShipmentWithJustLines(@RequestParam String customerId, @RequestParam String warehouseId,
 			@RequestBody List<ShipmentLines> lines) {
 
 		System.out.println("shipments/createShipmentWithLines:: createShipmentWithLines(): " + customerId + " -- "
@@ -566,7 +571,8 @@ public class ShipmentsController {
 		System.out.println("resultArray: " + resultMessage + " -- " + shipmentId);
 
 		int shipmentLineNo = 0, quantity = 0;
-		String itemId = "NO_ITEM_ID", itemUom = "NO_ITEM_UOM", itemCustomerUomWarehouseId = null, createdShipmentLineId = null;
+		String itemId = "NO_ITEM_ID", itemUom = "NO_ITEM_UOM", itemCustomerUomWarehouseId = null,
+				createdShipmentLineId = null;
 
 		if (resultArray[0].equals("SUCCESS")) {
 			for (ShipmentLines line : lines) {
@@ -587,32 +593,68 @@ public class ShipmentsController {
 				createdShipmentLineId = shipmentLinesService.createShipmentLines(shipmentLinesToCreate);
 
 				if (!(createdShipmentLineId == null)) {
-					System.out.println("SHIPMENT_LINE_CREATED_WITH_ID: "+createdShipmentLineId+"\nUPDATING INVENTORY_ALLOCATED_QTY");
+					System.out.println("SHIPMENT_LINE_CREATED_WITH_ID: " + createdShipmentLineId
+							+ "\nUPDATING INVENTORY_ALLOCATED_QTY");
 					itemCustomerUomWarehouseId = itemId + "_" + customerId + "_" + itemUom + "_" + warehouseId;
 					shipmentsService.updateInventoryAllocatedQuantity(itemCustomerUomWarehouseId, quantity);
-				}else {
+				} else {
 					System.out.println("FAILED_TO_CREATE_SHIPMENT_LINE");
-
+					return "SHIPMENT_CREATEION_FAILED : FAILED_TO_CREATE_SHIPMENT_LINE FOR ITEM: " + itemId + ", UOM: "
+							+ itemUom + ", QTY: " + quantity;
 				}
 			}
 		}
 
-		/*
-		 * Map<String, Integer> groupedResults =
-		 * lines.stream().collect(Collectors.groupingBy(line -> {
-		 * 
-		 * String lineNo = (Integer.toString(line.getLineNo())!= "0") ?
-		 * Integer.toString(line.getLineNo()) :"NOLINE" ; String itemId =
-		 * (line.getItemId() != null) ? line.getItemId() : "UNKNOWN"; // Replace "EACH"
-		 * with line.getItemUom() if your class has a UOM getter String itemUom =
-		 * line.getItemUom();
-		 * 
-		 * // Create a compound key using a clear separator symbol like '::' return
-		 * lineNo + "::" + itemId + "::" + itemUom; },
-		 * Collectors.summingInt(ShipmentLines::getQuantity)));
-		 */
-		System.out.println("SHIPMENT_CREATED");
-		return "SHIPMENT_CREATED";
+		System.out.println("SHIPMENT_CREATED WITH ID: " + shipmentId);
+
+		return "SUCCESSFULLY_CREATED_SHIPMENT WITH ID|" + shipmentId;
+
+	}
+
+	@PostMapping("/shipments/createShipmentWithLines")
+	@ResponseBody
+	public String createShipmentWithLines(@RequestParam String customerId, @RequestParam String warehouseId,
+
+			@RequestBody CreateShipmentRequestWithLinesAndAddress request) {
+
+		System.out.println(
+				"/shipments/createShipmentWithLines:: createShipmentWithLines(): request: " + request.toString());
+
+		List<ShipmentLines> lines = request.getLines();
+		Address deliveryAddress = request.getDeliveryAddress();
+
+		if (lines.isEmpty()) {
+			System.out.println("lines.isEmpty(): " + lines);
+		}
+
+		System.out.println("shipments/createShipmentWithLines:: createShipmentWithLines(): " + customerId + " -- "
+				+ warehouseId + " -- " + lines.toString() + " -- " + deliveryAddress.toString());
+
+		String[] resultArray = shipmentsService.createShipment(new Shipments(), customerId, warehouseId);
+
+		String shipmentCreationStatus= resultArray[0], shipmentId = resultArray[1];
+		System.out.println("resultArray: " + shipmentCreationStatus + " -- " + shipmentId);
+
+
+		if (shipmentCreationStatus.equals("SUCCESS")) {
+			
+			String shipmentLinesCreationStatusMessage = shipmentsService.createShipmentLines(customerId, warehouseId, shipmentId, lines);
+		
+			if (shipmentLinesCreationStatusMessage.contains("SUCCESS")) {
+				
+				shipmentsService.createAddress(shipmentId, deliveryAddress);
+				
+			}else {
+				return shipmentLinesCreationStatusMessage;
+			}
+		
+		}else {
+			return "SHIPMENT_CREATEION_FAILED !!";
+		}
+
+		System.out.println("SHIPMENT_CREATED WITH ID: " + shipmentId);
+		return "SUCCESSFULLY_CREATED_SHIPMENT WITH ID|" + shipmentId;
+
 	}
 
 }

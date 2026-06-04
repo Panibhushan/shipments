@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+  <link rel="stylesheet" th:href="@{/css/navbar.css}" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; }
+    body { font-family: Arial, sans-serif; background: #f4f6f9; margin: 0; min-height: 100vh; }
+    #msgBox { margin: 8px 24px 0; padding: 8px 40px 8px 14px; border-radius: 8px; font-weight: bold; position: relative; }
+    .page-wrapper { display: flex; gap: 20px; padding: 14px 24px; align-items: flex-start; }
+    .form-section { width: 60%; }
+    .form-section h2 { font-size: 1rem; color: #1e293b; margin: 0 0 10px; font-weight: 700; }
+    .form-card { background: #fff; border-radius: 12px; padding: 20px 24px; box-shadow: 0 2px 12px rgba(0,0,0,0.07); }
+    .section-title { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #94a3b8; margin: 14px 0 8px; padding-bottom: 5px; border-bottom: 1px solid #e2e8f0; }
+    .section-title:first-child { margin-top: 0; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 24px; }
+    .full-span { grid-column: 1 / -1; }
+    label { display: block; font-size: 0.7rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.06em; margin-top: 10px; margin-bottom: 3px; }
+    input[type=text], select {
+      width: 100%; padding: 9px 12px; margin: 0 0 2px;
+      border: 1.5px solid #cbd5e1; border-radius: 8px;
+      font-size: 0.92rem; font-family: Arial, sans-serif;
+      background: #f8fafc; color: #1e293b; outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    input[type=text]:focus, select:focus { border-color: #6a73b2; box-shadow: 0 0 0 3px rgba(106,115,178,0.15); background: #fff; }
+    .button-row { margin-top: 18px; padding-top: 14px; border-top: 1px solid #e2e8f0; }
+    .btn-submit { background-color: #4CAF50; color: #fff; font-weight: 700; font-size: 0.9rem; padding: 10px 26px; border: none; border-radius: 8px; cursor: pointer; transition: background-color 0.2s, transform 0.15s; }
+    .btn-submit:hover { background-color: #3d9140; transform: translateY(-1px); }
+    .conditions-section { width: 40%; background: #f0f7f2; border: 1px solid #c8e0d0; border-radius: 12px; padding: 18px 22px; align-self: flex-start; margin-top: 30px; }
+    .conditions-section h4 { margin: 0 0 10px; font-size: 0.92rem; color: #2d5a3d; }
+    .conditions-section ol { padding-left: 18px; color: #374151; line-height: 2; margin: 0; font-size: 0.85rem; }
+  </style>
+</head>
+<body>
+
+  <div th:replace="~{fragments/navbar :: navbar}"></div>
+
+  <p th:if="${msg}" id="msgBox"
+     th:style="'background:' + ${bgColor} + '; color:' + ${textColor} + ';'">
+    <span th:utext="${msg}"></span>&nbsp;&nbsp;
+    <a href="/warehouses/" th:style="|color:${textColor}|">Show ALL Warehouses</a>
+    <span onclick="this.parentElement.style.display='none'"
+          style="position:absolute;right:14px;top:50%;transform:translateY(-50%);cursor:pointer;font-weight:bold;">✕</span>
+  </p>
+
+  <div class="page-wrapper">
+    <div class="form-section">
+      <h2>🏭 Create New Warehouse</h2>
+      <div class="form-card">
+        <form action="/warehouses/createWarehouse" method="post" id="warehouseForm">
+
+          <div class="section-title">Warehouse Details</div>
+          <div class="form-grid">
+            <div>
+              <label for="warehouseId">Warehouse ID</label>
+              <input type="text" name="warehouseId" id="warehouseId" placeholder="e.g. MUMWH"
+                     th:value="${warehouseIdFromController != null} ? ${warehouseIdFromController} : ''"
+                     oninput="this.value = this.value.toUpperCase()" required />
+            </div>
+            <div>
+              <label for="warehouseName">Warehouse Name</label>
+              <input type="text" name="warehouseName" id="warehouseName" placeholder="Enter warehouse name"
+                     th:value="${warehouseNameFromController != null} ? ${warehouseNameFromController} : ''"
+                     required />
+            </div>
+            <div class="full-span">
+              <label for="warehouseAddress">Warehouse Address</label>
+              <input type="text" name="warehouseAddress" id="warehouseAddress" placeholder="Enter full address"
+                     th:value="${warehouseAddressFromController != null} ? ${warehouseAddressFromController} : ''"
+                     required />
+            </div>
+            <div>
+              <label for="warehouseStatus">Warehouse Status</label>
+              <select name="warehouseStatus" id="warehouseStatus" required>
+                <option value="">— Select Status —</option>
+                <option value="Active">Active</option>
+                <option value="Disabled">Disabled</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="button-row">
+            <button type="submit" class="btn-submit">✔ Create Warehouse</button>
+          </div>
+
+        </form>
+      </div>
+    </div>
+
+    <div class="conditions-section">
+      <h4>📌 Conditions for creating warehouse</h4>
+      <ol>
+        <li>Warehouse ID must be in <strong>upper case</strong>.</li>
+        <li>Warehouse ID can contain only alphabets, numbers and hyphens.</li>
+        <li>Warehouse ID must be at least 3 characters long.</li>
+        <li>Warehouse ID must be maximum 5 characters only.</li>
+        <li>Warehouse Name must be at least 5 characters long.</li>
+        <li>Warehouse Name must be maximum 15 characters only.</li>
+        <li>Warehouse Address must be at least 10 characters long.</li>
+        <li>Warehouse Address must be maximum 50 characters only.</li>
+        <li><strong>Active</strong> = Shipping is allowed. <strong>Disabled</strong> = Not allowed.</li>
+      </ol>
+    </div>
+  </div>
+
+  <script>
+    window.addEventListener("load", function () {
+      var msg = document.getElementById("msgBox");
+      if (msg) setTimeout(() => msg.style.display = "none", 10000);
+    });
+
+    document.getElementById("warehouseForm").addEventListener("submit", function (event) {
+      let warehouseId      = document.getElementById("warehouseId").value;
+      let warehouseName    = document.getElementById("warehouseName").value;
+      let warehouseAddress = document.getElementById("warehouseAddress").value;
+      let errorMessage = '', isError = false;
+
+      if (/\s/.test(warehouseId)) {
+        isError = true; errorMessage += "Warehouse ID cannot contain whitespaces!\n";
+      } else if (warehouseId.length < 3) {
+        isError = true; errorMessage += "Warehouse ID must be at least 3 characters!\n";
+      } else if (warehouseId.length > 5) {
+        isError = true; errorMessage += "Warehouse ID must be maximum 5 characters!\n";
+      }
+
+      if (warehouseName.trim().length < 5) {
+        isError = true; errorMessage += "Warehouse Name must be at least 5 characters!\n";
+      } else if (warehouseName.trim().length > 15) {
+        isError = true; errorMessage += "Warehouse Name must be maximum 15 characters!\n";
+      }
+
+      if (warehouseAddress.trim().length < 10) {
+        isError = true; errorMessage += "Warehouse Address must be at least 10 characters!\n";
+      } else if (warehouseAddress.trim().length > 50) {
+        isError = true; errorMessage += "Warehouse Address must be maximum 50 characters!\n";
+      }
+
+      if (isError) { alert(errorMessage); event.preventDefault(); }
+    });
+  </script>
+</body>
+</html>

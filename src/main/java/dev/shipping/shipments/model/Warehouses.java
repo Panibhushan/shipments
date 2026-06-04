@@ -38,6 +38,9 @@ public class Warehouses {
 
 	@Column(name = "warehouse_status")
 	private String warehouseStatus;
+	
+	@Column(name = "address_id")
+	private String addressId;
 
 	@PrePersist
 	public void generateFields() {
@@ -104,11 +107,20 @@ public class Warehouses {
 		this.warehouseAddress = warehouseAddress;
 	}
 
+	public String getAddressId() {
+		return addressId;
+	}
+
+	public void setAddressId(String addressId) {
+		this.addressId = addressId;
+	}
+
 	@Override
 	public String toString() {
 		return "Warehouses [warehouseId=" + warehouseId + ", warehouseName=" + warehouseName + ", warehouseAddress="
 				+ warehouseAddress + ", createdAt=" + createdAt + ", modifiedAt=" + modifiedAt + ", warehouseStatus="
-				+ warehouseStatus + "]";
+				+ warehouseStatus + ", addressId=" + addressId + "]";
 	}
+ 
 
 }

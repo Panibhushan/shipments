@@ -1,5 +1,6 @@
 package dev.shipping.shipments.service;
 
+import dev.shipping.shipments.model.Address;
 import dev.shipping.shipments.model.CustomerWarehouses;
 import dev.shipping.shipments.model.Customers;
 import dev.shipping.shipments.model.Inventory;
@@ -7,6 +8,7 @@ import dev.shipping.shipments.model.Items;
 import dev.shipping.shipments.model.ShipmentLines;
 import dev.shipping.shipments.model.Shipments;
 import dev.shipping.shipments.model.Warehouses;
+import dev.shipping.shipments.repo.AddressRepository;
 import dev.shipping.shipments.repo.CustomerWarehousesRepository;
 import dev.shipping.shipments.repo.CustomersRepository;
 import dev.shipping.shipments.repo.InventoryRepository;
@@ -46,10 +48,14 @@ public class ShipmentsService {
 	private final SnsPublisherService snsService;
 	private final DynamoDbService dynamoDbService;
 	private final SqsSenderService sqsService;
+	private final ShipmentLinesService shipmentLinesService;
+	private final AddressRepository addressRepo;
 
 	public ShipmentsService(ShipmentsRepository shipmentsRepo, CustomersRepository customersRepo,
-			CustomerWarehousesRepository customerWarehousesRepo, WarehousesRepository warehousesRepo, InventoryRepository inventoryRepo,
-			ShipmentLinesRepository shipmentLinesRepo, DynamoDbService dynamoDbService, SnsPublisherService snsService, SqsSenderService sqsService) {
+			CustomerWarehousesRepository customerWarehousesRepo, WarehousesRepository warehousesRepo,
+			InventoryRepository inventoryRepo, ShipmentLinesRepository shipmentLinesRepo,
+			DynamoDbService dynamoDbService, SnsPublisherService snsService, SqsSenderService sqsService,
+			ShipmentLinesService shipmentLinesService, AddressRepository addressRepo) {
 		this.shipmentsRepo = shipmentsRepo;
 		this.customersRepo = customersRepo;
 		this.customerWarehousesRepo = customerWarehousesRepo;
@@ -59,6 +65,8 @@ public class ShipmentsService {
 		this.dynamoDbService = dynamoDbService;
 		this.snsService = snsService;
 		this.sqsService = sqsService;
+		this.shipmentLinesService = shipmentLinesService;
+		this.addressRepo = addressRepo;
 	}
 
 	// ─────────────────────────────────────────────
@@ -68,11 +76,10 @@ public class ShipmentsService {
 	public List<Shipments> getAllShipments() {
 		return shipmentsRepo.findAll();
 	}
-	
+
 	public List<Shipments> getAllShipmentsByCreatedTimeDesc() {
 		return shipmentsRepo.getAllShipmentsByCreatedTimeDesc();
-	} 
-
+	}
 
 	/**
 	 * Returns null if not found — controller decides how to handle (redirect vs
@@ -149,8 +156,10 @@ public class ShipmentsService {
 		Shipments savedShipment = shipmentsRepo.save(shipment);
 
 		if (savedShipment != null && savedShipment.getShipmentId() != null) {
-			snsService.publishShipmentStatus(savedShipment.getShipmentId(), "1100 - CREATED", "SHIPMENT_CREATED_SUCCESSFULLY");
-			sqsService.sendShipmentStatus(savedShipment.getShipmentId(), "1100 - CREATED", "SHIPMENT_CREATED_SUCCESSFULLY");
+			snsService.publishShipmentStatus(savedShipment.getShipmentId(), "1100 - CREATED",
+					"SHIPMENT_CREATED_SUCCESSFULLY");
+			sqsService.sendShipmentStatus(savedShipment.getShipmentId(), "1100 - CREATED",
+					"SHIPMENT_CREATED_SUCCESSFULLY");
 			return new String[] { "SUCCESS", savedShipment.getShipmentId() };
 		} else {
 			return new String[] { "FAILED", "Failed to create shipment!" };
@@ -178,12 +187,12 @@ public class ShipmentsService {
 				.orElseThrow(() -> new RuntimeException("Shipment not found"));
 
 		Optional<Customers> singleCustomer = customersRepo.findById(customerId);
-		
-		//Immediately return if the customer is not found
+
+		// Immediately return if the customer is not found
 		if (!singleCustomer.isPresent()) {
-			return "Customer: "+customerId+" is not found !!" ;
+			return "Customer: " + customerId + " is not found !!";
 		}
-		
+
 		Optional<Warehouses> singleWarehouse = warehousesRepo.findById(warehouseId);
 		Optional<CustomerWarehouses> customerWarehouses = customerWarehousesRepo
 				.findById(customerId + "_" + warehouseId);
@@ -229,7 +238,9 @@ public class ShipmentsService {
 				shipment.setShipStatus(9000);
 				shipmentStatusAndDesc = "9000 - CANCELLED";
 				updatedStatus = "SHIPMENT_CANCELLED";
-				comment = "SHIPMENT_CANCELLED with reason: " + cancellationReason; // setting cancellation comment entered by user in dynamodb comment col
+				comment = "SHIPMENT_CANCELLED with reason: " + cancellationReason; // setting cancellation comment
+																					// entered by user in dynamodb
+																					// comment col
 				updatedQuantityFromInventoryWhenShipmentIsShippedOrCancelled(shipmentId, 9000);
 				break;
 			default:
@@ -238,7 +249,7 @@ public class ShipmentsService {
 
 			sqsService.sendShipmentStatus(shipmentId, shipmentStatusAndDesc, comment);
 			shipmentsRepo.save(shipment);
-			return updatedStatus  ;
+			return updatedStatus;
 
 		} else {
 			// Build a specific error message for each failed condition
@@ -274,36 +285,36 @@ public class ShipmentsService {
 	}
 
 	private void updatedQuantityFromInventoryWhenShipmentIsShippedOrCancelled(String shipmentId, int shipStatus) {
-		List<ShipmentLines> shipmentLines = shipmentLinesRepo.getShipmentLinesByShipmentId(shipmentId) ;
+		List<ShipmentLines> shipmentLines = shipmentLinesRepo.getShipmentLinesByShipmentId(shipmentId);
 		String itemCustomerUomWarehouseId, itemId, customerId, itemUom, warehouseId;
 		int shipmentLineQuantity, currentAllocatedQuantity, currentInventoryQuantity;
-		
+
 		String[] keyParts = shipmentId.split("_");
 
 		customerId = keyParts[0];
-		warehouseId = keyParts[1];		
-		
-		for(ShipmentLines sl : shipmentLines) {
+		warehouseId = keyParts[1];
+
+		for (ShipmentLines sl : shipmentLines) {
 			itemId = sl.getItemId();
 			itemUom = sl.getItemUom();
 			shipmentLineQuantity = sl.getQuantity();
-			
-			itemCustomerUomWarehouseId = itemId+"_"+customerId+"_"+itemUom+"_"+warehouseId;
-			
+
+			itemCustomerUomWarehouseId = itemId + "_" + customerId + "_" + itemUom + "_" + warehouseId;
+
 			Inventory inv = inventoryRepo.findById(itemCustomerUomWarehouseId).get();
-			
+
 			currentAllocatedQuantity = inv.getAllocatedQuantity();
 			inv.setAllocatedQuantity(currentAllocatedQuantity - shipmentLineQuantity);
-			
-			if(shipStatus == 1400) {
+
+			if (shipStatus == 1400) {
 				currentInventoryQuantity = inv.getQuantity();
 				inv.setQuantity(currentInventoryQuantity - shipmentLineQuantity);
 			}
-			
+
 			inventoryRepo.save(inv);
-			
-		}		
-		
+
+		}
+
 	}
 
 	public List<Shipments> getShipmentsByCustomer(String customerId) {
@@ -317,7 +328,8 @@ public class ShipmentsService {
 	// Dynamically setting the conditions and running a custom query in service
 	// instead of calling individual methods in Repo
 	@Transactional
-	public List<Shipments> getShipmentList(String shipmentId, String customerId, String warehouseId, String shipStatus) {
+	public List<Shipments> getShipmentList(String shipmentId, String customerId, String warehouseId,
+			String shipStatus) {
 
 		StringBuilder query = new StringBuilder("SELECT s FROM Shipments s");
 
@@ -361,8 +373,8 @@ public class ShipmentsService {
 	// Dynamically setting the conditions and running a custom query in service
 	// instead of calling individual methods in Repo
 	@Transactional
-	public List<Shipments> getShipmentListByAdvancedFilters(String shipmentId, String customerId, String warehouseId, String statusFrom,
-			String statusTo, String dateFrom, String dateTo, String itemId) {
+	public List<Shipments> getShipmentListByAdvancedFilters(String shipmentId, String customerId, String warehouseId,
+			String statusFrom, String statusTo, String dateFrom, String dateTo, String itemId) {
 
 		StringBuilder query = new StringBuilder("SELECT s FROM Shipments s");
 
@@ -441,17 +453,18 @@ public class ShipmentsService {
 
 	}
 
-	public List<Inventory> checkInventoryAvailability(String customerId, String itemId, String itemUom, int requestedQty) {
+	public List<Inventory> checkInventoryAvailability(String customerId, String itemId, String itemUom,
+			int requestedQty) {
 
 		List<Inventory> inventory = inventoryRepo.getInventoryDetailsToVerifyAvailability(customerId, itemId, itemUom);
-		List<Inventory> inventoryAvailableInWarehouses = new ArrayList<Inventory>();  
-		
-		for(Inventory inv : inventory) {
-			if(inv.getAvailableQuantity() >= requestedQty) {
+		List<Inventory> inventoryAvailableInWarehouses = new ArrayList<Inventory>();
+
+		for (Inventory inv : inventory) {
+			if (inv.getAvailableQuantity() >= requestedQty) {
 				inventoryAvailableInWarehouses.add(inv);
 			}
 		}
-		
+
 		return inventoryAvailableInWarehouses;
 	}
 
@@ -461,9 +474,105 @@ public class ShipmentsService {
 		int currentAllocatedQuantity = inv.getAllocatedQuantity();
 		inv.setAllocatedQuantity(currentAllocatedQuantity + shipmentLineQuantity);
 		inventoryRepo.save(inv);
-		//inventoryRepo.updateInventoryAllocatedQuantity(itemCustomerUomWarehouseId, shipmentLineQuantity);
-		
+		// inventoryRepo.updateInventoryAllocatedQuantity(itemCustomerUomWarehouseId,
+		// shipmentLineQuantity);
+
 	}
 
-	
+	public String createShipmentLines(String customerId, String warehouseId, String shipmentId,
+			List<ShipmentLines> lines) {
+
+		int shipmentLineNo = 0, quantity = 0;
+		String itemId = "NO_ITEM_ID", itemUom = "NO_ITEM_UOM", itemCustomerUomWarehouseId = null,
+				createdShipmentLineId = null;
+		for (ShipmentLines line : lines) {
+
+			shipmentLineNo = line.getLineNo();
+			itemId = line.getItemId();
+			itemUom = line.getItemUom();
+			quantity = line.getQuantity();
+
+			ShipmentLines shipmentLinesToCreate = new ShipmentLines();
+			shipmentLinesToCreate.setShipmentId(shipmentId);
+			shipmentLinesToCreate.setLineNo(shipmentLineNo);
+			shipmentLinesToCreate.setItemId(itemId);
+			shipmentLinesToCreate.setItemUom(itemUom);
+			shipmentLinesToCreate.setQuantity(quantity);
+			shipmentLinesToCreate.setShortageQuantity(0);
+
+			createdShipmentLineId = shipmentLinesService.createShipmentLines(shipmentLinesToCreate);
+
+			if (!(createdShipmentLineId == null)) {
+				System.out.println("SHIPMENT_LINE_CREATED_WITH_ID: " + createdShipmentLineId
+						+ "\nUPDATING INVENTORY_ALLOCATED_QTY");
+				itemCustomerUomWarehouseId = itemId + "_" + customerId + "_" + itemUom + "_" + warehouseId;
+				updateInventoryAllocatedQuantity(itemCustomerUomWarehouseId, quantity);
+			} else {
+				System.out.println("FAILED_TO_CREATE_SHIPMENT_LINE");
+				return "SHIPMENT_CREATEION_FAILED : FAILED_TO_CREATE_SHIPMENT_LINE FOR ITEM: " + itemId + ", UOM: "
+						+ itemUom + ", QTY: " + quantity;
+			}
+		}
+		return "SHIPMENT_LINES_CREATED_SUCCESSFULLY";
+	}
+
+	public void createAddress(String shipmentId, Address deliveryAddress) {
+
+		System.out.println("ShipmentsService createAddress():: deliveryAddress: " + deliveryAddress.toString());
+
+		Address address = new Address();
+
+		address.setAddress1(deliveryAddress.getAddress1());
+		address.setAddress2(deliveryAddress.getAddress2());
+		address.setCountry(deliveryAddress.getCountry());
+		address.setDistrict(deliveryAddress.getDistrict());
+		address.setTaluk(deliveryAddress.getTaluk());
+		address.setFirstName(deliveryAddress.getFirstName());
+		address.setLastName(deliveryAddress.getLastName());
+		address.setState(deliveryAddress.getState());
+		address.setZipCode(deliveryAddress.getZipCode());
+
+		String addressId = addressRepo.save(address).getAddressId();
+
+		if (!(addressId.isEmpty()) && addressId != null) {
+			Optional<Shipments> optShipment = shipmentsRepo.findById(shipmentId);
+
+			if (optShipment.isPresent()) {
+				Shipments shipment = optShipment.get();
+				shipment.setAddressId(addressId);
+				shipmentsRepo.save(shipment);
+			}
+
+		}
+
+	}
+
+	public Optional<Address> getShipingAddressById(String addressId) {
+		return addressRepo.findById(addressId);
+	}
+
+	public String getFormattedAddress(Address address) {
+		StringBuilder sb = new StringBuilder();
+
+		sb.append(address.getFirstName())
+		  .append(", ")
+		  .append(address.getLastName())
+		  .append("<br />")
+		  .append(address.getAddress1());
+
+		if (address.getAddress2() != null && !address.getAddress2().isBlank()) {
+		    sb.append("<br />").append(address.getAddress2());
+		}
+
+		sb.append("<br />")
+		  .append(address.getTaluk()).append(", ")
+		  .append(address.getDistrict()).append(", ")
+		  .append(address.getState()).append(", ")
+		  .append(address.getCountry()).append(" - ")
+		  .append(address.getZipCode());
+
+		String formattedAddress = sb.toString();
+		return formattedAddress;
+	}
+
 }
