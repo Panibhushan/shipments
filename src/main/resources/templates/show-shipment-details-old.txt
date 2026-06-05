@@ -120,7 +120,7 @@
 
   <div th:replace="~{fragments/navbar :: navbar}"></div>
 
-  <p th:if="${msg}" id="msgBox"
+  <p th:if="${msg}" id="msgBox" th:data-autohide="${autoHide}"
      th:style="'background:' + ${bgColor} + '; color:' + ${textColor} + ';'">
     <span th:utext="${msg}" style="white-space:pre-wrap;"></span>
     <span onclick="this.parentElement.style.display='none'"
@@ -133,6 +133,9 @@
       <h2>🚢 Shipment Details</h2>
     </div>
 
+      <input type="hidden" id="shipmentId__1" th:value="${shipment.shipmentId}" />
+
+
     <!-- ── INFO CARD ── -->
     <div class="details-card">
       <div class="section-title">Shipment Information</div>
@@ -140,7 +143,7 @@
 
         <div class="info-field">
           <div class="field-label">Shipment ID</div>
-          <div class="field-value" th:text="${shipment.shipmentId}">SHP-001</div>
+          <div class="field-value" th:text="${shipment.shipmentId}" >SHP-001</div>
         </div>
 
         <div class="info-field">
@@ -201,7 +204,7 @@
 
         <!-- PICK -->
         <form th:if="${shipment.shipStatus == 1100}"
-              th:action="@{/shipments/updateShipmentStatusFromInsideShipmentDetailsPage}" method="post">
+              th:action="@{/shipments/updateShipmentStatus}" method="post">
           <input type="hidden" name="shipmentId"  th:value="${shipment.shipmentId}" />
           <input type="hidden" name="shipStatus"  th:value="${shipment.shipStatus}" />
           <input type="hidden" name="customerId"  th:value="${shipment.customerId}" />
@@ -211,7 +214,7 @@
 
         <!-- PACK -->
         <form th:if="${shipment.shipStatus == 1200}"
-              th:action="@{/shipments/updateShipmentStatusFromInsideShipmentDetailsPage}" method="post">
+              th:action="@{/shipments/updateShipmentStatus}" method="post">
           <input type="hidden" name="shipmentId"  th:value="${shipment.shipmentId}" />
           <input type="hidden" name="shipStatus"  th:value="${shipment.shipStatus}" />
           <input type="hidden" name="customerId"  th:value="${shipment.customerId}" />
@@ -221,7 +224,7 @@
 
         <!-- SHIP -->
         <form th:if="${shipment.shipStatus == 1300}"
-              th:action="@{/shipments/updateShipmentStatusFromInsideShipmentDetailsPage}" method="post">
+              th:action="@{/shipments/updateShipmentStatus}" method="post">
           <input type="hidden" name="shipmentId"  th:value="${shipment.shipmentId}" />
           <input type="hidden" name="shipStatus"  th:value="${shipment.shipStatus}" />
           <input type="hidden" name="customerId"  th:value="${shipment.customerId}" />
@@ -260,7 +263,7 @@
         Cancellation Reason
       </label>
       <textarea id="cancelReasonInput" maxlength="60"
-                placeholder="Enter reason (6–60 characters)..."></textarea>
+                placeholder="Enter reason (6–60 characters)...">I want to Cancel this Shipment</textarea>
       <div id="cancelCharCount">0 / 60</div>
       <div id="cancelReasonError"></div>
 
@@ -273,7 +276,7 @@
 
   <!-- hidden cancel form submitted by JS -->
   <form id="cancelForm"
-        th:action="@{/shipments/updateShipmentStatusFromInsideShipmentDetailsPage}"
+        th:action="@{/shipments/updateShipmentStatus}"
         method="post" style="display:none;">
     <input type="hidden" name="shipmentId"       th:value="${shipment.shipmentId}" />
     <input type="hidden" name="shipStatus"        th:value="${shipment.shipStatus}" />
@@ -299,7 +302,7 @@
             <tr>
               <th>Shipment Status</th>
               <th>Event Date &amp; Time</th>
-              <th>Reason</th>
+              <th>Comments</th>
             </tr>
           </thead>
           <tbody id="auditTableBody"></tbody>
@@ -322,10 +325,21 @@
     });
 
     // ── msg box ──
-    window.addEventListener("load", function () {
-      var msg = document.getElementById("msgBox");
-      if (msg) setTimeout(() => msg.style.display = "none", 10000);
-    });
+   window.addEventListener("load", function () {
+	    const msg = document.getElementById("msgBox");
+	
+	    if (!msg) return;
+	
+	 	// this will tell whether to hide the msg after 10secs or to always show it
+	 	// if autoHide is set to true that means, shipment status is updated successfully so we can close the message orprevent the message in red ribbon to always show & not disapper after 10secs
+	 	// if autoHide is false, that means status update has failed due to some errors, so this msg will appear untill the page is refreshed or shipment details is reloaded
+	    const autoHide = msg.dataset.autohide === "true";
+	
+	    if (autoHide) {
+	        setTimeout(() => msg.style.display = "none", 10000);
+	    }
+    
+	});
 
     // ── disable buttons if needed ──
     document.addEventListener("DOMContentLoaded", function () {
@@ -374,44 +388,67 @@
     const shipmentId = /*[[${shipment.shipmentId}]]*/ '';
 
     function openAuditModal() {
-      openModal('auditModal');
-      const loading = document.getElementById('auditLoading');
-      const table   = document.getElementById('auditTable');
-      const tbody   = document.getElementById('auditTableBody');
 
-      loading.style.display = 'block';
-      table.style.display   = 'none';
-      tbody.innerHTML       = '';
+        openModal('auditModal');
 
-      fetch(`/shipments/showShipmentAuditDetails/${shipmentId}`, {
-        method: 'GET', headers: { 'Accept': 'application/json' }
-      })
-      .then(r => { if (!r.ok) throw new Error('Failed'); return r.json(); })
-      .then(data => {
-        loading.style.display = 'none';
-        if (!data || data.length === 0) {
-          loading.style.display = 'block';
-          loading.textContent   = 'No audit records found.';
-          return;
-        }
-        const statusLabels = { 1100:'1100 — Created', 1200:'1200 — Picked', 1300:'1300 — Packed', 1400:'1400 — Shipped', 9000:'9000 — Cancelled' };
-        const statusClass  = { 1100:'s-1100', 1200:'s-1200', 1300:'s-1300', 1400:'s-1400', 9000:'s-9000' };
-        data.forEach(row => {
-          const label = statusLabels[row.shipStatus] || row.shipStatus;
-          const cls   = statusClass[row.shipStatus]  || 's-1100';
-          tbody.innerHTML += `
-            <tr>
-              <td><span class="badge ${cls}">${label}</span></td>
-              <td>${row.eventDateTime ?? '—'}</td>
-              <td>${row.reason ?? '—'}</td>
-            </tr>`;
-        });
-        table.style.display = 'table';
-      })
-      .catch(() => {
+        const loading = document.getElementById('auditLoading');
+        const table   = document.getElementById('auditTable');
+        const tbody   = document.getElementById('auditTableBody');
+
         loading.style.display = 'block';
-        loading.textContent   = 'Error loading audit records. Please try again.';
-      });
+        loading.textContent   = 'Loading audit records...';
+
+        table.style.display = 'none';
+        tbody.innerHTML = '';
+
+        const shipmentId = document.getElementById('shipmentId__1').value;
+
+        fetch('/shipments/getShipmentAudit/' + shipmentId, {
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json'
+            }
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Failed to fetch audit details');
+            }
+            return response.json();
+        })
+        .then(data => {
+
+            loading.style.display = 'none';
+
+            if (!data || data.length === 0) {
+                loading.style.display = 'block';
+                loading.textContent = 'No audit records found.';
+                return;
+            }
+
+            data.forEach(row => {
+
+                const status  = row.shipmentStatus || '—';
+                const dateTime = row.eventDate || '—';
+                const comment  = row.comment || '—';
+
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${status}</td>
+                        <td>${dateTime}</td>
+                        <td>${comment}</td>
+                    </tr>
+                `;
+            });
+
+            table.style.display = 'table';
+        })
+        .catch(error => {
+
+            console.error(error);
+
+            loading.style.display = 'block';
+            loading.textContent = 'Error loading audit records.';
+        });
     }
 
     const auditBtn         = document.getElementById('openAuditModal');

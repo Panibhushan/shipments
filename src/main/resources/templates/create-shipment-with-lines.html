@@ -3,780 +3,693 @@
 <head>
 <link rel="stylesheet" th:href="@{/css/navbar.css}" />
 <style>
-*, *::before, *::after {
-	box-sizing: border-box;
-}
+*, *::before, *::after { box-sizing: border-box; }
 
 body {
-	font-family: Arial, sans-serif;
-	background: #f4f6f9;
-	margin: 0;
-	min-height: 100vh;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  margin: 0;
+  min-height: 100vh;
 }
 
 /* ── MSG BOX ── */
 #msgBox {
-	margin: 8px 24px 0;
-	padding: 10px 44px 10px 14px;
-	border-radius: 8px;
-	font-weight: bold;
-	position: relative;
-	display: none;
+  margin: 12px 24px 0;
+  padding: 12px 48px 12px 16px;
+  border-radius: 10px;
+  font-weight: 600;
+  position: relative;
+  display: none;
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,0.3);
 }
-
-#msgBox.show {
-	display: block;
-}
+#msgBox.show { display: block; animation: slideDown 0.3s ease-out; }
+@keyframes slideDown { from { opacity:0; transform:translateY(-10px); } to { opacity:1; transform:translateY(0); } }
 
 .page-wrapper {
-	display: flex;
-	gap: 20px;
-	padding: 14px 24px;
-	align-items: flex-start;
-	flex-wrap: wrap;
+  max-width: 1400px;
+  margin: 0 auto;
+  display: flex;
+  gap: 24px;
+  padding: 24px;
+  align-items: flex-start;
 }
 
 .form-card {
-	background: #fff;
-	border-radius: 12px;
-	padding: 20px 24px;
-	box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  background: #fff;
+  border-radius: 14px;
+  padding: 24px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.06);
+  border: 1px solid rgba(0,0,0,0.03);
+  transition: box-shadow 0.3s ease;
+}
+.form-card:hover { box-shadow: 0 8px 30px rgba(0,0,0,0.12), 0 1px 3px rgba(0,0,0,0.06); }
+
+/* ── COLLAPSIBLE SECTION ── */
+.collapsible-section {
+  margin-bottom: 20px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #fafbfc;
+  transition: all 0.3s ease;
+}
+
+.collapsible-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  cursor: pointer;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border-bottom: 1px solid #e5e7eb;
+  user-select: none;
+  transition: background 0.2s ease;
+}
+.collapsible-header:hover { background: linear-gradient(135deg, #f1f5f9 0%, #e8ecf1 100%); }
+
+.collapsible-header h3 {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #1e293b;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.collapsible-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  background: #e2e8f0;
+  color: #6a73b2;
+  font-weight: 700;
+  transition: transform 0.3s ease, background 0.2s ease;
+  flex-shrink: 0;
+}
+.collapsible-section.collapsed .collapsible-toggle { transform: rotate(-90deg); background: #cbd5e1; }
+
+.collapsible-content {
+  padding: 20px;
+  max-height: 2000px;
+  overflow: hidden;
+  transition: max-height 0.4s ease, padding 0.4s ease, opacity 0.3s ease;
+  opacity: 1;
+}
+.collapsible-section.collapsed .collapsible-content {
+  max-height: 0;
+  padding: 0 20px;
+  opacity: 0;
 }
 
 /* ── INPUTS ── */
-select, input[type=text], input[type=number], input[type=tel] {
-	width: 100%;
-	padding: 8px 10px;
-	margin: 0 0 2px;
-	border: 1.5px solid #cbd5e1;
-	border-radius: 7px;
-	font-size: 0.88rem;
-	font-family: Arial, sans-serif;
-	background: #f8fafc;
-	color: #1e293b;
-	outline: none;
-	transition: border-color 0.2s, box-shadow 0.2s;
+select, input[type=text], input[type=number], input[type=email], input[type=tel] {
+  width: 100%;
+  padding: 10px 12px;
+  margin: 0 0 2px;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-family: inherit;
+  background: #f8fafc;
+  color: #1e293b;
+  outline: none;
+  transition: all 0.2s ease;
 }
-
 select:focus, input:focus {
-	border-color: #6a73b2;
-	box-shadow: 0 0 0 3px rgba(106, 115, 178, 0.12);
-	background: #fff;
+  border-color: #6a73b2;
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(106,115,178,0.1);
 }
+select:disabled, input:disabled { opacity: 0.6; cursor: not-allowed; background: #f1f5f9; }
+input.input-error { border-color: #ef4444 !important; box-shadow: 0 0 0 3px rgba(239,68,68,0.1) !important; }
+input.input-ok { border-color: #10b981 !important; background: #f0fdf4; }
 
-select:disabled, input:disabled {
-	opacity: 0.55;
-	cursor: not-allowed;
-}
-
-input.input-error {
-	border-color: #ed4758 !important;
-	box-shadow: 0 0 0 3px rgba(237, 71, 88, 0.1) !important;
-}
-
-input.input-ok {
-	border-color: #4CAF50 !important;
-}
-
-/* ── SECTION TITLE ── */
+/* ── LABELS & SECTIONS ── */
 .section-title {
-	font-size: 0.68rem;
-	font-weight: 700;
-	text-transform: uppercase;
-	letter-spacing: 0.1em;
-	color: #94a3b8;
-	margin: 16px 0 8px;
-	padding-bottom: 5px;
-	border-bottom: 1px solid #e2e8f0;
-}
-
-.section-title:first-child {
-	margin-top: 0;
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #64748b;
+  margin: 18px 0 12px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #e5e7eb;
 }
 
 label.field-label {
-	display: block;
-	font-size: 0.68rem;
-	font-weight: 700;
-	color: #94a3b8;
-	text-transform: uppercase;
-	letter-spacing: 0.06em;
-	margin-top: 8px;
-	margin-bottom: 3px;
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin: 10px 0 5px;
 }
 
-/* ── TWO-COL GRID ── */
-.form-grid-2 {
-	display: grid;
-	grid-template-columns: 1fr 1fr;
-	gap: 0 16px;
-}
-
-.form-grid-3 {
-	display: grid;
-	grid-template-columns: 1fr 1fr 1fr;
-	gap: 0 16px;
-}
-
-.full-span {
-	grid-column: 1/-1;
-}
+/* ── GRIDS ── */
+.form-grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0 16px; }
+.form-grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0 16px; }
+.full-span { grid-column: 1/-1; }
 
 /* ── ZIP ROW ── */
 .zip-row {
-	display: flex;
-	gap: 8px;
-	align-items: flex-end;
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
 }
-
-.zip-row input {
-	flex: 1;
-}
-
+.zip-row input { flex: 1; }
 .zip-row .btn-zip {
-	padding: 8px 14px;
-	background: #6a73b2;
-	color: #fff;
-	border: none;
-	border-radius: 7px;
-	cursor: pointer;
-	font-size: 0.82rem;
-	font-weight: 700;
-	white-space: nowrap;
-	transition: background 0.2s, transform 0.15s;
-	flex-shrink: 0;
+  padding: 10px 16px;
+  background: linear-gradient(135deg, #6a73b2 0%, #555fa0 100%);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.83rem;
+  font-weight: 700;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(106,115,178,0.25);
 }
-
 .zip-row .btn-zip:hover:not(:disabled) {
-	background: #555fa0;
-	transform: translateY(-1px);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(106,115,178,0.35);
 }
-
-.zip-row .btn-zip:disabled {
-	background: #b0b5d8;
-	cursor: not-allowed;
-}
+.zip-row .btn-zip:disabled { opacity: 0.6; cursor: not-allowed; }
 
 .zip-hint {
-	font-size: 0.72rem;
-	margin-top: 4px;
-	min-height: 16px;
-	font-weight: 600;
+  font-size: 0.73rem;
+  margin-top: 6px;
+  min-height: 18px;
+  font-weight: 600;
 }
-
-.zip-hint.error {
-	color: #ed4758;
-}
-
-.zip-hint.ok {
-	color: #4CAF50;
-}
-
-.zip-hint.loading {
-	color: #6a73b2;
-}
+.zip-hint.error { color: #ef4444; }
+.zip-hint.ok { color: #10b981; }
+.zip-hint.loading { color: #6a73b2; }
 
 /* ── SHIPMENT LINES TABLE ── */
-.lines-table-wrap {
-	overflow-x: auto;
-	margin-top: 8px;
-}
-
+.lines-table-wrap { overflow-x: auto; margin-top: 12px; }
 table.lines-table {
-	width: 100%;
-	border-collapse: collapse;
-	min-width: 500px;
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 500px;
 }
-
 table.lines-table th {
-	font-size: 0.68rem;
-	font-weight: 700;
-	text-transform: uppercase;
-	letter-spacing: 0.07em;
-	color: #94a3b8;
-	padding: 6px 8px;
-	background: #f1f5f9;
-	border-bottom: 1.5px solid #e2e8f0;
-	white-space: nowrap;
-	text-align: center;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #64748b;
+  padding: 10px;
+  background: linear-gradient(135deg, #f1f5f9 0%, #e8ecf1 100%);
+  border-bottom: 2px solid #e5e7eb;
+  text-align: center;
 }
-
 table.lines-table td {
-	padding: 5px 6px;
-	border-bottom: 0.5px solid #f1f5f9;
-	vertical-align: middle;
+  padding: 8px;
+  border-bottom: 1px solid #f1f5f9;
+  vertical-align: middle;
 }
-
-table.lines-table tr:last-child td {
-	border-bottom: none;
-}
-
-table.lines-table input, table.lines-table select {
-	margin: 0;
-	padding: 7px 9px;
-	font-size: 0.86rem;
-}
+table.lines-table tr:last-child td { border-bottom: none; }
+table.lines-table input, table.lines-table select { margin: 0; padding: 8px; font-size: 0.87rem; }
 
 .btn-add-line {
-	background: none;
-	border: 2px solid #4CAF50;
-	color: #4CAF50;
-	border-radius: 8px;
-	padding: 6px 14px;
-	font-size: 0.85rem;
-	font-weight: 700;
-	cursor: pointer;
-	display: flex;
-	align-items: center;
-	gap: 5px;
-	margin-top: 10px;
-	transition: background 0.15s;
+  background: none;
+  border: 2px solid #10b981;
+  color: #10b981;
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 12px;
+  transition: all 0.2s ease;
 }
-
-.btn-add-line:hover:not(:disabled) {
-	background: #f0faf0;
-}
-
-.btn-add-line:disabled {
-	opacity: 0.45;
-	cursor: not-allowed;
-}
+.btn-add-line:hover:not(:disabled) { background: #f0fdf4; transform: translateY(-1px); }
+.btn-add-line:disabled { opacity: 0.5; cursor: not-allowed; }
 
 .btn-del-line {
-	background: none;
-	border: none;
-	color: #e74c3c;
-	cursor: pointer;
-	padding: 4px 7px;
-	border-radius: 6px;
-	font-size: 1.1rem;
-	transition: background 0.15s;
-	line-height: 1;
+  background: none;
+  border: none;
+  color: #ef4444;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 6px;
+  font-size: 1.1rem;
+  transition: all 0.15s ease;
+  line-height: 1;
 }
-
-.btn-del-line:hover {
-	background: #fef2f2;
-}
+.btn-del-line:hover { background: #fee2e2; }
 
 /* ── BUTTONS ── */
 .button-row {
-	margin-top: 18px;
-	padding-top: 14px;
-	border-top: 1px solid #e2e8f0;
-	display: flex;
-	gap: 10px;
-	flex-wrap: wrap;
-	align-items: center;
-}
-
-.btn-submit {
-	background-color: #4CAF50;
-	color: #fff;
-	font-weight: 700;
-	font-size: 0.9rem;
-	padding: 10px 26px;
-	border: none;
-	border-radius: 8px;
-	cursor: pointer;
-	transition: background-color 0.2s, transform 0.15s;
-}
-
-.btn-submit:hover:not(:disabled) {
-	background-color: #3d9140;
-	transform: translateY(-1px);
-}
-
-.btn-submit:disabled {
-	background-color: #aaa;
-	cursor: not-allowed;
-	transform: none;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1.5px solid #e5e7eb;
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
 }
 
 .btn-check {
-	background-color: #6a73b2;
-	color: #fff;
-	font-weight: 700;
-	font-size: 0.9rem;
-	padding: 10px 26px;
-	border: none;
-	border-radius: 8px;
-	cursor: pointer;
-	transition: background-color 0.2s;
+  background: linear-gradient(135deg, #6a73b2 0%, #555fa0 100%);
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.9rem;
+  padding: 11px 28px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(106,115,178,0.25);
+}
+.btn-check:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(106,115,178,0.35); }
+.btn-check:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.btn-submit {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.9rem;
+  padding: 11px 28px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(16,185,129,0.25);
+  position: relative;
+}
+.btn-submit:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(16,185,129,0.35); }
+.btn-submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
-.btn-check:hover:not(:disabled) {
-	background-color: #555d9a;
+/* Tooltip on disabled submit button */
+.btn-submit-wrapper {
+  position: relative;
+  display: inline-block;
+}
+.tooltip-hint {
+  visibility: hidden;
+  opacity: 0;
+  background: #1e293b;
+  color: #fff;
+  padding: 8px 12px;
+  border-radius: 7px;
+  font-size: 0.76rem;
+  white-space: nowrap;
+  position: absolute;
+  bottom: 120%;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+  font-weight: 600;
+}
+.tooltip-hint::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-top-color: #1e293b;
 }
 
-.btn-check:disabled {
-	background-color: #aaa;
-	cursor: not-allowed;
+.btn-submit:disabled:hover ~ .tooltip-hint,
+.btn-submit:disabled:focus ~ .tooltip-hint {
+  visibility: visible;
+  opacity: 1;
 }
 
 .btn-reset {
-	background: none;
-	border: 1.5px solid #e74c3c;
-	color: #e74c3c;
-	font-weight: 700;
-	font-size: 0.85rem;
-	padding: 8px 18px;
-	border-radius: 8px;
-	cursor: pointer;
-	transition: background 0.15s;
+  background: none;
+  border: 1.5px solid #ef4444;
+  color: #ef4444;
+  font-weight: 700;
+  font-size: 0.85rem;
+  padding: 8px 18px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
-
-.btn-reset:hover {
-	background: #fef2f2;
-}
+.btn-reset:hover { background: #fee2e2; }
 
 /* ── LOCKED BANNER ── */
 .locked-banner {
-	display: flex;
-	align-items: center;
-	gap: 10px;
-	background: #fffbeb;
-	border: 1px solid #fde68a;
-	border-radius: 8px;
-	padding: 8px 14px;
-	margin-bottom: 14px;
-	font-size: 0.82rem;
-	color: #92400e;
-	font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border: 1px solid #fcd34d;
+  border-radius: 10px;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  font-size: 0.83rem;
+  color: #92400e;
+  font-weight: 600;
 }
+.locked-banner span {
+  cursor: pointer;
+  color: #ea580c;
+  padding: 4px 8px;
+  border-radius: 5px;
+  transition: background 0.2s ease;
+}
+.locked-banner span:hover { background: rgba(234,88,12,0.1); }
 
-/* ── WAREHOUSE CARDS ── */
-.wh-selection-wrap {
-	margin-top: 20px;
-}
-
-.wh-selection-card {
-	padding: 20px 24px;
-}
-
-.wh-selection-card h3 {
-	margin: 0 0 3px;
-	font-size: 0.95rem;
-	font-weight: 700;
-	color: #1e293b;
-}
-
-.wh-selection-card .sub {
-	font-size: 0.8rem;
-	color: #64748b;
-	margin: 0 0 18px;
-}
+/* ── WAREHOUSE & INVENTORY ── */
+.wh-selection-wrap { margin-top: 24px; }
+.wh-selection-card { padding: 24px; }
+.wh-selection-card h3 { margin: 0 0 4px; font-size: 1rem; font-weight: 700; color: #1e293b; }
+.wh-selection-card .sub { font-size: 0.82rem; color: #64748b; margin: 0 0 18px; line-height: 1.6; }
 
 .wh-radio-card {
-	border: 1.5px solid #cbd5e1;
-	border-radius: 10px;
-	margin-bottom: 12px;
-	overflow: hidden;
-	cursor: pointer;
-	transition: border-color 0.18s;
-	background: #f8fafc;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  margin-bottom: 14px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: #fafbfc;
 }
-
-.wh-radio-card:hover {
-	border-color: #6a73b2;
-}
-
-.wh-radio-card.selected {
-	border-color: #4CAF50;
-	background: #fff;
-}
+.wh-radio-card:hover { border-color: #6a73b2; box-shadow: 0 4px 12px rgba(106,115,178,0.15); }
+.wh-radio-card.selected { border-color: #10b981; background: #f0fdf4; box-shadow: 0 4px 12px rgba(16,185,129,0.15); }
 
 .wh-card-header {
-	display: flex;
-	align-items: center;
-	gap: 10px;
-	padding: 10px 14px;
-	border-bottom: 0.5px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-bottom: 1px solid #e5e7eb;
 }
-
 .wh-card-header input[type=radio] {
-	width: 16px;
-	height: 16px;
-	min-width: 16px;
-	margin: 0;
-	cursor: pointer;
-	accent-color: #4CAF50;
-	flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: #10b981;
+  flex-shrink: 0;
 }
+.wh-card-title { font-size: 0.93rem; font-weight: 700; color: #1e293b; }
+.wh-card-id { font-size: 0.78rem; color: #64748b; margin-left: 6px; }
+.wh-badge-ok { font-size: 0.73rem; padding: 3px 10px; border-radius: 20px; font-weight: 700; background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; margin-left: auto; }
 
-.wh-card-title {
-	font-size: 0.92rem;
-	font-weight: 700;
-	color: #1e293b;
-}
+.wh-items-table { width: 100%; border-collapse: collapse; }
+.wh-items-table td { padding: 10px 16px; font-size: 0.85rem; border-bottom: 1px solid #f1f5f9; color: #374151; }
+.wh-items-table tr:last-child td { border-bottom: none; }
 
-.wh-card-id {
-	font-size: 0.78rem;
-	font-weight: 400;
-	color: #64748b;
-	margin-left: 4px;
-}
-
-.wh-badge-ok {
-	font-size: 0.72rem;
-	padding: 2px 9px;
-	border-radius: 20px;
-	font-weight: 700;
-	background: #e8f5e9;
-	color: #27500A;
-	border: 1px solid #C0DD97;
-	margin-left: auto;
-}
-
-.wh-items-table {
-	width: 100%;
-	border-collapse: collapse;
-}
-
-.wh-items-table td {
-	padding: 7px 14px;
-	font-size: 0.83rem;
-	border-bottom: 0.5px solid #f1f5f9;
-	color: #374151;
-}
-
-.wh-items-table tr:last-child td {
-	border-bottom: none;
-}
-
-.wh-items-table td:first-child {
-	color: #94a3b8;
-	font-size: 0.72rem;
-	font-weight: 700;
-	text-transform: uppercase;
-	letter-spacing: 0.06em;
-	width: 60px;
-}
-
-.item-pill {
-	display: inline-block;
-	padding: 2px 9px;
-	border-radius: 20px;
-	font-size: 0.75rem;
-	font-weight: 700;
-}
-
-.pill-item {
-	background: #e8eaf6;
-	color: #3949ab;
-	border: 1px solid #b3b9e8;
-}
-
-.pill-uom {
-	background: #e3f2fd;
-	color: #1565c0;
-	border: 1px solid #90caf9;
-	margin-left: 4px;
-}
-
-.pill-avail {
-	background: #e8f5e9;
-	color: #2e7d32;
-	border: 1px solid #a5d6a7;
-	margin-left: 8px;
-}
-
-.pill-req {
-	background: #f3f4f6;
-	color: #374151;
-	border: 1px solid #d1d5db;
-	margin-left: 4px;
-}
+.item-pill { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 0.76rem; font-weight: 700; margin-right: 4px; }
+.pill-item { background: #e8eaf6; color: #3949ab; border: 1px solid #b3b9e8; }
+.pill-uom { background: #e3f2fd; color: #1565c0; border: 1px solid #90caf9; }
+.pill-req { background: #f3f4f6; color: #374151; border: 1px solid #d1d5db; }
+.pill-avail { background: #dcfce7; color: #166534; border: 1px solid #bbf7d0; }
 
 .no-inv-card {
-	margin-top: 20px;
-	background: #fef2f2;
-	border: 1.5px solid #fecaca;
-	border-radius: 12px;
-	padding: 20px 24px;
+  background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+  border: 1.5px solid #fca5a5;
+  border-radius: 12px;
+  padding: 24px;
+  margin-top: 20px;
 }
-
-.no-inv-card .ni-icon {
-	font-size: 1.8rem;
-	margin-bottom: 8px;
-}
-
-.no-inv-card h3 {
-	margin: 0 0 6px;
-	font-size: 0.95rem;
-	font-weight: 700;
-	color: #991b1b;
-}
-
-.no-inv-card p {
-	margin: 0;
-	font-size: 0.85rem;
-	color: #7f1d1d;
-	line-height: 1.6;
-}
+.no-inv-card .ni-icon { font-size: 2rem; margin-bottom: 10px; }
+.no-inv-card h3 { margin: 0 0 8px; font-size: 0.95rem; font-weight: 700; color: #991b1b; }
+.no-inv-card p { margin: 0; font-size: 0.85rem; color: #7f1d1d; line-height: 1.6; }
 
 .btn-view-inventory {
-	background-color: #f1f5f9;
-	color: #374151;
-	border: 1.5px solid #cbd5e1;
-	font-weight: 700;
-	font-size: 0.88rem;
-	padding: 9px 20px;
-	border-radius: 8px;
-	cursor: pointer;
-	text-decoration: none;
-	transition: background-color 0.2s;
-	display: inline-block;
-	margin-top: 10px;
+  background: linear-gradient(135deg, #f1f5f9 0%, #e8ecf1 100%);
+  color: #374151;
+  border: 1.5px solid #cbd5e1;
+  font-weight: 700;
+  font-size: 0.85rem;
+  padding: 9px 18px;
+  border-radius: 8px;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-block;
+  margin-top: 12px;
+  transition: all 0.2s ease;
+}
+.btn-view-inventory:hover { background: linear-gradient(135deg, #e8ecf1 0%, #dce4ea 100%); }
+
+.loading-dots::after { content: ''; animation: dots 1.2s steps(3,end) infinite; }
+@keyframes dots {
+  0%   { content: ''; }
+  33%  { content: '.'; }
+  66%  { content: '..'; }
+  100% { content: '...'; }
 }
 
-.btn-view-inventory:hover {
-	background-color: #e2e8f0;
-}
-
-.loading-dots::after {
-	content: '';
-	animation: dots 1.2s steps(3, end) infinite;
-}
-
-@
-keyframes dots { 0% {
-	content: '';
-}
-
-33
-%
-{
-content
-:
-'.';
-}
-66
-%
-{
-content
-:
-'..';
-}
-100
-%
-{
-content
-:
-'...';
-}
-}
-
-/* ── CONDITIONS ── */
-.form-section {
-	flex: 3;
-	min-width: 0;
-}
-
+/* ── LAYOUT ── */
+.form-section { flex: 3; min-width: 0; }
 .conditions-section {
-	flex: 1;
-	min-width: 260px;
-	background: #f0f7f2;
-	border: 1px solid #c8e0d0;
-	border-radius: 12px;
-	padding: 18px 22px;
-	align-self: flex-start;
+  flex: 1;
+  min-width: 280px;
+  position: sticky;
+  top: 24px;
+}
+
+.conditions-section .form-card {
+  background: linear-gradient(135deg, #f0fdf4 0%, #f0f9ff 100%);
+  border: 2px solid #dcfce7;
 }
 
 .conditions-section h4 {
-	margin: 0 0 10px;
-	font-size: 0.92rem;
-	color: #2d5a3d;
+  margin: 0 0 14px;
+  font-size: 0.95rem;
+  color: #166534;
+  font-weight: 700;
 }
 
 .conditions-section ol {
-	padding-left: 18px;
-	color: #374151;
-	line-height: 2;
-	margin: 0;
-	font-size: 0.85rem;
+  padding-left: 20px;
+  color: #374151;
+  line-height: 2;
+  margin: 0;
+  font-size: 0.82rem;
 }
 
 .helper-link {
-	font-size: 0.78rem;
-	color: #6a73b2;
-	text-decoration: none;
-	margin-top: 4px;
-	display: inline-block;
+  font-size: 0.78rem;
+  color: #6a73b2;
+  text-decoration: none;
+  margin-top: 4px;
+  display: inline-block;
+  transition: color 0.2s ease;
+}
+.helper-link:hover { color: #555fa0; text-decoration: underline; }
+
+.page-title {
+  font-size: 1.1rem;
+  color: #1e293b;
+  font-weight: 800;
+  margin: 16px 24px 8px;
+  letter-spacing: -0.02em;
 }
 
-.helper-link:hover {
-	text-decoration: underline;
+@media (max-width: 900px) {
+  .page-wrapper { flex-direction: column; }
+  .conditions-section { position: relative; top: auto; min-width: auto; }
+  .form-grid-3 { grid-template-columns: 1fr 1fr; }
+}
+
+@media (max-width: 640px) {
+  .form-grid-2, .form-grid-3 { grid-template-columns: 1fr; }
+  .page-wrapper { padding: 16px; gap: 16px; }
+  .form-card { padding: 16px; }
 }
 </style>
 </head>
 <body>
 
-	<div th:replace="~{fragments/navbar :: navbar}"></div>
+  <div th:replace="~{fragments/navbar :: navbar}"></div>
 
-	<!-- ── RESPONSE MSG BOX ── -->
-	<div id="msgBox">
-		<span id="msgText"></span> <span
-			onclick="this.parentElement.classList.remove('show')"
-			style="position: absolute; right: 14px; top: 50%; transform: translateY(-50%); cursor: pointer; font-weight: bold;">✕</span>
-	</div>
+  <div id="msgBox">
+    <span id="msgText"></span>
+    <span onclick="this.parentElement.classList.remove('show')" style="position:absolute;right:14px;top:50%;transform:translateY(-50%);cursor:pointer;font-weight:bold;">✕</span>
+  </div>
 
-	<h2
-		style="font-size: 1rem; color: #1e293b; font-weight: 700; margin: 14px 24px 0;">🚢
-		Create New Shipment</h2>
+  <h1 class="page-title">🚢 Create New Shipment</h1>
 
-	<div class="page-wrapper">
-		<div class="form-section">
-			<div class="form-card" id="mainFormCard">
+  <div class="page-wrapper">
+    <div class="form-section">
+      <div class="form-card" id="mainFormCard">
 
-				<!-- locked banner -->
-				<div class="locked-banner" id="lockedBanner" style="display: none;">
-					<span>🔒</span> Form is locked while inventory results are shown. <span
-						style="cursor: pointer; color: #e74c3c; padding: 4px 7px;"
-						onclick="closeInventorySection()"> Close the inventory
-						section below to make changes. </span>
-				</div>
+        <!-- locked banner -->
+        <div class="locked-banner" id="lockedBanner" style="display:none;">
+          <span>🔒</span> Form is locked while inventory results are shown.
+          <span onclick="closeInventorySection()">Close to make changes.</span>
+        </div>
 
-				<!-- ── CUSTOMER ── -->
-				<div class="section-title">Customer</div>
-				<select name="customerId" id="customerId"
-					onchange="updateCheckBtn()" required>
-					<option value="">— Select Customer —</option>
-					<option value="TEST_CUST">TEST_CUST</option>
-					<option th:each="c : ${customers}" th:value="${c.customerId}"
-						th:text="|${c.customerId} = ${c.customerName}|"></option>
-				</select> <a href="/customers/goToCreateCustomerPage" class="helper-link">＋
-					Customer doesn't exist? Create one</a>
+        <!-- CUSTOMER SECTION -->
+        <div class="section-title">👤 Select Customer</div>
+        <select id="customerId" onchange="validateCreateBtn(); validateCheckBtn();" required>
+          <option value="">— Select a Customer —</option>         
+          <option value="TEST_CUST">— TEST_CUSTr —</option>
+          <option th:each="c : ${customers}" th:value="${c.customerId}"
+                  th:text="|${c.customerId} = ${c.customerName}|"></option>
+        </select>
+        <a href="/customers/goToCreateCustomerPage" class="helper-link">＋ Create new customer</a>
 
-				<!-- ── DELIVERY ADDRESS ── -->
-				<div class="section-title">Delivery Address</div>
+        <!-- ADDRESS SECTION (COLLAPSIBLE) -->
+        <div class="collapsible-section" id="addressSection">
+          <div class="collapsible-header" onclick="toggleSection('addressSection')">
+            <h3><span>📍 Delivery Address</span></h3>
+            <span class="collapsible-toggle">▶</span>
+          </div>
+          <div class="collapsible-content">
+            <div class="form-grid-2">
+              <div>
+                <label class="field-label">First Name</label>
+                <input type="text" id="firstName" name="firstName" placeholder="e.g. Ravi"
+                       onchange="validateCreateBtn()" oninput="validateCreateBtn()" />
+              </div>
+              <div>
+                <label class="field-label">Last Name</label>
+                <input type="text" id="lastName" name="lastName" placeholder="e.g. Kumar"
+                       onchange="validateCreateBtn()" oninput="validateCreateBtn()" />
+              </div>
+              <div>
+                <label class="field-label">Email</label>
+                <input type="email" id="email" name="email" placeholder="ravi@example.com"
+                       onchange="validateCreateBtn()" oninput="validateCreateBtn()" />
+              </div>
+              <div>
+                <label class="field-label">Phone</label>
+                <input type="tel" id="phone" name="phone" placeholder="+91 98765 43210"
+                       onchange="validateCreateBtn()" oninput="validateCreateBtn()" />
+              </div>
+              <div class="full-span">
+                <label class="field-label">Address Line 1</label>
+                <input type="text" id="address1" name="address1" placeholder="House/Flat No., Street Name"
+                       onchange="validateCreateBtn()" oninput="validateCreateBtn()" />
+              </div>
+              <div class="full-span">
+                <label class="field-label">Address Line 2 (Optional)</label>
+                <input type="text" id="address2" name="address2" placeholder="Landmark, Area"
+                       onchange="validateCreateBtn()" oninput="validateCreateBtn()" />
+              </div>
+            </div>
 
-				<div class="form-grid-2">
-					<div>
-						<label class="field-label">First Name</label> <input type="text"
-							id="firstName" name="firstName" placeholder="e.g. Pani" required/>
-					</div>
-					<div>
-						<label class="field-label">Last Name</label> <input type="text"
-							id="lastName" name="lastName" placeholder="e.g. VS" required/>
-					</div>
-					
-					<div>
-						<label class="field-label">Email</label> <input type="text"
-							id="email" name="email" placeholder="e.g. pani@gmail.com" required/>
-					</div>
-					<div>
-						<label class="field-label">Phone (+91)</label> <input type="tel" maxlength="10" pattern="[0-9]{10}"
-							id="phone" name="phone" placeholder="just enter the 10 digit phone number e.g. 9999999999" required/>
-					</div>
+            <label class="field-label" style="margin-top:16px;">PIN Code</label>
+            <div class="zip-row">
+              <input type="text" id="zipCode" maxlength="6"
+                     placeholder="6-digit PIN" style="text-align:center;"
+                     oninput="this.value=this.value.replace(/\D/g,'').slice(0,6);onZipInput();" />
+              <button type="button" class="btn-zip" id="btnZip" disabled onclick="checkZip()">
+                📍 Check Delivery
+              </button>
+            </div>
+            <div class="zip-hint" id="zipHint"></div>
 
-					<div class="full-span">
-						<label class="field-label">Address Line 1</label> <input
-							type="text" id="address1" name="address1"
-							placeholder="House / Flat No., Street Name" required />
-					</div>
-					<div class="full-span">
-						<label class="field-label">Address Line 2</label> <input
-							type="text" id="address2" name="address2"
-							placeholder="Landmark, Area (optional)" />
-					</div>
-				</div>
+            <div class="form-grid-3" style="margin-top:12px;">
+              <div>
+                <label class="field-label">District</label>
+                <input type="text" id="district" placeholder="Auto-filled"
+                       onchange="validateCreateBtn()" oninput="validateCreateBtn()" disabled />
+              </div>
+              <div>
+                <label class="field-label">Taluk</label>
+                <input type="text" id="taluk" placeholder="Auto-filled if available"
+                       onchange="validateCreateBtn()" oninput="validateCreateBtn()" disabled />
+              </div>
+              <div>
+                <label class="field-label">State</label>
+                <input type="text" id="state" placeholder="Auto-filled"
+                       onchange="validateCreateBtn()" oninput="validateCreateBtn()" disabled />
+              </div>
+              <div>
+                <label class="field-label">Country</label>
+                <input type="text" id="country" value="India" disabled/>
+              </div>
+            </div>
+          </div>
+        </div>
 
-				<!-- ZIP ROW -->
-				<label class="field-label">PIN Code</label>
-				<div class="zip-row">
-					<input type="text" id="zipCode" name="zipCode" maxlength="6"
-						placeholder="6-digit Indian PIN code"
-						oninput="this.value=this.value.replace(/\D/g,'').slice(0,6); onZipInput();" required/>
-					<button type="button" class="btn-zip" id="btnZip" disabled
-						onclick="checkZip()">📍 Check Delivery</button>
-				</div>
-				<div class="zip-hint" id="zipHint"></div>
+        <!-- SHIPMENT LINES SECTION (COLLAPSIBLE) -->
+        <div class="collapsible-section" id="linesSection">
+          <div class="collapsible-header" onclick="toggleSection('linesSection')">
+            <h3><span>📦 Shipment Lines</span></h3>
+            <span class="collapsible-toggle">▶</span>
+          </div>
+          <div class="collapsible-content">
+            <div class="lines-table-wrap">
+              <table class="lines-table" id="linesTable">
+                <thead>
+                  <tr>
+                    <th style="width:140px;">Item ID</th>
+                    <th style="width:120px;">UOM</th>
+                    <th style="width:100px;">Qty</th>
+                    <th style="width:40px;"></th>
+                  </tr>
+                </thead>
+                <tbody id="linesBody"></tbody>
+              </table>
+            </div>
+            <button type="button" class="btn-add-line" id="btnAddLine" onclick="addLine()">
+              <span style="font-size:1.2rem;font-weight:900;">＋</span> Add Line
+            </button>
+          </div>
+        </div>
 
-				<!-- auto-populated + editable address fields -->
-				<div class="form-grid-3" style="margin-top: 8px;">
-					<div>
-						<label class="field-label">District</label> <input type="text"
-							id="district" name="district" placeholder="Auto-filled" disabled />
-					</div>
-					<div>
-						<label class="field-label">Taluk / Tehsil</label> <input
-							type="text" id="taluk" name="taluk"
-							placeholder="Auto-filled if available" disabled/>
-					</div>
-					<div>
-						<label class="field-label">State</label> <input type="text"
-							id="state" name="state" placeholder="Auto-filled" disabled />
-					</div>
-					<div>
-						<label class="field-label">Country</label> <input type="text"
-							id="country" name="country" value="India" disabled/>
-					</div>
-				</div>
+        <!-- CHECK INVENTORY & ERROR DIV -->
+        <div class="button-row">
+          <button type="button" class="btn-check" id="btnCheck" disabled onclick="checkInventory()">
+            🔍 Check Inventory Availability
+          </button>
+        </div>
+      </div>
 
-				<!-- ── SHIPMENT LINES ── -->
-				<div class="section-title">Shipment Lines</div>
-				<div class="lines-table-wrap">
-					<table class="lines-table" id="linesTable">
-						<thead>
-							<tr>
-								<th style="width: 120px;">Item ID</th>
-								<th style="width: 110px;">UOM</th>
-								<th style="width: 90px;">Qty</th>
-								<th style="width: 36px;"></th>
-							</tr>
-						</thead>
-						<tbody id="linesBody"></tbody>
-					</table>
-				</div>
-				<button type="button" class="btn-add-line" id="btnAddLine"
-					onclick="addLine()">
-					<span style="font-size: 1.1rem; font-weight: 900;">＋</span> Add
-					Line
-				</button>
+      <div id="errorMsg" class="wh-selection-wrap" style="display:none;"></div>
+      <div id="whSelectionWrap" class="wh-selection-wrap" style="display:none;"></div>
+    </div>
 
-				<div class="button-row">
-					<button type="button" class="btn-check" id="btnCheck" disabled
-						onclick="checkInventory()">🔍 Check Inventory
-						Availability</button>
-				</div>
-			</div>
-			<!-- /mainFormCard -->
+    <div class="conditions-section">
+      <div class="form-card">
+        <h4>📋 Getting Started</h4>
+        <ol>
+          <li>Pick a <strong>Customer</strong>.</li>
+          <li>Expand and fill the <strong>Delivery Address</strong>. Use "Check Delivery" to auto-fill.</li>
+          <li>Expand <strong>Shipment Lines</strong> and add items with Item ID, UOM, and Quantity.</li>
+          <li>Click <strong>Check Inventory</strong> to find available warehouses.</li>
+          <li>Select a warehouse and click <strong>Create Shipment</strong>.</li>
+        </ol>
+      </div>
+    </div>
+  </div>
 
-			<div id="errorMsg" class="wh-selection-wrap" style="display: none;"></div>
-			<div id="whSelectionWrap" class="wh-selection-wrap"
-				style="display: none;"></div>
-		</div>
-		<!-- /form-section -->
-
-		<div class="conditions-section">
-			<h4>📌 Steps for creating shipment</h4>
-			<ol>
-				<li>Select a <strong>Customer</strong>.
-				</li>
-				<li>Fill in the <strong>Delivery Address</strong>. Enter the
-					6-digit PIN and click <em>Check Delivery</em> to auto-fill
-					District, State, and Country.
-				</li>
-				<li>Enter Item details (Item ID, UOM, Quantity).</li>
-				<li>Click <em>Add Line</em> for multiple items. Click ❌ to
-					remove a line.
-				</li>
-				<li>Each line must have a <strong>unique Item + UOM</strong>
-					combination.
-				</li>
-				<li>Click <em>Check Inventory Availability</em> to see eligible
-					warehouses.
-				</li>
-				<li>Select a warehouse and click <em>Create Shipment</em>.
-				</li>
-			</ol>
-		</div>
-	</div>
-
-	<script>
+  <script>
     const UOM_OPTIONS = ["EACH","MTR","CMTR","PAIR"];
     let lineCount   = 0;
     let formLocked  = false;
+
+    /* ══ TOGGLE COLLAPSIBLE ══ */
+    function toggleSection(sectionId) {
+      const section = document.getElementById(sectionId);
+      section.classList.toggle('collapsed');
+      localStorage.setItem(sectionId, section.classList.contains('collapsed') ? 'collapsed' : 'expanded');
+    }
+
+    // load saved state
+    window.addEventListener('load', () => {
+      ['addressSection', 'linesSection'].forEach(id => {
+        const section = document.getElementById(id);
+        if (localStorage.getItem(id) === 'collapsed') {
+          section.classList.add('collapsed');
+        }
+      });
+    });
 
     /* ══ LINE MANAGEMENT ══ */
     function uomSelectHtml() {
@@ -793,42 +706,29 @@ content
         <td>
           <input type="hidden" name="shipmentLineId[${ln}]" id="slid-${ln}" value="">
           <input type="text" style="text-align:center;" name="itemId[${ln}]" id="item-${ln}"
-                 placeholder="e.g. SKU-001"
-                 oninput="this.value=this.value.toUpperCase();updateLineId(${ln})">
+                 placeholder="e.g. SKU-001" 
+                 oninput="this.value=this.value.toUpperCase();updateLineId(${ln});validateCheckBtn();">
         </td>
-        <td><select name="itemUom[${ln}]" id="uom-${ln}">${uomSelectHtml()}</select></td>
+        <td><select name="itemUom[${ln}]" id="uom-${ln}" oninput="validateCheckBtn();">${uomSelectHtml()}</select></td>
         <td><input type="number" style="text-align:center;" name="quantity[${ln}]" id="quantity-${ln}"
-                   min="1" placeholder="0" oninput="updateCheckBtn()"></td>
+                   min="1" placeholder="0" oninput="validateCheckBtn();"></td>
         <td style="text-align:center;">
-          ${ln > 1 ? `<button type="button" class="btn-del-line" onclick="deleteLine(${ln})" title="Remove line">❌</button>` : ''}
+          ${ln > 1 ? `<button type="button" class="btn-del-line" onclick="deleteLine(${ln});validateCheckBtn();">❌</button>` : ''}
         </td>`;
       tbody.appendChild(tr);
-      updateCheckBtn();
+      validateCheckBtn();
     }
 
     function deleteLine(ln) {
       const row = document.getElementById('line-' + ln);
       if (row) row.remove();
-      updateCheckBtn();
+      validateCreateBtn();
     }
 
     function updateLineId(ln) {
       const item = document.getElementById('item-' + ln).value.trim().toUpperCase();
       document.getElementById('slid-' + ln).value = item ? 'SHP-TBD-' + String(ln).padStart(2,'0') : '';
-      updateCheckBtn();
-    }
-
-    function updateCheckBtn() {
-      if (formLocked) { document.getElementById('btnCheck').disabled = true; return; }
-      const rows   = document.querySelectorAll('#linesBody tr');
-      const cust   = document.getElementById('customerId').value;
-      const hasLines = rows.length > 0;
-      const allFilled = hasLines && [...rows].every(tr => {
-        const item = tr.querySelector('input[name^="itemId"]').value.trim();
-        const qty  = tr.querySelector('input[type=number]').value;
-        return item && qty && parseInt(qty) > 0;
-      });
-      document.getElementById('btnCheck').disabled = !(allFilled && cust);
+      validateCheckBtn();
     }
 
     function getLines() {
@@ -853,9 +753,9 @@ content
             <div style="display:flex;justify-content:space-between;align-items:flex-start;">
               <div>
                 <div class="ni-icon">⚠️</div>
-                ${duplicates.map(d => `<div>Duplicate Item+UOM: <b>${d.itemId}</b> + <b>${d.itemUom}</b>. Each combination must be unique.</div>`).join('')}
+                ${duplicates.map(d => `<div>Duplicate: <b>${d.itemId}</b> + <b>${d.itemUom}</b></div>`).join('')}
               </div>
-              <button class="btn-reset" onclick="closeInventorySection()" style="margin-left:16px;flex-shrink:0;">✕ Close & edit</button>
+              <button class="btn-reset" onclick="closeInventorySection()">✕ Close</button>
             </div>
           </div>`;
         lockForm();
@@ -863,6 +763,75 @@ content
       }
       document.getElementById('errorMsg').innerHTML = '';
       return lines;
+    }
+
+    /* ══ VALIDATE BOTH BUTTONS ══ */
+    function validateCheckBtn() {
+      const custId = document.getElementById('customerId').value;
+      const rows   = document.querySelectorAll('#linesBody tr');
+      
+      const itemsOk = rows.length > 0 && [...rows].every(tr => {
+        const item = tr.querySelector('input[name^="itemId"]').value.trim();
+        const qty  = tr.querySelector('input[type=number]').value;
+        return item && qty && parseInt(qty) > 0;
+      });
+
+      const btnCheck = document.getElementById('btnCheck');
+      if (btnCheck) {
+        const shouldEnable = custId && itemsOk && !formLocked;
+        btnCheck.disabled = !shouldEnable;
+        console.log('validateCheckBtn:', { custId, itemsOk, formLocked, shouldEnable, disabled: btnCheck.disabled });
+      }
+    }
+
+    function validateCreateBtn() {
+      const custId    = document.getElementById('customerId').value;
+      const firstName = document.getElementById('firstName').value.trim();
+      const lastName  = document.getElementById('lastName').value.trim();
+      const email     = document.getElementById('email').value.trim();
+      const phone     = document.getElementById('phone').value.trim();
+      const address1  = document.getElementById('address1').value.trim();
+      const district  = document.getElementById('district').value.trim();
+      const taluk     = document.getElementById('taluk').value.trim();
+      const state     = document.getElementById('state').value.trim();
+      const zip     = document.getElementById('zipCode').value.trim();
+
+      const rows = document.querySelectorAll('#linesBody tr');
+      const hasItems = rows.length > 0 && [...rows].every(tr => {
+        const item = tr.querySelector('input[name^="itemId"]').value.trim();
+        const qty  = tr.querySelector('input[type=number]').value;
+        return item && qty && parseInt(qty) > 0;
+      });
+
+      const custOk = !!custId;
+      const addrOk = custId && firstName && lastName && email && phone && address1 && district && taluk && state && zip;
+      const itemsOk = hasItems;
+
+      const btnCreate = document.querySelector('.btn-submit');
+      if (!btnCreate) return;
+
+      const canEnable = custOk && addrOk && itemsOk;
+      btnCreate.disabled = !canEnable;
+
+      // build hint message
+      let hints = [];
+      if (!custOk) hints.push('Select Customer');
+      if (custId && !firstName) hints.push('First Name');
+      if (custId && !lastName) hints.push('Last Name');
+      if (custId && !email) hints.push('Email');
+      if (custId && !phone) hints.push('Phone');
+      if (custId && !address1) hints.push('Address 1');
+      if (custId && !district) hints.push('District');
+      if (custId && !taluk) hints.push('Taluk');
+      if (custId && !state) hints.push('State');
+      if (!itemsOk) hints.push('Item Details');
+
+      let tooltip = document.querySelector('.tooltip-hint');
+      if (tooltip) {
+        tooltip.textContent = hints.length > 0 ? '⚠ Missing: ' + hints.join(', ') : '';
+      }
+
+      validateCheckBtn();
     }
 
     /* ══ LOCK / UNLOCK ══ */
@@ -885,7 +854,8 @@ content
               .forEach(el => el.disabled = false);
       document.querySelectorAll('#linesBody .btn-del-line')
               .forEach(el => el.disabled = false);
-      updateCheckBtn();
+      validateCheckBtn();
+      validateCreateBtn();
     }
 
     /* ══ ZIP / PIN CODE ══ */
@@ -902,10 +872,9 @@ content
       const btn  = document.getElementById('btnZip');
 
       hint.className   = 'zip-hint loading';
-      hint.textContent = '⏳ Checking PIN code…';
+      hint.textContent = '⏳ Verifying…';
       btn.disabled     = true;
 
-      // clear previous auto-filled fields
       ['district','taluk','state'].forEach(id => {
         const el = document.getElementById(id);
         el.value = '';
@@ -914,40 +883,35 @@ content
       document.getElementById('country').value = 'India';
 
       try {
-        // India Post public API (free, no key required)
         const resp = await fetch(`https://api.postalpincode.in/pincode/${zip}`);
         const data = await resp.json();
 
-        const status = data[0]?.Status;
-        if (status !== 'Success' || !data[0]?.PostOffice?.length) {
+        if (data[0]?.Status !== 'Success' || !data[0]?.PostOffice?.length) {
           hint.className   = 'zip-hint error';
-          hint.textContent = '❌ Invalid PIN code or delivery not available for this area.';
+          hint.textContent = '❌ Invalid PIN or delivery not available';
           document.getElementById('zipCode').classList.add('input-error');
           btn.disabled = false;
           return;
         }
 
         const po = data[0].PostOffice[0];
-
-        // populate fields
         document.getElementById('district').value = po.District || '';
-        document.getElementById('taluk').value    = po.Taluk    || po.Block || '';
+        document.getElementById('taluk').value    = po.Taluk    || po.Division || '';
         document.getElementById('state').value    = po.State    || '';
-        document.getElementById('country').value  = 'India';
 
-        // mark fields as auto-filled
         ['district','taluk','state','country'].forEach(id => {
           document.getElementById(id).classList.add('input-ok');
         });
-        document.getElementById('zipCode').classList.remove('input-error');
         document.getElementById('zipCode').classList.add('input-ok');
 
         hint.className   = 'zip-hint ok';
-        hint.textContent = `✔ Delivery available — ${po.Name}, ${po.District}, ${po.State}`;
+        hint.textContent = `✔ ${po.District}, ${po.State}`;
+        validateCreateBtn();
+        validateCheckBtn();
 
       } catch (err) {
         hint.className   = 'zip-hint error';
-        hint.textContent = '❌ Could not verify PIN code. Please check your connection or fill manually.';
+        hint.textContent = '❌ Could not verify PIN code';
       }
 
       btn.disabled = false;
@@ -955,6 +919,9 @@ content
 
     /* ══ INVENTORY CHECK ══ */
     async function checkInventory() {
+    	
+      validateCreateBtn();
+        
       const lines = getLines();
       if (!lines) return;
 
@@ -965,7 +932,6 @@ content
       btn.disabled  = true;
       btn.innerHTML = '⏳ Checking<span class="loading-dots"></span>';
       wrap.style.display = 'none';
-      wrap.innerHTML     = '';
 
       try {
         const resp    = await fetch(`/shipments/checkInventoryAvailability?customerId=${encodeURIComponent(customerId)}`,
@@ -982,18 +948,20 @@ content
 
     function closeInventorySection() {
       document.getElementById('whSelectionWrap').style.display = 'none';
-      document.getElementById('whSelectionWrap').innerHTML     = '';
-      document.getElementById('errorMsg').style.display        = 'none';
-      document.getElementById('errorMsg').innerHTML            = '';
+      document.getElementById('errorMsg').style.display = 'none';
       unlockForm();
     }
 
     /* ══ RENDER WAREHOUSE CARDS ══ */
-    function renderWarehouseSelection(results, lines) {
+    function renderWarehouseSelection(results, lines) {  
+    	
+
+       validateCreateBtn();
+    	
       const wrap = document.getElementById('whSelectionWrap');
 
       if (!results || results.length === 0) {
-        wrap.innerHTML = noInvHtml('No warehouses have sufficient inventory to fulfil this shipment at the moment.');
+        wrap.innerHTML = noInvHtml('No warehouses have sufficient inventory.');
         wrap.style.display = 'block';
         return;
       }
@@ -1004,11 +972,10 @@ content
         byWh[r.warehouseId].items.push(r);
       });
 
-      const totalLines      = lines.length;
-      const fullWarehouses  = Object.values(byWh).filter(w => w.items.length === totalLines);
+      const fullWarehouses = Object.values(byWh).filter(w => w.items.length === lines.length);
 
       if (fullWarehouses.length === 0) {
-        wrap.innerHTML = noInvHtml('No single warehouse has sufficient stock for all shipment lines.');
+        wrap.innerHTML = noInvHtml('No single warehouse covers all lines.');
         wrap.style.display = 'block';
         return;
       }
@@ -1028,13 +995,12 @@ content
             </td></tr>`;
         });
         cardsHtml += `
-          <div class="wh-radio-card form-card" id="whcard-${wh.warehouseId}"
-               onclick="selectWarehouse('${wh.warehouseId}',this)">
+          <div class="wh-radio-card form-card" onclick="selectWarehouse('${wh.warehouseId}',this)">
             <div class="wh-card-header">
               <input type="radio" name="selectedWarehouse" id="${radioId}" value="${wh.warehouseId}"
-                onclick="event.stopPropagation();selectWarehouse('${wh.warehouseId}',document.getElementById('whcard-${wh.warehouseId}'))">
+                onclick="event.stopPropagation();selectWarehouse('${wh.warehouseId}',document.querySelector('[id=\"wh-card-${wh.warehouseId}\"]'))">
               <span class="wh-card-title">${wh.warehouseName} <span class="wh-card-id">(${wh.warehouseId})</span></span>
-              <span class="wh-badge-ok">✔ All lines covered</span>
+              <span class="wh-badge-ok">✔ All lines</span>
             </div>
             <table class="wh-items-table">${itemRows}</table>
           </div>`;
@@ -1042,19 +1008,29 @@ content
 
       wrap.innerHTML = `
         <div class="wh-selection-card form-card">
-          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px;">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
             <h3>📦 Select a Warehouse</h3>
-            <button class="btn-reset" onclick="closeInventorySection()">✕ Close & edit</button>
+            <button class="btn-reset" onclick="closeInventorySection()">✕ Close</button>
           </div>
-          <p class="sub">Each card shows available inventory per line. Select a warehouse and create the shipment.</p>
+          <p class="sub">Each card shows inventory per line. Select one and create the shipment.</p>
           ${cardsHtml}
-          <div class="button-row" style="margin-top:16px;padding-top:14px;border-top:1px solid #e2e8f0;">
-            <button type="button" class="btn-submit" id="btnCreate" disabled onclick="createShipment()">
-              ✔ Create Shipment
-            </button>
+          <div class="button-row" style="margin-top:18px;padding-top:16px;">
+            <div class="btn-submit-wrapper">
+              <button type="button" class="btn-submit" id="btnCreate" disabled onclick="createShipment()">
+                ✔ Create Shipment
+              </button>
+              <span class="tooltip-hint"></span>
+            </div>
           </div>
         </div>`;
       wrap.style.display = 'block';
+
+      // enable after warehouse selected
+      document.querySelectorAll('input[name="selectedWarehouse"]').forEach(radio => {
+        radio.addEventListener('change', () => {
+          document.getElementById('btnCreate').disabled = false;
+        });
+      });
     }
 
     function noInvHtml(msg) {
@@ -1066,7 +1042,7 @@ content
             <p>${msg}</p>
             <a class="btn-view-inventory" href="/inventory/">👁️ View Inventory</a>
           </div>
-          <button class="btn-reset" onclick="closeInventorySection()" style="margin-left:16px;flex-shrink:0;">✕ Close & edit</button>
+          <button class="btn-reset" onclick="closeInventorySection()" style="margin-left:16px;">✕ Close</button>
         </div>
       </div>`;
     }
@@ -1076,25 +1052,22 @@ content
       cardEl.classList.add('selected');
       const radio = document.getElementById('wh_radio_' + whId);
       if (radio) radio.checked = true;
-      const btn = document.getElementById('btnCreate');
-      if (btn) btn.disabled = false;
     }
 
     /* ══ CREATE SHIPMENT ══ */
     async function createShipment() {
       const customerId = document.getElementById('customerId').value;
       const checked    = document.querySelector('input[name="selectedWarehouse"]:checked');
-      if (!checked) { alert('Please select a warehouse.'); return; }
+      if (!checked) { alert('Select a warehouse.'); return; }
 
       const lines = getLines();
       if (!lines) return;
 
-      // collect delivery address
       const deliveryAddress = {
         firstName : document.getElementById('firstName').value.trim(),
         lastName  : document.getElementById('lastName').value.trim(),
-        email  : document.getElementById('email').value.trim(),
-        phone  : document.getElementById('phone').value.trim(),
+        email     : document.getElementById('email').value.trim(),
+        phone     : document.getElementById('phone').value.trim(),
         address1  : document.getElementById('address1').value.trim(),
         address2  : document.getElementById('address2').value.trim(),
         zipCode   : document.getElementById('zipCode').value.trim(),
@@ -1103,89 +1076,77 @@ content
         state     : document.getElementById('state').value.trim(),
         country   : document.getElementById('country').value.trim(),
       };
-      
-       const warehouseId = checked.value;
+
+      const warehouseId = checked.value;
       const btn = document.getElementById('btnCreate');
       btn.disabled  = true;
       btn.innerHTML = '⏳ Creating<span class="loading-dots"></span>';
-
-      const payload = { lines, deliveryAddress };
-
-      console.log(JSON.stringify(payload, null, 2));
 
       try {
         const resp = await fetch(
           `/shipments/createShipmentWithLines?customerId=${encodeURIComponent(customerId)}&warehouseId=${encodeURIComponent(warehouseId)}`,
           { method:'POST', headers:{'Content-Type':'application/json'},
-        	   body: JSON.stringify(payload) 
-          // body: JSON.stringify(lines ) 
-            }
+            body: JSON.stringify({ lines, deliveryAddress }) }
         );
 
-        const message = await resp.text(); // expects plain string from controller
+        const message = await resp.text();
 
         const msgBox  = document.getElementById('msgBox');
         const msgText = document.getElementById('msgText');
 
-        if (message.includes('SUCCESSFULLY_CREATED_SHIPMENT')) {
-          // SUCCESS — show green msg, clear form
-          msgBox.style.cssText = 'display:block; background:#d1fae5; color:#065f46; margin:8px 24px 0; padding:10px 44px 10px 14px; border-radius:8px; font-weight:bold; position:relative;';
-         
+        if (message.includes('SUCCESSFULLY_CREATED')) {
           const shipmentId = message.split('|')[1];
-
-          msgText.innerHTML =
-              `✔ Shipment created successfully.
-               <a href="/shipments/showShipmentDetails/${shipmentId}">
-                   View Shipment Details
-               </a>`;
+          msgBox.style.background = 'linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%)';
+          msgBox.style.color = '#065f46';
+          msgBox.style.border = '1px solid #6ee7b7';
+          msgText.innerHTML = `✔ Shipment created! <a href="/shipments/showShipmentDetails/${shipmentId}" style="color:#059669;font-weight:700;text-decoration:underline;">View Details</a>`;
           msgBox.classList.add('show');
           clearForm();
           closeInventorySection();
         } else {
-          // FAILURE — show red msg, retain all data
-          msgBox.style.cssText = 'display:block; background:#fee2e2; color:#991b1b; margin:8px 24px 0; padding:10px 44px 10px 14px; border-radius:8px; font-weight:bold; position:relative;';
-          msgText.textContent  = '❌ ' + message;
+          msgBox.style.background = 'linear-gradient(135deg, #fee2e2 0%, #fecaca 100%)';
+          msgBox.style.color = '#991b1b';
+          msgBox.style.border = '1px solid #fca5a5';
+          msgText.textContent = '❌ ' + message;
           msgBox.classList.add('show');
-          // unlock so user can adjust
           unlockForm();
           btn.disabled  = false;
           btn.innerHTML = '✔ Create Shipment';
         }
 
-        // scroll msg into view
         msgBox.scrollIntoView({ behavior:'smooth', block:'nearest' });
-        setTimeout(() => msgBox.classList.remove('show'), 12000);
+        setTimeout(() => msgBox.classList.remove('show'), 14000);
 
       } catch (err) {
         btn.disabled  = false;
         btn.innerHTML = '✔ Create Shipment';
-        alert('An unexpected error occurred. Please try again.');
+        alert('An error occurred. Please try again.');
       }
     }
 
-    /* ══ CLEAR FORM ══ */
     function clearForm() {
       document.getElementById('customerId').value = '';
-      ['firstName','lastName','address1','address2','zipCode',
+      ['firstName','lastName','email','phone','address1','address2','zipCode',
        'district','taluk','state'].forEach(id => {
         const el = document.getElementById(id);
-        el.value = '';
-        el.classList.remove('input-ok','input-error');
+        if (el) {
+          el.value = '';
+          el.classList.remove('input-ok','input-error');
+        }
       });
       document.getElementById('country').value = 'India';
       document.getElementById('zipHint').textContent = '';
-      document.getElementById('zipHint').className   = 'zip-hint';
-      document.getElementById('btnZip').disabled     = true;
+      document.getElementById('btnZip').disabled = true;
 
-      // reset lines — remove all and add one fresh
       document.getElementById('linesBody').innerHTML = '';
       lineCount = 0;
       addLine();
-      updateCheckBtn();
+      validateCreateBtn();
     }
 
-    // initialise with one line
     addLine();
+    validateCheckBtn();
+    validateCreateBtn();
   </script>
 </body>
 </html>

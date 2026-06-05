@@ -48,6 +48,9 @@ public class Address {
 	
 	@Column(name = "country")
     private String country = "INDIA";
+	
+	@Column(name = "country_shortform")
+    private String countryShortform = "INA";
 
 	// Store as LocalDateTime in DB (no timezone conversion by Hibernate)
 	@Column(name = "created_at", updatable = false, columnDefinition = "DATETIME(6)")
@@ -184,14 +187,22 @@ public class Address {
 		this.phone = phone;
 	}
 
+	public String getCountryShortform() {
+		return countryShortform;
+	}
+
+	public void setCountryShortform(String countryShortform) {
+		this.countryShortform = countryShortform;
+	}
+
 	@Override
 	public String toString() {
 		return "Address [addressId=" + addressId + ", firstName=" + firstName + ", lastName=" + lastName + ", email="
 				+ email + ", phone=" + phone + ", address1=" + address1 + ", address2=" + address2 + ", zipCode="
 				+ zipCode + ", district=" + district + ", taluk=" + taluk + ", state=" + state + ", country=" + country
-				+ ", createdAt=" + createdAt + ", modifiedAt=" + modifiedAt + "]";
+				+ ", countryShortform=" + countryShortform + ", createdAt=" + createdAt + ", modifiedAt=" + modifiedAt
+				+ "]";
 	}
-
 
 
 }

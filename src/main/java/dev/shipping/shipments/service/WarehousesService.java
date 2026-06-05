@@ -61,6 +61,10 @@ public class WarehousesService {
 		// MyResourceUtils.getFormattedDateTime(warehouse.getModifiedAt()));
 		model.addAttribute("options", List.of("Active", "Disabled"));
 		model.addAttribute("selectedStatus", warehouse.getWarehouseStatus());
+		
+		Optional<Address> address = getWarehouseAddressById(warehouse.getAddressId());
+		model.addAttribute("fullWarehouseAddress", getFormattedAddress(address.get()));
+
 	}
 
 	// ─────────────────────────────────────────────
@@ -237,6 +241,34 @@ public class WarehousesService {
 		}		
 		
 		return "WAREHOUSE_CREATED_SUCCESSFULLY_WITH_ID: "+warehouseId;
+	}
+	
+	public Optional<Address> getWarehouseAddressById(String addressId) {
+		return addressRepo.findById(addressId);
+	}
+
+	public String getFormattedAddress(Address address) {
+		StringBuilder sb = new StringBuilder();
+
+		sb.append(address.getFirstName())
+		  .append(", ")
+		  .append(address.getLastName())
+		  .append("<br />")
+		  .append(address.getAddress1());
+
+		if (address.getAddress2() != null && !address.getAddress2().isBlank()) {
+		    sb.append("<br />").append(address.getAddress2());
+		}
+
+		sb.append("<br />")
+		  .append(address.getTaluk()).append(", ")
+		  .append(address.getDistrict()).append(", ")
+		  .append(address.getState()).append(", ")
+		  .append(address.getCountry()).append(" - ")
+		  .append(address.getZipCode());
+
+		String formattedAddress = sb.toString();
+		return formattedAddress;
 	}
 
 }

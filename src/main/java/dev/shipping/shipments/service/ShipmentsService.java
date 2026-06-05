@@ -540,6 +540,7 @@ public class ShipmentsService {
 			if (optShipment.isPresent()) {
 				Shipments shipment = optShipment.get();
 				shipment.setAddressId(addressId);
+				shipment.setShipTo(deliveryAddress.getState()+", IN");
 				shipmentsRepo.save(shipment);
 			}
 

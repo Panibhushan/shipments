@@ -151,6 +151,8 @@ public class ShipmentsController {
 			model.addAttribute("warehouses", shipmentsService.getWarehousesByCustomer(customerId));
 		}
 
+		
+		
 		model.addAttribute("filterApplied", true);
 		return "show-all-shipments-with-advanced-filters";
 

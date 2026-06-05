@@ -158,7 +158,8 @@ public class WarehousesController {
 			return "redirect:/warehouses/";
 		}
 
-		warehousesService.populateEditWarehouseModel(warehouseId, model);
+		warehousesService.populateEditWarehouseModel(warehouseId, model);		
+		
 		return "edit-warehouse";
 	}
 

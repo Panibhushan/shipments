@@ -231,6 +231,13 @@ input:focus, select:focus {
 								th:value="${warehouse.warehouseAddress != null} ? ${warehouse.warehouseAddress} : ''"
 								required />
 						</div>
+						
+						<div class="full-span">
+							<label for="warehouseAddress">Full Warehouse Address</label> <span name="fullWarehouseAddress" id="fullWarehouseAddress" 
+								th:utext="${fullWarehouseAddress != null} ? ${fullWarehouseAddress} : ''"
+								></span>  
+						</div>
+						
 					</div>
 
 					<div class="button-row">

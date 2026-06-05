@@ -763,9 +763,11 @@ thead th.sort-asc .sort-arrow, thead th.sort-desc .sort-arrow {
 									class="sort-arrow">⇅</span></th>
 								<th class="sortable" data-col="2">Warehouse <span
 									class="sort-arrow">⇅</span></th>
-								<th class="sortable" data-col="3">Status <span
+									<th class="sortable" data-col="3">SHIP TO <span
 									class="sort-arrow">⇅</span></th>
-								<th class="sortable" data-col="4">Created At <span
+								<th class="sortable" data-col="4">Status <span
+									class="sort-arrow">⇅</span></th>
+								<th class="sortable" data-col="5">Created At <span
 									class="sort-arrow">⇅</span></th>
 								<th>Details</th>
 							</tr>
@@ -791,6 +793,10 @@ thead th.sort-asc .sort-arrow, thead th.sort-desc .sort-arrow {
 										th:href="@{'/warehouses/showWarehouseDetails/' + ${s.warehouseId}}"
 										th:text="${s.warehouseId}" onclick="event.stopPropagation()"></a>
 										<span class="cell-tip">View warehouse details</span>
+								</span></td>
+								
+								<td><span class="cell-link"> <span
+										th:text="${s.shipTo}"></span>
 								</span></td>
 
 								<td><span th:switch="${s.shipStatus}"> <span
@@ -935,9 +941,9 @@ thead th.sort-asc .sort-arrow, thead th.sort-desc .sort-arrow {
             const cellA = getCellText(a, col);
             const cellB = getCellText(b, col);
             let cmp;
-            if (col === 3) {
+            if (col === 4) {
               cmp = (statusOrder[cellA.split(' ')[0]] ?? 99) - (statusOrder[cellB.split(' ')[0]] ?? 99);
-            } else if (col === 4) {
+            } else if (col === 5) {
               const dA = new Date(cellA.trim().replace(' ','T'));
               const dB = new Date(cellB.trim().replace(' ','T'));
               cmp = (isNaN(dA)||isNaN(dB)) ? cellA.localeCompare(cellB) : dA - dB;
@@ -953,7 +959,7 @@ thead th.sort-asc .sort-arrow, thead th.sort-desc .sort-arrow {
       function getCellText(row, col) {
         const cell = row.querySelectorAll('td')[col];
         if (!cell) return '';
-        if (col === 4 && cell.dataset.sort) return cell.dataset.sort;
+        if (col === 5 && cell.dataset.sort) return cell.dataset.sort;
         const link = cell.querySelector('a');
         return (link ? link.textContent : cell.textContent).trim();
       }

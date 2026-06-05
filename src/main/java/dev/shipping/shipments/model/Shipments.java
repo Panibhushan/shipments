@@ -27,6 +27,9 @@ public class Shipments {
 	
 	@Column(name = "address_id")
 	private String addressId;
+	
+	@Column(name = "ship_to")
+	private String shipTo; // just state and two lettered country code
 
 	// Store as LocalDateTime in DB (no timezone conversion by Hibernate)
 	@Column(name = "created_at", updatable = false, columnDefinition = "DATETIME(6)")
@@ -118,12 +121,19 @@ public class Shipments {
 		this.addressId = addressId;
 	}
 
+	public String getShipTo() {
+		return shipTo;
+	}
+
+	public void setShipTo(String shipTo) {
+		this.shipTo = shipTo;
+	}
+
 	@Override
 	public String toString() {
 		return "Shipments [shipmentId=" + shipmentId + ", customerId=" + customerId + ", warehouseId=" + warehouseId
-				+ ", shipStatus=" + shipStatus + ", addressId=" + addressId + ", createdAt=" + createdAt
-				+ ", modifiedAt=" + modifiedAt + "]";
+				+ ", shipStatus=" + shipStatus + ", addressId=" + addressId + ", shipTo=" + shipTo + ", createdAt="
+				+ createdAt + ", modifiedAt=" + modifiedAt + "]";
 	}
-
 	 
 }
