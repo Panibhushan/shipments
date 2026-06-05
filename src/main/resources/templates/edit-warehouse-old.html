@@ -3,9 +3,7 @@
 <head>
 <link rel="stylesheet" th:href="@{/css/navbar.css}" />
 <style>
-*, *::before, *::after {
-	box-sizing: border-box;
-}
+*, *::before, *::after { box-sizing: border-box; }
 
 body {
 	font-family: Arial, sans-serif;
@@ -29,9 +27,7 @@ body {
 	align-items: flex-start;
 }
 
-.form-section {
-	width: 62%;
-}
+.form-section { width: 62%; }
 
 .form-section h2 {
 	font-size: 1rem;
@@ -44,7 +40,7 @@ body {
 	background: #fff;
 	border-radius: 12px;
 	padding: 20px 24px;
-	box-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
+	box-shadow: 0 2px 12px rgba(0,0,0,0.07);
 }
 
 .section-title {
@@ -58,9 +54,7 @@ body {
 	border-bottom: 1px solid #e2e8f0;
 }
 
-.section-title:first-child {
-	margin-top: 0;
-}
+.section-title:first-child { margin-top: 0; }
 
 .form-grid {
 	display: grid;
@@ -68,9 +62,7 @@ body {
 	gap: 0 24px;
 }
 
-.full-span {
-	grid-column: 1/-1;
-}
+.full-span { grid-column: 1/-1; }
 
 label {
 	display: block;
@@ -108,7 +100,7 @@ input[type=text], select {
 
 input:focus, select:focus {
 	border-color: #6a73b2;
-	box-shadow: 0 0 0 3px rgba(106, 115, 178, 0.15);
+	box-shadow: 0 0 0 3px rgba(106,115,178,0.15);
 	background: #fff;
 }
 
@@ -132,10 +124,7 @@ input:focus, select:focus {
 	transition: background-color 0.2s, transform 0.15s;
 }
 
-.btn-update:hover {
-	background-color: #555fa0;
-	transform: translateY(-1px);
-}
+.btn-update:hover { background-color: #555fa0; transform: translateY(-1px); }
 
 .btn-delete {
 	background-color: #ed4758;
@@ -149,11 +138,189 @@ input:focus, select:focus {
 	transition: background-color 0.2s, transform 0.15s;
 }
 
-.btn-delete:hover {
-	background-color: #c73444;
-	transform: translateY(-1px);
+.btn-delete:hover { background-color: #c73444; transform: translateY(-1px); }
+
+/* ── Full Address Card (display) ── */
+.full-address-card {
+	display: flex;
+	align-items: flex-start;
+	gap: 12px;
+	padding: 14px 16px;
+	border: 1.5px solid #c8e0d0;
+	border-radius: 10px;
+	background: #f0f7f2;
+	margin-top: 2px;
 }
 
+.address-icon { font-size: 1.3rem; flex-shrink: 0; margin-top: 2px; }
+
+.address-text {
+	flex: 1;
+	font-size: 0.9rem;
+	color: #1e293b;
+	line-height: 1.7;
+}
+
+.btn-edit-address {
+	flex-shrink: 0;
+	background: #fff;
+	border: 1.5px solid #6a73b2;
+	color: #6a73b2;
+	font-size: 0.78rem;
+	font-weight: 700;
+	padding: 5px 13px;
+	border-radius: 7px;
+	cursor: pointer;
+	transition: background 0.2s, color 0.2s, transform 0.15s;
+	white-space: nowrap;
+	align-self: center;
+}
+
+.btn-edit-address:hover { background: #6a73b2; color: #fff; transform: translateY(-1px); }
+
+/* ── Modal Overlay ── */
+.addr-modal-overlay {
+	display: none;
+	position: fixed;
+	inset: 0;
+	background: rgba(15,23,42,0.45);
+	z-index: 1000;
+	align-items: center;
+	justify-content: center;
+}
+
+.addr-modal-overlay.open {
+	display: flex;
+	animation: fadeOverlay 0.18s ease;
+}
+
+@keyframes fadeOverlay { from { opacity:0; } to { opacity:1; } }
+
+.addr-modal {
+	background: #fff;
+	border-radius: 14px;
+	width: 640px;
+	max-width: 96vw;
+	max-height: 90vh;
+	overflow-y: auto;
+	box-shadow: 0 20px 60px rgba(15,23,42,0.28);
+	animation: popIn 0.22s cubic-bezier(0.34,1.56,0.64,1);
+}
+
+@keyframes popIn {
+	from { opacity:0; transform: scale(0.92) translateY(16px); }
+	to   { opacity:1; transform: scale(1) translateY(0); }
+}
+
+.addr-modal-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 18px 22px 14px;
+	border-bottom: 1px solid #e2e8f0;
+}
+
+.addr-modal-header h3 {
+	margin: 0;
+	font-size: 1rem;
+	color: #1e293b;
+	font-weight: 700;
+}
+
+.addr-modal-close {
+	background: none;
+	border: none;
+	font-size: 1.2rem;
+	cursor: pointer;
+	color: #94a3b8;
+	line-height: 1;
+	padding: 3px 7px;
+	border-radius: 6px;
+	transition: background 0.15s, color 0.15s;
+}
+
+.addr-modal-close:hover { background: #f1f5f9; color: #1e293b; }
+
+.addr-modal-body { padding: 16px 22px 8px; }
+
+.address-edit-grid {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 0 22px;
+}
+
+.address-full-span { grid-column: 1/-1; }
+
+.addr-modal-footer {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 14px 22px 18px;
+	border-top: 1px solid #e2e8f0;
+}
+
+.addr-result-msg {
+	flex: 1;
+	font-size: 0.83rem;
+	font-weight: 600;
+	padding: 7px 12px;
+	border-radius: 7px;
+	display: none;
+}
+
+.addr-result-msg.success { background: #dcfce7; color: #166534; display: block; }
+.addr-result-msg.error   { background: #fee2e2; color: #991b1b; display: block; }
+
+.btn-cancel-address {
+	background: #f1f5f9;
+	border: 1.5px solid #cbd5e1;
+	color: #64748b;
+	font-size: 0.85rem;
+	font-weight: 700;
+	padding: 9px 18px;
+	border-radius: 8px;
+	cursor: pointer;
+	transition: background 0.2s, color 0.2s;
+	white-space: nowrap;
+}
+
+.btn-cancel-address:hover { background: #e2e8f0; color: #1e293b; }
+
+.btn-update-address {
+	background-color: #6a73b2;
+	color: #fff;
+	font-weight: 700;
+	font-size: 0.85rem;
+	padding: 9px 22px;
+	border: none;
+	border-radius: 8px;
+	cursor: pointer;
+	transition: background-color 0.2s, transform 0.15s, opacity 0.2s;
+	white-space: nowrap;
+	display: flex;
+	align-items: center;
+	gap: 6px;
+}
+
+.btn-update-address:disabled { opacity: 0.38; cursor: not-allowed; }
+.btn-update-address:not(:disabled):hover { background-color: #555fa0; transform: translateY(-1px); }
+
+.btn-spinner {
+	display: none;
+	width: 13px;
+	height: 13px;
+	border: 2px solid rgba(255,255,255,0.35);
+	border-top-color: #fff;
+	border-radius: 50%;
+	animation: spin 0.7s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.btn-update-address.loading .btn-spinner { display: inline-block; }
+.btn-update-address.loading .btn-label  { opacity: 0.7; }
+
+/* ── Conditions Panel ── */
 .conditions-section {
 	width: 38%;
 	background: #f0f7f2;
@@ -164,11 +331,7 @@ input:focus, select:focus {
 	margin-top: 30px;
 }
 
-.conditions-section h4 {
-	margin: 0 0 10px;
-	font-size: 0.92rem;
-	color: #2d5a3d;
-}
+.conditions-section h4 { margin: 0 0 10px; font-size: 0.92rem; color: #2d5a3d; }
 
 .conditions-section ol {
 	padding-left: 18px;
@@ -184,9 +347,9 @@ input:focus, select:focus {
 
 	<p th:if="${msg}" id="msgBox"
 		th:style="'background:' + ${bgColor} + '; color:' + ${textColor} + ';'">
-		<span th:utext="${msg}"></span> <span
-			onclick="this.parentElement.style.display='none'"
-			style="position: absolute; right: 14px; top: 50%; transform: translateY(-50%); cursor: pointer; font-weight: bold;">✕</span>
+		<span th:utext="${msg}"></span>
+		<span onclick="this.parentElement.style.display='none'"
+			style="position:absolute;right:14px;top:50%;transform:translateY(-50%);cursor:pointer;font-weight:bold;">✕</span>
 	</p>
 
 	<div class="page-wrapper">
@@ -195,21 +358,20 @@ input:focus, select:focus {
 			<div class="form-card">
 				<form action="/warehouses/updateWarehouse" method="post"
 					name="updateWarehouseDetails" id="updateWarehouseDetails">
-					<input type="hidden" name="warehouseId"
-						th:value="${warehouse.warehouseId}" />
+					<input type="hidden" name="warehouseId" th:value="${warehouse.warehouseId}" />
 
 					<div class="section-title">Warehouse Details</div>
 					<div class="form-grid">
 						<div>
 							<label>Warehouse ID</label>
 							<div class="readonly-value" th:text="${warehouse.warehouseId}">WH-001</div>
-							<label for="warehouseName">Warehouse Name</label> <input
-								type="text" name="warehouseName" id="warehouseName"
+							<label for="warehouseName">Warehouse Name</label>
+							<input type="text" name="warehouseName" id="warehouseName"
 								placeholder="Enter warehouse name"
 								th:value="${warehouse.warehouseName != null} ? ${warehouse.warehouseName} : ''"
-								required /> <label for="warehouseStatus">Warehouse
-								Status</label> <select name="warehouseStatus" id="warehouseStatus"
-								required>
+								required />
+							<label for="warehouseStatus">Warehouse Status</label>
+							<select name="warehouseStatus" id="warehouseStatus" required>
 								<option th:each="opt : ${options}" th:value="${opt}"
 									th:text="${opt}" th:selected="${opt == selectedStatus}"></option>
 							</select>
@@ -217,33 +379,45 @@ input:focus, select:focus {
 						<div>
 							<label>Created At</label>
 							<div class="readonly-value"
-								th:text="${formattedCreatedAt != null} ? ${formattedCreatedAt} : ${warehouse.createdAt}">28-MAY-2026
-								01:07:42 PM IST</div>
+								th:text="${formattedCreatedAt != null} ? ${formattedCreatedAt} : ${warehouse.createdAt}">
+								28-MAY-2026 01:07:42 PM IST</div>
 							<label>Modified At</label>
 							<div class="readonly-value"
-								th:text="${formattedModifiedAt != null} ? ${formattedModifiedAt} : ${warehouse.modifiedAt}">28-MAY-2026
-								01:07:42 PM IST</div>
+								th:text="${formattedModifiedAt != null} ? ${formattedModifiedAt} : ${warehouse.modifiedAt}">
+								28-MAY-2026 01:07:42 PM IST</div>
 						</div>
 						<div class="full-span">
-							<label for="warehouseAddress">Warehouse Address</label> <input
-								type="text" name="warehouseAddress" id="warehouseAddress"
+							<label for="warehouseAddress">Warehouse Address</label>
+							<input type="text" name="warehouseAddress" id="warehouseAddress"
 								placeholder="Enter warehouse address"
 								th:value="${warehouse.warehouseAddress != null} ? ${warehouse.warehouseAddress} : ''"
 								required />
 						</div>
+
+						<!-- Full Address Display Card -->
+						<div class="full-span">
+							<label>Full Warehouse Address</label>
+							<div class="full-address-card">
+								<div class="address-icon">📍</div>
+								<div class="address-text" id="fullWarehouseAddressDisplay"
+									th:utext="${fullWarehouseAddress != null} ? ${fullWarehouseAddress} : 'No address details on record.'">
+								</div>
+								<button type="button" class="btn-edit-address" onclick="openAddressModal()">
+									✏️ Edit
+								</button>
+							</div>
+						</div>
 					</div>
 
 					<div class="button-row">
-						<button type="button" class="btn-update"
-							onclick="submitIfChanged(event)">✔ Update Warehouse</button>
-						<button type="button" class="btn-delete" onclick="confirmDelete()">🗑
-							Delete Warehouse</button>
+						<button type="button" class="btn-update" onclick="submitIfChanged(event)">✔ Update Warehouse</button>
+						<button type="button" class="btn-delete" onclick="confirmDelete()">🗑 Delete Warehouse</button>
 					</div>
 				</form>
 
 				<form id="deleteWarehouseForm"
 					th:action="@{'/warehouses/deleteWarehouse/' + ${warehouse.warehouseId}}"
-					method="post" style="display: none;"></form>
+					method="post" style="display:none;"></form>
 			</div>
 		</div>
 
@@ -254,46 +428,232 @@ input:focus, select:focus {
 				<li>Warehouse Name must be maximum 15 characters only.</li>
 				<li>Warehouse Address must be at least 10 characters long.</li>
 				<li>Warehouse Address must be maximum 50 characters only.</li>
-				<li><strong>Active</strong> = Shipping is allowed. <strong>Disabled</strong>
-					= Not allowed.</li>
+				<li><strong>Active</strong> = Shipping is allowed. <strong>Disabled</strong> = Not allowed.</li>
 			</ol>
 		</div>
 	</div>
 
+	<!-- ══════════ Address Edit Modal ══════════ -->
+	<div class="addr-modal-overlay" id="addrModalOverlay" onclick="onOverlayClick(event)">
+		<div class="addr-modal" id="addrModal">
+			<div class="addr-modal-header">
+				<h3>📮 Edit Full Warehouse Address</h3>
+				<button type="button" class="addr-modal-close" onclick="closeAddressModal()" title="Close">✕</button>
+			</div>
+
+			<div class="addr-modal-body">
+				<div class="address-edit-grid">
+					<div>
+						<label for="firstName">First Name</label>
+						<input type="text" name="firstName" id="firstName" placeholder="First name"
+							th:value="${fullAddressToEdit.firstName != null} ? ${fullAddressToEdit.firstName} : ''" />
+					</div>
+					<div>
+						<label for="lastName">Last Name</label>
+						<input type="text" name="lastName" id="lastName" placeholder="Last name"
+							th:value="${fullAddressToEdit.lastName != null} ? ${fullAddressToEdit.lastName} : ''" />
+					</div>
+					<div>
+						<label for="phone">Phone</label>
+						<input type="text" name="phone" id="phone" placeholder="Phone number"
+							th:value="${fullAddressToEdit.phone != null} ? ${fullAddressToEdit.phone} : ''" />
+					</div>
+					<div>
+						<label for="email">Email</label>
+						<input type="text" name="email" id="email" placeholder="Email address"
+							th:value="${fullAddressToEdit.email != null} ? ${fullAddressToEdit.email} : ''" />
+					</div>
+					<div class="address-full-span">
+						<label for="address1">Address Line 1</label>
+						<input type="text" name="address1" id="address1" placeholder="Street address, building"
+							th:value="${fullAddressToEdit.address1 != null} ? ${fullAddressToEdit.address1} : ''" />
+					</div>
+					<div class="address-full-span">
+						<label for="address2">Address Line 2</label>
+						<input type="text" name="address2" id="address2" placeholder="Apartment, suite, unit (optional)"
+							th:value="${fullAddressToEdit.address2 != null} ? ${fullAddressToEdit.address2} : ''" />
+					</div>
+					<div>
+						<label for="taluk">Taluk</label>
+						<input type="text" name="taluk" id="taluk" placeholder="Taluk"
+							th:value="${fullAddressToEdit.taluk != null} ? ${fullAddressToEdit.taluk} : ''" />
+					</div>
+					<div>
+						<label for="district">District</label>
+						<input type="text" name="district" id="district" placeholder="District"
+							th:value="${fullAddressToEdit.district != null} ? ${fullAddressToEdit.district} : ''" />
+					</div>
+					<div>
+						<label for="state">State</label>
+						<input type="text" name="state" id="state" placeholder="State"
+							th:value="${fullAddressToEdit.state != null} ? ${fullAddressToEdit.state} : ''" />
+					</div>
+					<div>
+						<label for="zipCode">ZIP Code</label>
+						<input type="text" name="zipCode" id="zipCode" placeholder="ZIP / Postal code"
+							th:value="${fullAddressToEdit.zipCode != null} ? ${fullAddressToEdit.zipCode} : ''" />
+					</div>
+					<div class="address-full-span">
+						<label for="country">Country</label>
+						<input type="text" name="country" id="country" placeholder="Country"
+							th:value="${fullAddressToEdit.country != null} ? ${fullAddressToEdit.country} : ''" />
+					</div>
+				</div>
+			</div>
+
+			<div class="addr-modal-footer">
+				<div class="addr-result-msg" id="addrResultMsg"></div>
+				<button type="button" class="btn-cancel-address" onclick="closeAddressModal()">✕ Cancel</button>
+				<button type="button" class="btn-update-address" id="btnUpdateAddress"
+					disabled onclick="submitAddressUpdate()">
+					<span class="btn-spinner" id="addrSpinner"></span>
+					<span class="btn-label">✔ Update Address</span>
+				</button>
+			</div>
+		</div>
+	</div>
+
 	<script>
+    /* ── Page-level helpers ── */
     window.addEventListener("load", function () {
       var msg = document.getElementById("msgBox");
       if (msg) setTimeout(() => msg.style.display = "none", 10000);
     });
 
-    document.getElementById("updateWarehouseDetails").addEventListener("submit", function (event) {
-      let warehouseName    = document.getElementById("warehouseName").value;
-      let warehouseAddress = document.getElementById("warehouseAddress").value;
-      let errorMessage = '', isError = false;
-      if (warehouseName.trim().length < 5)  { isError = true; errorMessage += "Warehouse Name must be at least 5 characters!\n"; }
-      else if (warehouseName.trim().length > 15) { isError = true; errorMessage += "Warehouse Name must be maximum 15 characters!\n"; }
-      if (warehouseAddress.trim().length < 10) { isError = true; errorMessage += "Warehouse Address must be at least 10 characters!\n"; }
-      else if (warehouseAddress.trim().length > 50) { isError = true; errorMessage += "Warehouse Address must be maximum 50 characters!\n"; }
-      if (isError) { alert(errorMessage); event.preventDefault(); }
+    document.getElementById("updateWarehouseDetails").addEventListener("submit", function (e) {
+      let name = document.getElementById("warehouseName").value;
+      let addr = document.getElementById("warehouseAddress").value;
+      let err = '', bad = false;
+      if (name.trim().length < 5)  { bad = true; err += "Warehouse Name must be at least 5 characters!\n"; }
+      else if (name.trim().length > 15) { bad = true; err += "Warehouse Name must be maximum 15 characters!\n"; }
+      if (addr.trim().length < 10) { bad = true; err += "Warehouse Address must be at least 10 characters!\n"; }
+      else if (addr.trim().length > 50) { bad = true; err += "Warehouse Address must be maximum 50 characters!\n"; }
+      if (bad) { alert(err); e.preventDefault(); }
     });
 
     const originalValues = {};
-    document.querySelectorAll("#updateWarehouseDetails input, #updateWarehouseDetails select").forEach(field => {
-      originalValues[field.name] = field.value;
+    document.querySelectorAll("#updateWarehouseDetails input, #updateWarehouseDetails select").forEach(f => {
+      originalValues[f.name] = f.value;
     });
 
     function confirmDelete() {
-      if (confirm('Are you sure you want to delete this warehouse?')) document.getElementById("deleteWarehouseForm").submit();
+      if (confirm("Are you sure you want to delete this warehouse?"))
+        document.getElementById("deleteWarehouseForm").submit();
     }
 
-    function submitIfChanged(event) {
+    function submitIfChanged() {
       const hasChanges = Object.keys(originalValues).some(name => {
-        const field = document.querySelector(`#updateWarehouseDetails [name="${name}"]`);
-        return field && field.value !== originalValues[name];
+        const f = document.querySelector(`#updateWarehouseDetails [name="${name}"]`);
+        return f && f.value !== originalValues[name];
       });
-      if (!hasChanges) { alert("No changes were made — not updating."); return false; }
+      if (!hasChanges) { alert("No changes were made — not updating."); return; }
       document.getElementById("updateWarehouseDetails").submit();
+    }
+
+    /* ── Address Modal ── */
+    const addrFields = ["firstName","lastName","phone","email","address1","address2","taluk","district","state","zipCode","country"];
+    let addrOriginal = {};
+
+    function openAddressModal() {
+      // snapshot current values
+      addrOriginal = {};
+      addrFields.forEach(id => { addrOriginal[id] = document.getElementById(id).value; });
+
+      // reset state
+      document.getElementById("btnUpdateAddress").disabled = true;
+      const msg = document.getElementById("addrResultMsg");
+      msg.className = "addr-result-msg";
+      msg.textContent = "";
+
+      document.getElementById("addrModalOverlay").classList.add("open");
+      document.body.style.overflow = "hidden";
+
+      // wire up change detection
+      addrFields.forEach(id => {
+        document.getElementById(id).addEventListener("input", checkAddrChanges);
+      });
+    }
+
+    function closeAddressModal() {
+      document.getElementById("addrModalOverlay").classList.remove("open");
+      document.body.style.overflow = "";
+      addrFields.forEach(id => {
+        document.getElementById(id).removeEventListener("input", checkAddrChanges);
+      });
+    }
+
+    function onOverlayClick(e) {
+      if (e.target === document.getElementById("addrModalOverlay")) closeAddressModal();
+    }
+
+    function checkAddrChanges() {
+      const changed = addrFields.some(id => document.getElementById(id).value !== addrOriginal[id]);
+      document.getElementById("btnUpdateAddress").disabled = !changed;
+    }
+
+    function submitAddressUpdate() {
+      const btn = document.getElementById("btnUpdateAddress");
+      const msg = document.getElementById("addrResultMsg");
+
+      // build Address object as request params
+      const params = new URLSearchParams();
+             
+      let fieldMap = {};
+      
+      addrFields.forEach(id => {
+        // map camelCase id -> snake_case field name expected by Address model
+         fieldMap = {
+        		firstName : document.getElementById('firstName').value.trim(),
+                lastName  : document.getElementById('lastName').value.trim(),
+                email     : document.getElementById('email').value.trim(),
+                phone     : document.getElementById('phone').value.trim(),
+                address1  : document.getElementById('address1').value.trim(),
+                address2  : document.getElementById('address2').value.trim(),
+                zipCode   : document.getElementById('zipCode').value.trim(),
+                district  : document.getElementById('district').value.trim(),
+                taluk     : document.getElementById('taluk').value.trim(),
+                state     : document.getElementById('state').value.trim(),
+                country   : document.getElementById('country').value.trim(),
+        };
+        params.append(fieldMap[id], document.getElementById(id).value);
+      });
+
+      // loading state
+      btn.disabled = true;
+      btn.classList.add("loading");
+      msg.className = "addr-result-msg";
+      msg.textContent = "";
+      
+      console.log('fieldMap: ',fieldMap);
+
+     fetch("/address/updateAddress", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+       // body: params.toString()
+        body: JSON.stringify(fieldMap) 
+      })
+      .then(res => res.text())
+      .then(text => {
+        btn.classList.remove("loading");
+        const isSuccess = /success/i.test(text);
+        msg.className = "addr-result-msg " + (isSuccess ? "success" : "error");
+        msg.textContent = text;
+        if (isSuccess) {
+          // update snapshot so button disables again
+          addrOriginal = {};
+          addrFields.forEach(id => { addrOriginal[id] = document.getElementById(id).value; });
+          btn.disabled = true;
+        } else {
+          btn.disabled = false;
+        }
+      })
+      .catch(err => {
+        btn.classList.remove("loading");
+        btn.disabled = false;
+        msg.className = "addr-result-msg error";
+        msg.textContent = "Request failed: " + err.message;
+      });
     }
   </script>
 </body>
-</html>
+</html> 

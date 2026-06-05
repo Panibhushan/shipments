@@ -16,6 +16,7 @@ import dev.shipping.shipments.repo.ShipmentLinesRepository;
 import dev.shipping.shipments.repo.ShipmentsRepository;
 import dev.shipping.shipments.repo.WarehousesRepository;
 import jakarta.persistence.TypedQuery;
+import utils.MyCustomUtils;
 
 import org.jspecify.annotations.Nullable;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -50,12 +51,14 @@ public class ShipmentsService {
 	private final SqsSenderService sqsService;
 	private final ShipmentLinesService shipmentLinesService;
 	private final AddressRepository addressRepo;
+	private final AddressService addressService;
+
 
 	public ShipmentsService(ShipmentsRepository shipmentsRepo, CustomersRepository customersRepo,
 			CustomerWarehousesRepository customerWarehousesRepo, WarehousesRepository warehousesRepo,
 			InventoryRepository inventoryRepo, ShipmentLinesRepository shipmentLinesRepo,
 			DynamoDbService dynamoDbService, SnsPublisherService snsService, SqsSenderService sqsService,
-			ShipmentLinesService shipmentLinesService, AddressRepository addressRepo) {
+			ShipmentLinesService shipmentLinesService, AddressRepository addressRepo, AddressService addressService) {
 		this.shipmentsRepo = shipmentsRepo;
 		this.customersRepo = customersRepo;
 		this.customerWarehousesRepo = customerWarehousesRepo;
@@ -67,6 +70,7 @@ public class ShipmentsService {
 		this.sqsService = sqsService;
 		this.shipmentLinesService = shipmentLinesService;
 		this.addressRepo = addressRepo;
+		this.addressService = addressService;
 	}
 
 	// ─────────────────────────────────────────────
@@ -519,20 +523,10 @@ public class ShipmentsService {
 	public void createAddress(String shipmentId, Address deliveryAddress) {
 
 		System.out.println("ShipmentsService createAddress():: deliveryAddress: " + deliveryAddress.toString());
+		
+		Address address = MyCustomUtils.buildAddressFields(deliveryAddress);
 
-		Address address = new Address();
-
-		address.setAddress1(deliveryAddress.getAddress1());
-		address.setAddress2(deliveryAddress.getAddress2());
-		address.setCountry(deliveryAddress.getCountry());
-		address.setDistrict(deliveryAddress.getDistrict());
-		address.setTaluk(deliveryAddress.getTaluk());
-		address.setFirstName(deliveryAddress.getFirstName());
-		address.setLastName(deliveryAddress.getLastName());
-		address.setState(deliveryAddress.getState());
-		address.setZipCode(deliveryAddress.getZipCode());
-
-		String addressId = addressRepo.save(address).getAddressId();
+		String addressId = addressService.createAddress(address) ;
 
 		if (!(addressId.isEmpty()) && addressId != null) {
 			Optional<Shipments> optShipment = shipmentsRepo.findById(shipmentId);
@@ -540,7 +534,7 @@ public class ShipmentsService {
 			if (optShipment.isPresent()) {
 				Shipments shipment = optShipment.get();
 				shipment.setAddressId(addressId);
-				shipment.setShipTo(deliveryAddress.getState()+", IN");
+				shipment.setShipTo(deliveryAddress.getState() + ", IN");
 				shipmentsRepo.save(shipment);
 			}
 
@@ -551,29 +545,6 @@ public class ShipmentsService {
 	public Optional<Address> getShipingAddressById(String addressId) {
 		return addressRepo.findById(addressId);
 	}
-
-	public String getFormattedAddress(Address address) {
-		StringBuilder sb = new StringBuilder();
-
-		sb.append(address.getFirstName())
-		  .append(", ")
-		  .append(address.getLastName())
-		  .append("<br />")
-		  .append(address.getAddress1());
-
-		if (address.getAddress2() != null && !address.getAddress2().isBlank()) {
-		    sb.append("<br />").append(address.getAddress2());
-		}
-
-		sb.append("<br />")
-		  .append(address.getTaluk()).append(", ")
-		  .append(address.getDistrict()).append(", ")
-		  .append(address.getState()).append(", ")
-		  .append(address.getCountry()).append(" - ")
-		  .append(address.getZipCode());
-
-		String formattedAddress = sb.toString();
-		return formattedAddress;
-	}
+ 
 
 }

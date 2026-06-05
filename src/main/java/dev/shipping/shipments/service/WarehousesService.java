@@ -18,6 +18,7 @@ import dev.shipping.shipments.repo.WarehousesRepository;
 import dev.shipping.shipments.utils.MyResourceUtils;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
+import utils.MyCustomUtils;
 
 @Service
 public class WarehousesService {
@@ -26,12 +27,15 @@ public class WarehousesService {
 	private EntityManager entityManager;
 
 	private final WarehousesRepository warehousesRepo;
-	private final AddressRepository addressRepo;
+	private final AddressRepository addressRepo;		
+	private final AddressService addressService;
 
 
-	public WarehousesService(WarehousesRepository warehousesRepo, AddressRepository addressRepo) {
+	public WarehousesService(WarehousesRepository warehousesRepo, AddressRepository addressRepo, AddressService addressService) {
 		this.warehousesRepo = warehousesRepo;
 		this.addressRepo = addressRepo;
+		this.addressService = addressService;
+
 	}
 
 	// ─────────────────────────────────────────────
@@ -55,16 +59,12 @@ public class WarehousesService {
 				.orElseThrow(() -> new RuntimeException("Warehouse not found: " + warehouseId));
 
 		model.addAttribute("warehouse", warehouse);
-		// model.addAttribute("formattedCreatedAt",
-		// MyResourceUtils.getFormattedDateTime(warehouse.getCreatedAt()));
-		// model.addAttribute("formattedModifiedAt",
-		// MyResourceUtils.getFormattedDateTime(warehouse.getModifiedAt()));
 		model.addAttribute("options", List.of("Active", "Disabled"));
 		model.addAttribute("selectedStatus", warehouse.getWarehouseStatus());
-		
-		Optional<Address> address = getWarehouseAddressById(warehouse.getAddressId());
-		model.addAttribute("fullWarehouseAddress", getFormattedAddress(address.get()));
 
+		Optional<Address> address = getWarehouseAddressById(warehouse.getAddressId());
+		model.addAttribute("fullWarehouseAddress", MyCustomUtils.getFormattedAddress(address.get()));
+		model.addAttribute("fullAddressToEdit", address.get());
 	}
 
 	// ─────────────────────────────────────────────
@@ -79,7 +79,7 @@ public class WarehousesService {
 		List<String> errors = new ArrayList<>();
 		String warehouseId = warehouse.getWarehouseId();
 		String warehouseName = warehouse.getWarehouseName();
-		String warehouseAddress = warehouse.getWarehouseAddress();
+		String warehouseStatus = warehouse.getWarehouseStatus();
 
 		// Warehouse ID checks
 		if (!warehouseId.matches("^[a-zA-Z0-9-]+$")) {
@@ -99,19 +99,23 @@ public class WarehousesService {
 		if (warehouseName.trim().length() < 5) {
 			errors.add("Cannot update Warehouse Name to \"" + warehouseName
 					+ "\"\nWarehouse Name must be atleast 5 characters long !!");
-		} else if (warehouseName.trim().length() > 15) {
+		} else if (warehouseName.trim().length() > 30) {
 			errors.add("Cannot update Warehouse Name to \"" + warehouseName
-					+ "\"\nWarehouse Name must be maximum 15 characters only !!");
+					+ "\"\nWarehouse Name must be maximum 30 characters only !!");
 		}
 
-		// Warehouse Address checks
-		if (warehouseAddress.trim().length() < 10) {
-			errors.add("Cannot update Warehouse Address to \"" + warehouseAddress
-					+ "\"\nWarehouse Address must be atleast 10 characters long !!");
-		} else if (warehouseAddress.trim().length() > 50) {
-			errors.add("Cannot update Warehouse Address to \"" + warehouseAddress
-					+ "\"\nWarehouse Address must be maximum 50 characters only !!");
+		// Warehouse Status checks
+		if (!warehouseStatus.trim().equals("Active") && !warehouseStatus.trim().equals("Disabled")) {
+			errors.add(warehouseStatus + " is an invalid Warehouse Status !!");
 		}
+		/*
+		 * // Warehouse Address checks if (warehouseAddress.trim().length() < 10) {
+		 * errors.add("Cannot update Warehouse Address to \"" + warehouseAddress +
+		 * "\"\nWarehouse Address must be atleast 10 characters long !!"); } else if
+		 * (warehouseAddress.trim().length() > 50) {
+		 * errors.add("Cannot update Warehouse Address to \"" + warehouseAddress +
+		 * "\"\nWarehouse Address must be maximum 50 characters only !!"); }
+		 */
 
 		return errors;
 	}
@@ -120,26 +124,31 @@ public class WarehousesService {
 	 * Validates fields when updating an existing warehouse. Returns a list of error
 	 * messages; empty list means no errors.
 	 */
-	public List<String> validateWarehouseUpdate(String warehouseName, String warehouseAddress) {
+	public List<String> validateWarehouseUpdate(String warehouseName, String warehouseStatus) {
 		List<String> errors = new ArrayList<>();
 
 		// Warehouse Name checks
 		if (warehouseName.trim().length() < 5) {
 			errors.add("Cannot update Warehouse Name to \"" + warehouseName
 					+ "\"\nWarehouse Name must be atleast 5 characters long !!");
-		} else if (warehouseName.trim().length() > 15) {
+		} else if (warehouseName.trim().length() > 30) {
 			errors.add("Cannot update Warehouse Name to \"" + warehouseName
-					+ "\"\nWarehouse Name must be maximum 15 characters only !!");
+					+ "\"\nWarehouse Name must be maximum 30 characters only !!");
 		}
 
-		// Warehouse Address checks
-		if (warehouseAddress.trim().length() < 10) {
-			errors.add("Cannot update Warehouse Address to \"" + warehouseAddress
-					+ "\"\nWarehouse Address must be atleast 10 characters long !!");
-		} else if (warehouseAddress.trim().length() > 50) {
-			errors.add("Cannot update Warehouse Address to \"" + warehouseAddress
-					+ "\"\nWarehouse Address must be maximum 50 characters only !!");
+		// Warehouse Status checks
+		if (!warehouseStatus.trim().equals("Active") && !warehouseStatus.trim().equals("Disabled")) {
+			errors.add(warehouseStatus + " is an invalid Warehouse Status !!");
 		}
+
+		/*
+		 * // Warehouse Address checks if (warehouseAddress.trim().length() < 10) {
+		 * errors.add("Cannot update Warehouse Address to \"" + warehouseAddress +
+		 * "\"\nWarehouse Address must be atleast 10 characters long !!"); } else if
+		 * (warehouseAddress.trim().length() > 50) {
+		 * errors.add("Cannot update Warehouse Address to \"" + warehouseAddress +
+		 * "\"\nWarehouse Address must be maximum 50 characters only !!"); }
+		 */
 
 		return errors;
 	}
@@ -154,13 +163,11 @@ public class WarehousesService {
 	}
 
 	@Transactional
-	public void updateWarehouse(String warehouseId, String warehouseName, String warehouseStatus,
-			String warehouseAddress) {
+	public void updateWarehouse(String warehouseId, String warehouseName, String warehouseStatus) {
 		Warehouses warehouse = warehousesRepo.findById(warehouseId)
 				.orElseThrow(() -> new RuntimeException("Warehouse not found: " + warehouseId));
 
 		warehouse.setWarehouseName(warehouseName);
-		warehouse.setWarehouseAddress(warehouseAddress);
 		warehouse.setWarehouseStatus(warehouseStatus);
 
 		warehousesRepo.save(warehouse);
@@ -215,60 +222,33 @@ public class WarehousesService {
 
 		System.out.println("ShipmentsService createAddress():: warehouseAddress: " + warehouseAddress.toString());
 
-		Address address = new Address();
+		try {
 
-		address.setAddress1(warehouseAddress.getAddress1());
-		address.setAddress2(warehouseAddress.getAddress2());
-		address.setCountry(warehouseAddress.getCountry());
-		address.setDistrict(warehouseAddress.getDistrict());
-		address.setTaluk(warehouseAddress.getTaluk());
-		address.setFirstName(warehouseAddress.getFirstName());
-		address.setLastName(warehouseAddress.getLastName());
-		address.setState(warehouseAddress.getState());
-		address.setZipCode(warehouseAddress.getZipCode());
+			Address address = MyCustomUtils.buildAddressFields(warehouseAddress);
+			String addressId = addressService.createAddress(address) ;
 
-		String addressId = addressRepo.save(address).getAddressId();
+			if (!(addressId.isEmpty()) && addressId != null) {
+				Optional<Warehouses> optWarehouse = warehousesRepo.findById(warehouseId);
 
-		if (!(addressId.isEmpty()) && addressId != null) {
-			Optional<Warehouses> optWarehouse = warehousesRepo.findById(warehouseId);
+				if (optWarehouse.isPresent()) {
+					Warehouses warehouse = optWarehouse.get();
+					warehouse.setAddressId(addressId);
+					warehousesRepo.save(warehouse);
+				}
 
-			if (optWarehouse.isPresent()) {
-				Warehouses warehouse = optWarehouse.get();
-				warehouse.setAddressId(addressId);
-				warehousesRepo.save(warehouse);
 			}
+			return "WAREHOUSE_CREATED_SUCCESSFULLY_WITH_ID: " + warehouseId;
 
-		}		
-		
-		return "WAREHOUSE_CREATED_SUCCESSFULLY_WITH_ID: "+warehouseId;
+		} catch (Exception e) {
+			return e.getMessage();
+		}
+
 	}
-	
+
 	public Optional<Address> getWarehouseAddressById(String addressId) {
 		return addressRepo.findById(addressId);
 	}
 
-	public String getFormattedAddress(Address address) {
-		StringBuilder sb = new StringBuilder();
-
-		sb.append(address.getFirstName())
-		  .append(", ")
-		  .append(address.getLastName())
-		  .append("<br />")
-		  .append(address.getAddress1());
-
-		if (address.getAddress2() != null && !address.getAddress2().isBlank()) {
-		    sb.append("<br />").append(address.getAddress2());
-		}
-
-		sb.append("<br />")
-		  .append(address.getTaluk()).append(", ")
-		  .append(address.getDistrict()).append(", ")
-		  .append(address.getState()).append(", ")
-		  .append(address.getCountry()).append(" - ")
-		  .append(address.getZipCode());
-
-		String formattedAddress = sb.toString();
-		return formattedAddress;
-	}
+	
 
 }

@@ -165,8 +165,7 @@ public class WarehousesController {
 
 	@PostMapping("/warehouses/updateWarehouse")
 	public String updateWarehouses(@RequestParam String warehouseId, @RequestParam String warehouseName,
-			@RequestParam String warehouseStatus, @RequestParam String warehouseAddress,
-			RedirectAttributes redirectAttributes) {
+			@RequestParam String warehouseStatus, RedirectAttributes redirectAttributes) {
 
 		if (!warehousesService.warehouseExists(warehouseId)) {
 			redirectAttributes.addFlashAttribute("msg", "Warehouse " + warehouseId + " doesn't exists !!!");
@@ -175,17 +174,16 @@ public class WarehousesController {
 			return "redirect:/warehouses/viewOrEditWarehouse/" + warehouseId;
 		}
 
-		List<String> errors = warehousesService.validateWarehouseUpdate(warehouseName, warehouseAddress);
+		List<String> errors = warehousesService.validateWarehouseUpdate(warehouseName, warehouseStatus);
 
 		if (!errors.isEmpty()) {
 			redirectAttributes.addFlashAttribute("msg", String.join("\n", errors));
 			redirectAttributes.addFlashAttribute("warehouseIdFromController", warehouseId);
 			redirectAttributes.addFlashAttribute("warehouseNameFromController", warehouseName);
-			redirectAttributes.addFlashAttribute("warehouseAddressFromController", warehouseAddress);
 			redirectAttributes.addFlashAttribute("bgColor", "#f03a5b");
 			redirectAttributes.addFlashAttribute("textColor", "#f5f0f1");
 		} else {
-			warehousesService.updateWarehouse(warehouseId, warehouseName, warehouseStatus, warehouseAddress);
+			warehousesService.updateWarehouse(warehouseId, warehouseName, warehouseStatus);
 			redirectAttributes.addFlashAttribute("msg", "Updated Warehouse: " + warehouseId + " !!!");
 			redirectAttributes.addFlashAttribute("bgColor", "#d1fae5;");
 			redirectAttributes.addFlashAttribute("textColor", "#45484d");
@@ -197,20 +195,28 @@ public class WarehousesController {
 	@PostMapping("/warehouses/createWarehouseWithAddress")
 	@ResponseBody
 	public String createWarehouseWithAddress(@ModelAttribute Warehouses warehouse, @RequestParam String warehouseId,
-			@RequestParam String warehouseName, @RequestParam String warehouseStatus,
-			@RequestParam String warehouseAddress, @RequestBody Address request) {
+			@RequestParam String warehouseName, @RequestParam String warehouseStatus,  @RequestBody Address request) {
 
-		System.out.println("/warehouses/createWarehouseWithAddress: " + warehouse.toString());
-		System.out.println(warehouseId + " -- " + warehouseName + " -- " + warehouseStatus + " -- " + warehouseAddress
-				+ " -- " + request.toString());
+		if (warehousesService.warehouseExists(warehouseId)) {
+			return "WAREHOUSE_ALREADY_EXISTS: "+warehouseId;
+		}
 
-		String createdWarehouseId= warehousesService.createWarehouse(warehouse) ;
+		List<String> errors = warehousesService.validateNewWarehouse(warehouse);
 
-		String warehouseCreationWithAddressStatus = warehousesService.createWarehouseWithAddress(createdWarehouseId,  request);
+		if (!errors.isEmpty()) {
+			return errors.toString() ; 
+		} else {
+			System.out.println("/warehouses/createWarehouseWithAddress: " + warehouse.toString());
+			System.out.println(warehouseId + " -- " + warehouseName + " -- " + warehouseStatus + " -- " 
+					+ " -- " + request.toString());
 
-		return warehouseCreationWithAddressStatus;
+			String createdWarehouseId= warehousesService.createWarehouse(warehouse) ;
 
-		// return null;
+			String warehouseCreationWithAddressStatus = warehousesService.createWarehouseWithAddress(createdWarehouseId,  request);
+
+			return warehouseCreationWithAddressStatus;
+		}
+ 
 	}
 
 }

@@ -17,40 +17,46 @@ public class Address {
 	private String addressId;
 
 	@Column(name = "first_name")
-    private String firstName;
-	
+	private String firstName;
+
 	@Column(name = "last_name")
 	private String lastName;
-	
+
 	@Column(name = "email")
 	private String email;
-	
+
 	@Column(name = "phone")
 	private String phone;
-    
+
 	@Column(name = "address1")
 	private String address1;
-    
+
 	@Column(name = "address2")
 	private String address2;
-	
+
 	@Column(name = "zipCode")
-    private String zipCode;
-	
+	private String zipCode;
+
 	@Column(name = "district")
-    private String district;
-	
+	private String district;
+
 	@Column(name = "taluk")
-    private String taluk;
-	
+	private String taluk;
+
 	@Column(name = "state")
-    private String state;
-	
+	private String state;
+
 	@Column(name = "country")
-    private String country = "INDIA";
-	
+	private String country = "INDIA";
+
 	@Column(name = "country_shortform")
-    private String countryShortform = "INA";
+	private String countryShortform = "INA";
+
+	@Column(name = "latitude")
+	private Double  latitude;
+
+	@Column(name = "longitude")
+	private Double  longitude;
 
 	// Store as LocalDateTime in DB (no timezone conversion by Hibernate)
 	@Column(name = "created_at", updatable = false, columnDefinition = "DATETIME(6)")
@@ -66,14 +72,15 @@ public class Address {
 		// Generate shipment_id: SHIP + YYYYMMDDHHMMSS + millis (for uniqueness)
 		DateTimeFormatter idFormat = DateTimeFormatter.ofPattern("yyyyMMddHHmmssSSS");
 
-		this.addressId = zipCode+ "_"+ district.toUpperCase()+ "_" + state.toUpperCase() +"_"+country.toUpperCase()+"_"+LocalDateTime.now().format(idFormat);
-		 
+		this.addressId = zipCode + "_" + district.toUpperCase() + "_" + state.toUpperCase() + "_"
+				+ country.toUpperCase() + "_" + LocalDateTime.now().format(idFormat);
+
 		// Get current IST time as LocalDateTime (no timezone stored, but value is IST)
 		this.createdAt = LocalDateTime.now(ZoneId.of("Asia/Kolkata"));
 		this.modifiedAt = LocalDateTime.now(ZoneId.of("Asia/Kolkata"));
 	}
 
-	// Update modified date-time every time you make update to the table 
+	// Update modified date-time every time you make update to the table
 	@PreUpdate
 	public void setModifiedAt() {
 		this.modifiedAt = LocalDateTime.now(ZoneId.of("Asia/Kolkata"));
@@ -195,14 +202,30 @@ public class Address {
 		this.countryShortform = countryShortform;
 	}
 
+	public double getLatitude() {
+		return latitude;
+	}
+
+	public Double getLongitude() {
+		return longitude;
+	}
+
+	public void setLongitude(Double longitude) {
+		this.longitude = longitude;
+	}
+
+	public void setLatitude(Double latitude) {
+		this.latitude = latitude;
+	}
+
 	@Override
 	public String toString() {
 		return "Address [addressId=" + addressId + ", firstName=" + firstName + ", lastName=" + lastName + ", email="
 				+ email + ", phone=" + phone + ", address1=" + address1 + ", address2=" + address2 + ", zipCode="
 				+ zipCode + ", district=" + district + ", taluk=" + taluk + ", state=" + state + ", country=" + country
-				+ ", countryShortform=" + countryShortform + ", createdAt=" + createdAt + ", modifiedAt=" + modifiedAt
-				+ "]";
+				+ ", countryShortform=" + countryShortform + ", latitude=" + latitude + ", longitude=" + longitude
+				+ ", createdAt=" + createdAt + ", modifiedAt=" + modifiedAt + "]";
 	}
 
-
+	 
 }

@@ -26,6 +26,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import dev.shipping.shipments.model.Warehouses;
 import dev.shipping.shipments.repo.ShipmentLinesRepository;
+import utils.MyCustomUtils;
 
 @Controller
 public class ShipmentsController {
@@ -227,7 +228,7 @@ public class ShipmentsController {
 
 		if (shipment.isPresent()) {
 			model.addAttribute("shipment", shipment.get());
-			model.addAttribute("address", shipmentsService.getFormattedAddress(address.get()));
+			model.addAttribute("address", MyCustomUtils.getFormattedAddress(address.get()));
 			// return "show-shipment-details";
 			model.addAttribute("shipmentLines", shipmentLinesService.getShipmentLinesByShipmentId(shipmentId));
 			return "show-shipment-details-with-lines";

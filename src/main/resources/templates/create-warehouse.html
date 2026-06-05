@@ -19,7 +19,7 @@ body {
 	padding: 8px 40px 8px 14px;
 	border-radius: 8px;
 	font-weight: bold;
-	position: relative;
+	position: relative; 
 }
 
 .page-wrapper {
@@ -229,132 +229,167 @@ input.input-error {
 input.input-ok {
 	border-color: #4CAF50 !important;
 }
+
+.success-message {
+    background: #d4edda;
+    color: #155724;
+    padding: 10px;
+    border-radius: 4px;
+}
+
+.success-message a {
+    display: inline;
+}
+
+/* 
+.success-message {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: #d4edda;
+    color: #155724;
+    padding: 10px;
+    border-radius: 4px;
+}
+
+.success-message a {
+    color: #0056b3;
+    font-weight: 600;
+}
+ */
+.error-message {
+    background: #f8d7da;
+    color: #721c24;
+    padding: 10px;
+    border-radius: 4px;
+}
+
 </style>
 </head>
 <body>
 
 	<div th:replace="~{fragments/navbar :: navbar}"></div>
 
-	<p th:if="${msg}" id="msgBox"
+	<!-- <p th:if="${msg}" id="msgBox"
 		th:style="'background:' + ${bgColor} + '; color:' + ${textColor} + ';'">
-		<span th:utext="${msg}"></span>  <span
+		<span th:utext="${msg}"></span> <span
 			onclick="this.parentElement.style.display='none'"
 			style="position: absolute; right: 14px; top: 50%; transform: translateY(-50%); cursor: pointer; font-weight: bold;">✕</span>
-	</p>
+	</p> -->
+	
+	<p  id="msgBox" >msgBox</p>
 
 	<div class="page-wrapper">
 		<div class="form-section">
 			<h2>🏭 Create New Warehouse</h2>
 			<div class="form-card">
-			 
 
-					<div class="section-title">Warehouse Details</div>
-					<div class="form-grid">
-						<div>
-							<label for="warehouseId">Warehouse ID</label> <input type="text"
-								name="warehouseId" id="warehouseId" placeholder="e.g. MUMWH"
-								th:value="${warehouseIdFromController != null} ? ${warehouseIdFromController} : ''"
-								oninput="this.value = this.value.toUpperCase()" required />
-						</div>
-						<div>
-							<label for="warehouseName">Warehouse Name</label> <input
-								type="text" name="warehouseName" id="warehouseName"
-								placeholder="Enter warehouse name"
-								th:value="${warehouseNameFromController != null} ? ${warehouseNameFromController} : ''"
-								required />
-						</div>
-						<div class="full-span">
+
+				<div class="section-title">Warehouse Details</div>
+				<div class="form-grid">
+					<div>
+						<label for="warehouseId">Warehouse ID</label> <input type="text"
+							name="warehouseId" id="warehouseId" placeholder="e.g. MUMWH"
+							th:value="${warehouseIdFromController != null} ? ${warehouseIdFromController} : ''"
+							oninput="this.value = this.value.toUpperCase()" required />
+					</div>
+					<div>
+						<label for="warehouseName">Warehouse Name</label> <input
+							type="text" name="warehouseName" id="warehouseName"
+							placeholder="Enter warehouse name"
+							th:value="${warehouseNameFromController != null} ? ${warehouseNameFromController} : ''"
+							required />
+					</div>
+					<!-- 	<div class="full-span">
 							<label for="warehouseAddress">Warehouse Address</label> <input
 								type="text" name="warehouseAddress" id="warehouseAddress"
 								placeholder="Enter full address"
 								th:value="${warehouseAddressFromController != null} ? ${warehouseAddressFromController} : ''"
 								required />
-						</div>
-						<div>
-							<label for="warehouseStatus">Warehouse Status</label> <select
-								name="warehouseStatus" id="warehouseStatus" required>
-								<option value="">— Select Status —</option>
-								<option value="Active">Active</option>
-								<option value="Disabled">Disabled</option>
-							</select>
-						</div>
+						</div> -->
+					<div>
+						<label for="warehouseStatus">Warehouse Status</label> <select
+							name="warehouseStatus" id="warehouseStatus" required>
+							<option value="Active">Active</option>
+							<option value="Disabled">Disabled</option>
+						</select>
+					</div>
+				</div>
+
+				<!-- ── Warehouse ADDRESS ── -->
+				<div class="section-title">Warehouse Address</div>
+
+				<div class="form-grid-2">
+					<div>
+						<label class="field-label">First Name</label> <input type="text"
+							id="firstName" name="firstName" placeholder="e.g. Pani" required />
+					</div>
+					<div>
+						<label class="field-label">Last Name</label> <input type="text"
+							id="lastName" name="lastName" placeholder="e.g. VS" required />
 					</div>
 
-					<!-- ── Warehouse ADDRESS ── -->
-					<div class="section-title">Warehouse Address</div>
-
-					<div class="form-grid-2">
-						<div>
-							<label class="field-label">First Name</label> <input type="text"
-								id="firstName" name="firstName" placeholder="e.g. Pani" required />
-						</div>
-						<div>
-							<label class="field-label">Last Name</label> <input type="text"
-								id="lastName" name="lastName" placeholder="e.g. VS" required />
-						</div>
-
-						<div>
-							<label class="field-label">Email</label> <input type="text"
-								id="email" name="email" placeholder="e.g. pani@gmail.com"
-								required />
-						</div>
-						<div>
-							<label class="field-label">Phone (+91)</label> <input type="tel"
-								maxlength="10" pattern="[0-9]{10}" id="phone" name="phone"
-								placeholder="just enter the 10 digit phone number e.g. 9999999999"
-								required />
-						</div>
-
-						<div class="full-span">
-							<label class="field-label">Address Line 1</label> <input
-								type="text" id="address1" name="address1"
-								placeholder="House / Flat No., Street Name" required />
-						</div>
-						<div class="full-span">
-							<label class="field-label">Address Line 2</label> <input
-								type="text" id="address2" name="address2"
-								placeholder="Landmark, Area (optional)" />
-						</div>
-					</div>
-
-					<!-- ZIP ROW -->
-					<label class="field-label">PIN Code</label>
-					<div class="zip-row">
-						<input type="text" id="zipCode" name="zipCode" maxlength="6"
-							placeholder="6-digit Indian PIN code"
-							oninput="onZipInput()"
+					<div>
+						<label class="field-label">Email</label> <input type="text"
+							id="email" name="email" placeholder="e.g. pani@gmail.com"
 							required />
-						<button type="button" class="btn-zip" id="btnZip"  
-							onclick="checkZip()">📍 Check Zipcode</button>
 					</div>
-					<div class="zip-hint" id="zipHint"></div>
-
-					<!-- auto-populated + editable address fields -->
-					<div class="form-grid-3" style="margin-top: 8px;">
-						<div>
-							<label class="field-label">District</label> <input type="text"
-								id="district" name="district" placeholder="Auto-filled" disabled />
-						</div>
-						<div>
-							<label class="field-label">Taluk / Tehsil</label> <input
-								type="text" id="taluk" name="taluk"
-								placeholder="Auto-filled if available" disabled />
-						</div>
-						<div>
-							<label class="field-label">State</label> <input type="text"
-								id="state" name="state" placeholder="Auto-filled" disabled />
-						</div>
-						<div>
-							<label class="field-label">Country</label> <input type="text"
-								id="country" name="country" value="India" disabled />
-						</div>
+					<div>
+						<label class="field-label">Phone (+91)</label> <input type="tel"
+							maxlength="10" pattern="[0-9]{10}" id="phone" name="phone"
+							placeholder="just enter the 10 digit phone number e.g. 9999999999"
+							required />
 					</div>
 
-					<div class="button-row">
-						<button type="button" class="btn-submit" onclick="createWarehouse()">✔ Create
-							Warehouse</button>
+					<div class="full-span">
+						<label class="field-label">Address Line 1</label> <input
+							type="text" id="address1" name="address1"
+							placeholder="House / Flat No., Street Name" required />
 					</div>
- 
+					<div class="full-span">
+						<label class="field-label">Address Line 2</label> <input
+							type="text" id="address2" name="address2"
+							placeholder="Landmark, Area (optional)" />
+					</div>
+				</div>
+
+				<!-- ZIP ROW -->
+				<label class="field-label">PIN Code</label>
+				<div class="zip-row">
+					<input type="text" id="zipCode" name="zipCode" maxlength="6"
+						placeholder="6-digit Indian PIN code" oninput="onZipInput()"
+						required />
+					<button type="button" class="btn-zip" id="btnZip"
+						onclick="checkZip()">📍 Check Zipcode</button>
+				</div>
+				<div class="zip-hint" id="zipHint"></div>
+
+				<!-- auto-populated + editable address fields -->
+				<div class="form-grid-3" style="margin-top: 8px;">
+					<div>
+						<label class="field-label">District</label> <input type="text"
+							id="district" name="district" placeholder="Auto-filled" disabled />
+					</div>
+					<div>
+						<label class="field-label">Taluk / Tehsil</label> <input
+							type="text" id="taluk" name="taluk"
+							placeholder="Auto-filled if available" disabled />
+					</div>
+					<div>
+						<label class="field-label">State</label> <input type="text"
+							id="state" name="state" placeholder="Auto-filled" disabled />
+					</div>
+					<div>
+						<label class="field-label">Country</label> <input type="text"
+							id="country" name="country" value="India" disabled />
+					</div>
+				</div>
+
+				<div class="button-row">
+					<button type="button" class="btn-submit"
+						onclick="createWarehouse()">✔ Create Warehouse</button>
+				</div>
+
 			</div>
 		</div>
 
@@ -379,8 +414,8 @@ input.input-ok {
 
 	<script>
     window.addEventListener("load", function () {
-      var msg = document.getElementById("msgBox");
-      if (msg) setTimeout(() => msg.style.display = "none", 10000);
+      /* var msg = document.getElementById("msgBox");
+      if (msg) setTimeout(() => msg.style.display = "none", 10000); */
     });
     
     /* ══ ZIP / PIN CODE ══ */
@@ -454,7 +489,6 @@ input.input-ok {
         let warehouseId = document.getElementById("warehouseId").value;
         let warehouseName = document.getElementById("warehouseName").value;
         let warehouseStatus = document.getElementById("warehouseStatus").value;
-        let warehouseAddress = document.getElementById("warehouseAddress").value;
 
         let errorMessage = '';
         let isError = false;
@@ -473,17 +507,9 @@ input.input-ok {
         if (warehouseName.trim().length < 5) {
             isError = true;
             errorMessage += "Warehouse Name must be at least 5 characters!\n";
-        } else if (warehouseName.trim().length > 15) {
+        } else if (warehouseName.trim().length > 30) {
             isError = true;
-            errorMessage += "Warehouse Name must be maximum 15 characters!\n";
-        }
-
-        if (warehouseAddress.trim().length < 10) {
-            isError = true;
-            errorMessage += "Warehouse Address must be at least 10 characters!\n";
-        } else if (warehouseAddress.trim().length > 50) {
-            isError = true;
-            errorMessage += "Warehouse Address must be maximum 50 characters!\n";
+            errorMessage += "Warehouse Name must be maximum 30 characters!\n";
         }
 
         if (isError) {
@@ -510,7 +536,7 @@ input.input-ok {
         try {
 
             const resp = await fetch(
-                `/warehouses/createWarehouseWithAddress?warehouseId=${encodeURIComponent(warehouseId)}&warehouseName=${encodeURIComponent(warehouseName)}&warehouseStatus=${encodeURIComponent(warehouseStatus)}&warehouseAddress=${encodeURIComponent(warehouseAddress)}`,
+                `/warehouses/createWarehouseWithAddress?warehouseId=${encodeURIComponent(warehouseId)}&warehouseName=${encodeURIComponent(warehouseName)}&warehouseStatus=${encodeURIComponent(warehouseStatus)}`,
                 {
                     method: 'POST',
                     headers: {
@@ -520,16 +546,53 @@ input.input-ok {
                 }
             );
 
-            const message = await resp.text();
+            let message = await resp.text();
+            
+            // scroll to top of window to show the message
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
 
-            console.log(message);
+            console.log('message: ' + message); 
+            
+            if (resp.ok) {
+            	alert('resp OK: '+ message);
+                let msgBox = document.getElementById("msgBox");
+                msgBox.style.display = 'block';
+                
+                
+                const warehouseId = message.split(':')[1]?.trim();
 
-            if (!resp.ok) {
-                alert(message);
+                msgBox.innerHTML = `
+                    <div style="background:#d4edda;padding:10px;">
+                        <span style="display:inline;">
+                            ✅ Warehouse created successfully.
+                        </span>
+                        <a
+                            href="/warehouses/viewOrEditWarehouse/${warehouseId}"
+                            style="display:inline;margin-left:10px;"
+                        >
+                            View Warehouse: (${warehouseId})
+                        </a>
+                    </div>
+                `;
+                
+                setTimeout(() => {
+   				 msgBox.style.display = 'none';
+				}, 10000);
+                
                 return;
+            } else {
+            	alert('resp NOTOK: ' + message);
+                msgBox.innerHTML = `
+                    <div class="error-message">
+                        ❌ ${message}
+                    </div>
+                `;
             }
-
-            alert(message);
+            
+            
 
         } catch (err) {
             console.error(err);
