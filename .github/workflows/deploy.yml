@@ -160,7 +160,62 @@ jobs:
           sudo journalctl -u myapp -n 20 --no-pager"
 
       # ─────────────────────────────────────────
-      # STEP 10: Cleanup SSH key from runner
+      # STEP 10: Configure Nginx as Reverse Proxy
+      #
+      # Installs Nginx (if not already installed) and
+      # sets up a reverse proxy so that HTTP traffic
+      # arriving at panivsprojects.dnsps.org on port 80
+      # is forwarded to the Spring Boot app on port 8888.
+      #
+      # Prerequisites (one-time manual setup on EC2):
+      #   1. Your domain's A record must point to EC2's
+      #      public IP in your DNS provider (dnsps.org)
+      #   2. Port 80 (and optionally 443) must be open
+      #      in the EC2 Security Group inbound rules
+      #
+      # What this step does on every deploy:
+      #   - Installs nginx if missing
+      #   - Writes /etc/nginx/conf.d/myapp.conf
+      #   - Tests the config, then reloads Nginx
+      #     (reload = zero-downtime config refresh)
+      # ─────────────────────────────────────────
+      - name: Configure Nginx Reverse Proxy
+        run: |
+          ssh -i ~/.ssh/deploy_key.pem \
+            -o StrictHostKeyChecking=no \
+            -T \
+            ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} \
+            "sudo yum install -y nginx > /dev/null 2>&1 && \
+          sudo tee /etc/nginx/conf.d/myapp.conf > /dev/null << 'EOF'
+          server {
+              listen 80;
+              server_name panivsprojects.dnsps.org;
+
+              # Forward all requests to the Spring Boot app
+              location / {
+                  proxy_pass         http://localhost:8888;
+                  proxy_http_version 1.1;
+
+                  # Pass real client info to the app
+                  proxy_set_header   Host              \$host;
+                  proxy_set_header   X-Real-IP         \$remote_addr;
+                  proxy_set_header   X-Forwarded-For   \$proxy_add_x_forwarded_for;
+                  proxy_set_header   X-Forwarded-Proto \$scheme;
+
+                  # Timeout settings (adjust if your app is slow to respond)
+                  proxy_connect_timeout 60s;
+                  proxy_send_timeout    60s;
+                  proxy_read_timeout    60s;
+              }
+          }
+          EOF
+          sudo nginx -t && \
+          sudo systemctl enable nginx && \
+          sudo systemctl reload nginx || sudo systemctl start nginx && \
+          echo 'Nginx configured and running'"
+
+      # ─────────────────────────────────────────
+      # STEP 11: Cleanup SSH key from runner
       # Always runs even if previous steps fail
       # Prevents key from being left on the runner
       # ─────────────────────────────────────────
