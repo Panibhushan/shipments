@@ -35,11 +35,11 @@ public class AddressController {
 
 	@PostMapping("/address/updateAddress")
 	@ResponseBody
-	public String updateAddress(@RequestBody Address address) {
+	public String updateAddress(@RequestParam String warehouseId, @RequestBody Address address) {
 
-		System.out.println("/address/updateAddress: address: " + address.toString());
+		System.out.println("/address/updateAddress: warehouseId, address: " + warehouseId +" ---- "+address.toString());
 
-		String addressUpdateStatus = addressService.updateAddress(address);
+		String addressUpdateStatus = addressService.updateAddress(warehouseId, address);
 
 		return addressUpdateStatus;
 	}

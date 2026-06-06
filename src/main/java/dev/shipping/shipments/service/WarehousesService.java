@@ -2,6 +2,7 @@ package dev.shipping.shipments.service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.jspecify.annotations.Nullable;
@@ -11,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 
 import dev.shipping.shipments.model.Address;
+import dev.shipping.shipments.model.Inventory;
 import dev.shipping.shipments.model.Items;
 import dev.shipping.shipments.model.Warehouses;
 import dev.shipping.shipments.repo.AddressRepository;
@@ -174,8 +176,16 @@ public class WarehousesService {
 	}
 
 	@Transactional
-	public void deleteWarehouse(String warehouseId) {
-		warehousesRepo.deleteById(warehouseId);
+	public String deleteWarehouse(String warehouseId) {
+		
+		List<Inventory> inventory = warehousesRepo.getInventoryByWarehouseId(warehouseId);
+		
+		if(inventory.isEmpty()) {
+				warehousesRepo.deleteById(warehouseId);
+		return "WAREHOUSE_DELETED";
+		}
+		return "WAREHOUSE_DELETION_FAILED_BECAUSE_INVENTORY_EXISTS";
+		
 	}
 
 	// Dynamically setting the conditions and running a custom query in service
@@ -220,19 +230,25 @@ public class WarehousesService {
 
 	public String createWarehouseWithAddress(String warehouseId, Address warehouseAddress) {
 
-		System.out.println("ShipmentsService createAddress():: warehouseAddress: " + warehouseAddress.toString());
+		System.out.println("WarehousesService createAddress():: warehouseAddress: " + warehouseAddress.toString());
 
 		try {
+			Map<String, Address> addrMap = MyCustomUtils.buildAddressFields(warehouseAddress);
 
-			Address address = MyCustomUtils.buildAddressFields(warehouseAddress);
-			String addressId = addressService.createAddress(address) ;
+			String addrHash = addrMap.keySet().iterator().next();
+			Address address = addrMap.getOrDefault(addrHash, new Address());
+			
+			String addressId = addressService.createAddress(addrHash, address) ;			
 
 			if (!(addressId.isEmpty()) && addressId != null) {
 				Optional<Warehouses> optWarehouse = warehousesRepo.findById(warehouseId);
 
 				if (optWarehouse.isPresent()) {
 					Warehouses warehouse = optWarehouse.get();
+					System.out.println("WarehousesService createAddress():: setting WarehouseShortAddress as: "+(warehouseAddress.getState() + ", IN"));
+					warehouse.setWarehouseShortAddress(warehouseAddress.getState() + ", IN");
 					warehouse.setAddressId(addressId);
+					System.out.println("WarehousesService createAddress():: setting addressId as: "+addressId);
 					warehousesRepo.save(warehouse);
 				}
 
@@ -249,6 +265,36 @@ public class WarehousesService {
 		return addressRepo.findById(addressId);
 	}
 
-	
+	public Optional<Warehouses> getWarehouseById(String warehouseId) {
+		return warehousesRepo.findById(warehouseId);
+	}
+
+	@Transactional
+	public String updateAddress(String warehouseId, Address address) {
+		
+		// technically we are creating a new address because old address has an hash value based on the input fields.
+		// Since we are changing something here, the hash will chnage so creating new address instead of updating old one
+		
+		Map<String, Address> addrMap = MyCustomUtils.buildAddressFields(address);
+
+		String addrHash = addrMap.keySet().iterator().next();
+		Address newlyBuiltAddress = addrMap.getOrDefault(addrHash, new Address());
+		
+		String addressId =  addressService.createAddress(addrHash, newlyBuiltAddress) ;
+		
+		if (!(addressId == null)) {	 			
+			
+			Optional<Warehouses> warehouse = warehousesRepo.findById(warehouseId);
+			
+			if(warehouse.isPresent()) {
+				warehouse.get().setAddressId(addressId);
+				warehousesRepo.save(warehouse.get());
+			}
+			
+			return "ADDRESS UPDATED SUCCESSFULLY";
+		}
+		
+		return "FAILED TO UPDATE ADDRESS";
+	}
 
 }

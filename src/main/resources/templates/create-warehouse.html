@@ -3,601 +3,741 @@
 <head>
 <link rel="stylesheet" th:href="@{/css/navbar.css}" />
 <style>
-*, *::before, *::after {
-	box-sizing: border-box;
-}
+*, *::before, *::after { box-sizing: border-box; }
 
 body {
-	font-family: Arial, sans-serif;
-	background: #f4f6f9;
-	margin: 0;
-	min-height: 100vh;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  margin: 0;
+  min-height: 100vh;
 }
 
 #msgBox {
-	margin: 8px 24px 0;
-	padding: 8px 40px 8px 14px;
-	border-radius: 8px;
-	font-weight: bold;
-	position: relative; 
+  margin: 12px 24px 0;
+  padding: 14px 48px 14px 16px;
+  border-radius: 10px;
+  font-weight: 600;
+  position: relative;
+  display: none;
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255,255,255,0.3);
+  overflow: hidden;
+}
+
+#msgBox.show { display: block; animation: slideDown 0.3s ease-out; }
+@keyframes slideDown { from { opacity:0; transform:translateY(-10px); } to { opacity:1; transform:translateY(0); } }
+
+/* ── PROGRESS BAR ── */
+#msgBox::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  background: inherit;
+  width: 100%;
+  animation: progressBar 10s linear forwards;
+}
+
+#msgBox.success::after { background: #10b981; }
+#msgBox.error::after { background: #ef4444; }
+
+@keyframes progressBar {
+  from { width: 100%; }
+  to { width: 0%; }
 }
 
 .page-wrapper {
-	display: flex;
-	gap: 20px;
-	padding: 14px 24px;
-	align-items: flex-start;
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  gap: 24px;
+  padding: 24px;
+  align-items: flex-start;
 }
 
-.form-section {
-	width: 60%;
-}
+.form-section { flex: 1; min-width: 0; }
 
 .form-section h2 {
-	font-size: 1rem;
-	color: #1e293b;
-	margin: 0 0 10px;
-	font-weight: 700;
+  font-size: 1.1rem;
+  color: #1e293b;
+  margin: 0 0 12px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
 }
 
 .form-card {
-	background: #fff;
-	border-radius: 12px;
-	padding: 20px 24px;
-	box-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
+  background: #fff;
+  border-radius: 14px;
+  padding: 24px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.06);
+  border: 1px solid rgba(0,0,0,0.03);
 }
 
+/* ── COLLAPSIBLE SECTION ── */
+.collapsible-section {
+  margin-bottom: 20px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #fafbfc;
+}
+
+.collapsible-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  cursor: pointer;
+  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border-bottom: 1px solid #e5e7eb;
+  user-select: none;
+  transition: background 0.2s ease;
+}
+
+.collapsible-header:hover { background: linear-gradient(135deg, #f1f5f9 0%, #e8ecf1 100%); }
+
+.collapsible-header h3 {
+  margin: 0;
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: #1e293b;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.collapsible-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  background: #e2e8f0;
+  color: #6a73b2;
+  font-weight: 700;
+  transition: transform 0.3s ease, background 0.2s ease;
+  flex-shrink: 0;
+}
+
+.collapsible-section.collapsed .collapsible-toggle { 
+  transform: rotate(-90deg); 
+  background: #cbd5e1; 
+}
+
+.collapsible-content {
+  padding: 16px;
+  max-height: 2000px;
+  overflow: hidden;
+  transition: max-height 0.4s ease, padding 0.4s ease, opacity 0.3s ease;
+  opacity: 1;
+}
+
+.collapsible-section.collapsed .collapsible-content {
+  max-height: 0;
+  padding: 0 16px;
+  opacity: 0;
+}
+
+/* ── FORM ELEMENTS ── */
 .section-title {
-	font-size: 0.68rem;
-	font-weight: 700;
-	text-transform: uppercase;
-	letter-spacing: 0.1em;
-	color: #94a3b8;
-	margin: 14px 0 8px;
-	padding-bottom: 5px;
-	border-bottom: 1px solid #e2e8f0;
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: #64748b;
+  margin: 16px 0 10px;
+  padding-bottom: 6px;
+  border-bottom: 2px solid #e5e7eb;
 }
 
-.section-title:first-child {
-	margin-top: 0;
-}
-
-.form-grid {
-	display: grid;
-	grid-template-columns: 1fr 1fr;
-	gap: 0 24px;
-}
-
-.full-span {
-	grid-column: 1/-1;
-}
+.section-title:first-child { margin-top: 0; }
 
 label {
-	display: block;
-	font-size: 0.7rem;
-	font-weight: 700;
-	color: #94a3b8;
-	text-transform: uppercase;
-	letter-spacing: 0.06em;
-	margin-top: 10px;
-	margin-bottom: 3px;
+  display: block;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin: 10px 0 4px;
 }
 
 input[type=text], input[type=tel], select {
-	width: 100%;
-	padding: 9px 12px;
-	margin: 0 0 2px;
-	border: 1.5px solid #cbd5e1;
-	border-radius: 8px;
-	font-size: 0.92rem;
-	font-family: Arial, sans-serif;
-	background: #f8fafc;
-	color: #1e293b;
-	outline: none;
-	transition: border-color 0.2s, box-shadow 0.2s;
+  width: 100%;
+  padding: 9px 12px;
+  margin: 0 0 2px;
+  border: 1.5px solid #e5e7eb;
+  border-radius: 8px;
+  font-size: 0.88rem;
+  font-family: inherit;
+  background: #f8fafc;
+  color: #1e293b;
+  outline: none;
+  transition: all 0.2s ease;
 }
 
-input[type=text]:focus, select:focus {
-	border-color: #6a73b2;
-	box-shadow: 0 0 0 3px rgba(106, 115, 178, 0.15);
-	background: #fff;
-}
-
-.button-row {
-	margin-top: 18px;
-	padding-top: 14px;
-	border-top: 1px solid #e2e8f0;
-}
-
-.btn-submit {
-	background-color: #4CAF50;
-	color: #fff;
-	font-weight: 700;
-	font-size: 0.9rem;
-	padding: 10px 26px;
-	border: none;
-	border-radius: 8px;
-	cursor: pointer;
-	transition: background-color 0.2s, transform 0.15s;
-}
-
-.btn-submit:hover {
-	background-color: #3d9140;
-	transform: translateY(-1px);
-}
-
-.conditions-section {
-	width: 40%;
-	background: #f0f7f2;
-	border: 1px solid #c8e0d0;
-	border-radius: 12px;
-	padding: 18px 22px;
-	align-self: flex-start;
-	margin-top: 30px;
-}
-
-.conditions-section h4 {
-	margin: 0 0 10px;
-	font-size: 0.92rem;
-	color: #2d5a3d;
-}
-
-.conditions-section ol {
-	padding-left: 18px;
-	color: #374151;
-	line-height: 2;
-	margin: 0;
-	font-size: 0.85rem;
-}
-
-/* ── TWO-COL GRID ── */
-.form-grid-2 {
-	display: grid;
-	grid-template-columns: 1fr 1fr;
-	gap: 0 16px;
-}
-
-.form-grid-3 {
-	display: grid;
-	grid-template-columns: 1fr 1fr 1fr;
-	gap: 0 16px;
-}
-
-.full-span {
-	grid-column: 1/-1;
-}
-
-/* ── ZIP ROW ── */
-.zip-row {
-	display: flex;
-	gap: 8px;
-	align-items: flex-end;
-}
-
-.zip-row input {
-	flex: 1;
-}
-
-.zip-row .btn-zip {
-	padding: 8px 14px;
-	background: #6a73b2;
-	color: #fff;
-	border: none;
-	border-radius: 7px;
-	cursor: pointer;
-	font-size: 0.82rem;
-	font-weight: 700;
-	white-space: nowrap;
-	transition: background 0.2s, transform 0.15s;
-	flex-shrink: 0;
-}
-
-.zip-row .btn-zip:hover:not(:disabled) {
-	background: #555fa0;
-	transform: translateY(-1px);
-}
-
-.zip-row .btn-zip:disabled {
-	background: #b0b5d8;
-	cursor: not-allowed;
-}
-
-.zip-hint {
-	font-size: 0.72rem;
-	margin-top: 4px;
-	min-height: 16px;
-	font-weight: 600;
-}
-
-.zip-hint.error {
-	color: #ed4758;
-}
-
-.zip-hint.ok {
-	color: #4CAF50;
-}
-
-.zip-hint.loading {
-	color: #6a73b2;
+input[type=text]:focus, input[type=tel]:focus, select:focus {
+  border-color: #6a73b2;
+  box-shadow: 0 0 0 3px rgba(106,115,178,0.1);
+  background: #fff;
 }
 
 input.input-error {
-	border-color: #ed4758 !important;
-	box-shadow: 0 0 0 3px rgba(237, 71, 88, 0.1) !important;
+  border-color: #ef4444 !important;
+  box-shadow: 0 0 0 3px rgba(239,68,68,0.1) !important;
 }
 
 input.input-ok {
-	border-color: #4CAF50 !important;
+  border-color: #10b981 !important;
+  background: #f0fdf4;
 }
 
+/* ── GRIDS ── */
+.form-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 16px;
+}
+
+.form-grid-3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 0 16px;
+}
+
+.full-span { grid-column: 1/-1; }
+
+/* ── ZIP ROW ── */
+.zip-row {
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+}
+
+.zip-row input { flex: 1; }
+
+.zip-row .btn-zip {
+  padding: 9px 16px;
+  background: linear-gradient(135deg, #6a73b2 0%, #555fa0 100%);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.83rem;
+  font-weight: 700;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(106,115,178,0.25);
+}
+
+.zip-row .btn-zip:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(106,115,178,0.35);
+}
+
+.zip-row .btn-zip:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.zip-hint {
+  font-size: 0.73rem;
+  margin-top: 5px;
+  min-height: 16px;
+  font-weight: 600;
+}
+
+.zip-hint.error { color: #ef4444; }
+.zip-hint.ok { color: #10b981; }
+.zip-hint.loading { color: #6a73b2; }
+
+/* ── BUTTONS ── */
+.button-row {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1.5px solid #e5e7eb;
+}
+
+.btn-submit {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.9rem;
+  padding: 11px 28px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(16,185,129,0.25);
+  position: relative;
+}
+
+.btn-submit:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(16,185,129,0.35);
+}
+
+.btn-submit:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background: linear-gradient(135deg, #d1d5db 0%, #b5bcc4 100%);
+}
+
+/* Tooltip on disabled button */
+.btn-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.btn-tooltip {
+  visibility: hidden;
+  opacity: 0;
+  background: #1e293b;
+  color: #fff;
+  padding: 8px 12px;
+  border-radius: 7px;
+  font-size: 0.76rem;
+  white-space: normal;
+  position: absolute;
+  bottom: 120%;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+  font-weight: 600;
+  max-width: 200px;
+  line-height: 1.4;
+}
+
+.btn-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 5px solid transparent;
+  border-top-color: #1e293b;
+}
+
+.btn-submit:disabled:hover ~ .btn-tooltip,
+.btn-submit:disabled:focus ~ .btn-tooltip {
+  visibility: visible;
+  opacity: 1;
+}
+
+/* ── CONDITIONS SECTION ── */
+.conditions-section {
+  flex: 0 0 300px;
+  background: linear-gradient(135deg, #f0fdf4 0%, #f0f9ff 100%);
+  border: 2px solid #dcfce7;
+  border-radius: 12px;
+  padding: 18px 22px;
+  align-self: flex-start;
+}
+
+.conditions-section h4 {
+  margin: 0 0 12px;
+  font-size: 0.95rem;
+  color: #166534;
+  font-weight: 700;
+}
+
+.conditions-section ol {
+  padding-left: 18px;
+  color: #374151;
+  line-height: 1.8;
+  margin: 0;
+  font-size: 0.82rem;
+}
+
+/* ── MESSAGES ── */
 .success-message {
-    background: #d4edda;
-    color: #155724;
-    padding: 10px;
-    border-radius: 4px;
+  background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+  color: #065f46;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #6ee7b7;
 }
 
-.success-message a {
-    display: inline;
-}
-
-/* 
-.success-message {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    background: #d4edda;
-    color: #155724;
-    padding: 10px;
-    border-radius: 4px;
-}
-
-.success-message a {
-    color: #0056b3;
-    font-weight: 600;
-}
- */
 .error-message {
-    background: #f8d7da;
-    color: #721c24;
-    padding: 10px;
-    border-radius: 4px;
+  background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+  color: #991b1b;
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #fca5a5;
 }
 
+@media (max-width: 900px) {
+  .page-wrapper { flex-direction: column; }
+  .conditions-section { flex: 1; width: 100%; }
+  .form-grid-3 { grid-template-columns: 1fr 1fr; }
+}
+
+@media (max-width: 640px) {
+  .form-grid-2, .form-grid-3 { grid-template-columns: 1fr; }
+}
 </style>
 </head>
 <body>
 
-	<div th:replace="~{fragments/navbar :: navbar}"></div>
+  <div th:replace="~{fragments/navbar :: navbar}"></div>
 
-	<!-- <p th:if="${msg}" id="msgBox"
-		th:style="'background:' + ${bgColor} + '; color:' + ${textColor} + ';'">
-		<span th:utext="${msg}"></span> <span
-			onclick="this.parentElement.style.display='none'"
-			style="position: absolute; right: 14px; top: 50%; transform: translateY(-50%); cursor: pointer; font-weight: bold;">✕</span>
-	</p> -->
-	
-	<p  id="msgBox" >msgBox</p>
+  <div id="msgBox"></div>
 
-	<div class="page-wrapper">
-		<div class="form-section">
-			<h2>🏭 Create New Warehouse</h2>
-			<div class="form-card">
+  <div class="page-wrapper">
+    <div class="form-section">
+      <h2>🏭 Create New Warehouse</h2>
+      <div class="form-card">
 
+        <!-- WAREHOUSE BASIC INFO -->
+        <div class="section-title">📦 Warehouse Details</div>
 
-				<div class="section-title">Warehouse Details</div>
-				<div class="form-grid">
-					<div>
-						<label for="warehouseId">Warehouse ID</label> <input type="text"
-							name="warehouseId" id="warehouseId" placeholder="e.g. MUMWH"
-							th:value="${warehouseIdFromController != null} ? ${warehouseIdFromController} : ''"
-							oninput="this.value = this.value.toUpperCase()" required />
-					</div>
-					<div>
-						<label for="warehouseName">Warehouse Name</label> <input
-							type="text" name="warehouseName" id="warehouseName"
-							placeholder="Enter warehouse name"
-							th:value="${warehouseNameFromController != null} ? ${warehouseNameFromController} : ''"
-							required />
-					</div>
-					<!-- 	<div class="full-span">
-							<label for="warehouseAddress">Warehouse Address</label> <input
-								type="text" name="warehouseAddress" id="warehouseAddress"
-								placeholder="Enter full address"
-								th:value="${warehouseAddressFromController != null} ? ${warehouseAddressFromController} : ''"
-								required />
-						</div> -->
-					<div>
-						<label for="warehouseStatus">Warehouse Status</label> <select
-							name="warehouseStatus" id="warehouseStatus" required>
-							<option value="Active">Active</option>
-							<option value="Disabled">Disabled</option>
-						</select>
-					</div>
-				</div>
+        <div class="form-grid-2">
+          <div>
+            <label>Warehouse ID</label>
+            <input type="text" id="warehouseId" name="warehouseId" 
+                   placeholder="e.g. WH-01" 
+                   oninput="this.value=this.value.toUpperCase();validateForm();" />
+          </div>
+          <div>
+            <label>Warehouse Name</label>
+            <input type="text" id="warehouseName" name="warehouseName" 
+                   placeholder="e.g. DELHI WAREHOUSE"
+                   oninput="this.value=this.value.toUpperCase();validateForm();" />
+          </div>
 
-				<!-- ── Warehouse ADDRESS ── -->
-				<div class="section-title">Warehouse Address</div>
+          <div>
+            <label>Status</label>
+            <select id="warehouseStatus" name="warehouseStatus" onchange="validateForm();">
+              <option value="Active">Active</option>
+              <option value="Disabled">"Disabled"</option>
+            </select>
+          </div>
+        </div>
+<br />
+        <!-- WAREHOUSE ADDRESS (COLLAPSIBLE) -->
+        <div class="collapsible-section" id="addressSection">
+          <div class="collapsible-header" onclick="toggleSection('addressSection')">
+            <h3><span>📍 Warehouse Address</span></h3>
+            <span class="collapsible-toggle">▼</span>
+          </div>
+          <div class="collapsible-content">
+            <div class="form-grid-2">
+              <div>
+                <label>First Name</label>
+                <input type="text" id="firstName" name="firstName" 
+                       placeholder="e.g. RAVI"
+                       oninput="this.value=this.value.toUpperCase();validateForm();" />
+              </div>
+              <div>
+                <label>Last Name</label>
+                <input type="text" id="lastName" name="lastName" 
+                       placeholder="e.g. KUMAR"
+                       oninput="this.value=this.value.toUpperCase();validateForm();" />
+              </div>
 
-				<div class="form-grid-2">
-					<div>
-						<label class="field-label">First Name</label> <input type="text"
-							id="firstName" name="firstName" placeholder="e.g. Pani" required />
-					</div>
-					<div>
-						<label class="field-label">Last Name</label> <input type="text"
-							id="lastName" name="lastName" placeholder="e.g. VS" required />
-					</div>
+              <div>
+                <label>Email</label>
+                <input type="text" id="email" name="email" 
+                       placeholder="e.g. RAVI@EXAMPLE.COM"
+                       oninput="this.value=this.value.toUpperCase();validateForm();" />
+              </div>
 
-					<div>
-						<label class="field-label">Email</label> <input type="text"
-							id="email" name="email" placeholder="e.g. pani@gmail.com"
-							required />
-					</div>
-					<div>
-						<label class="field-label">Phone (+91)</label> <input type="tel"
-							maxlength="10" pattern="[0-9]{10}" id="phone" name="phone"
-							placeholder="just enter the 10 digit phone number e.g. 9999999999"
-							required />
-					</div>
+              <div>
+                <label>Phone (+91)</label>
+                <input type="tel" id="phone" name="phone" maxlength="10"
+                       placeholder="10-digit number"
+                       oninput="validateForm();" />
+              </div>
 
-					<div class="full-span">
-						<label class="field-label">Address Line 1</label> <input
-							type="text" id="address1" name="address1"
-							placeholder="House / Flat No., Street Name" required />
-					</div>
-					<div class="full-span">
-						<label class="field-label">Address Line 2</label> <input
-							type="text" id="address2" name="address2"
-							placeholder="Landmark, Area (optional)" />
-					</div>
-				</div>
+              <div class="full-span">
+                <label>Address Line 1</label>
+                <input type="text" id="address1" name="address1" 
+                       placeholder="HOUSE/FLAT NO., STREET NAME"
+                       oninput="this.value=this.value.toUpperCase();validateForm();" />
+              </div>
 
-				<!-- ZIP ROW -->
-				<label class="field-label">PIN Code</label>
-				<div class="zip-row">
-					<input type="text" id="zipCode" name="zipCode" maxlength="6"
-						placeholder="6-digit Indian PIN code" oninput="onZipInput()"
-						required />
-					<button type="button" class="btn-zip" id="btnZip"
-						onclick="checkZip()">📍 Check Zipcode</button>
-				</div>
-				<div class="zip-hint" id="zipHint"></div>
+              <div class="full-span">
+                <label>Address Line 2 (Optional)</label>
+                <input type="text" id="address2" name="address2" 
+                       placeholder="LANDMARK, AREA"
+                       oninput="this.value=this.value.toUpperCase();" />
+              </div>
+            </div>
 
-				<!-- auto-populated + editable address fields -->
-				<div class="form-grid-3" style="margin-top: 8px;">
-					<div>
-						<label class="field-label">District</label> <input type="text"
-							id="district" name="district" placeholder="Auto-filled" disabled />
-					</div>
-					<div>
-						<label class="field-label">Taluk / Tehsil</label> <input
-							type="text" id="taluk" name="taluk"
-							placeholder="Auto-filled if available" disabled />
-					</div>
-					<div>
-						<label class="field-label">State</label> <input type="text"
-							id="state" name="state" placeholder="Auto-filled" disabled />
-					</div>
-					<div>
-						<label class="field-label">Country</label> <input type="text"
-							id="country" name="country" value="India" disabled />
-					</div>
-				</div>
+            <!-- ZIP CODE -->
+            <label style="margin-top:12px;">PIN Code</label>
+            <div class="zip-row">
+              <input type="text" id="zipCode" maxlength="6"
+                     placeholder="6-digit PIN"
+                     oninput="this.value=this.value.replace(/\D/g,'').slice(0,6);onZipInput();clearLocationFields();" />
+              <button type="button" class="btn-zip" id="btnZip" disabled onclick="checkZip()">
+                📍 Check
+              </button>
+            </div>
+            <div class="zip-hint" id="zipHint"></div>
+            <div style="font-size:0.75rem;color:#64748b;margin-top:6px;font-weight:600;">
+              💡 Click "Check" button to auto-fill District, Taluk, State, and Country
+            </div>
 
-				<div class="button-row">
-					<button type="button" class="btn-submit"
-						onclick="createWarehouse()">✔ Create Warehouse</button>
-				</div>
+            <!-- AUTO-FILLED FIELDS -->
+            <div class="form-grid-3" style="margin-top:12px;">
+              <div>
+                <label>District</label>
+                <input type="text" id="district" name="district" 
+                       placeholder="Auto-filled" disabled />
+              </div>
+              <div>
+                <label>Taluk</label>
+                <input type="text" id="taluk" name="taluk" 
+                       placeholder="Auto-filled" disabled />
+              </div>
+              <div>
+                <label>State</label>
+                <input type="text" id="state" name="state" 
+                       placeholder="Auto-filled" disabled />
+              </div>
+              <div>
+                <label>Country</label>
+                <input type="text" id="country" name="country" value="INDIA" disabled />
+              </div>
+            </div>
+          </div>
+        </div>
 
-			</div>
-		</div>
+        <!-- CREATE BUTTON -->
+        <div class="button-row">
+          <div class="btn-wrapper">
+            <button type="button" class="btn-submit" id="btnCreate" disabled onclick="createWarehouse()">
+              ✔ Create Warehouse
+            </button>
+            <span class="btn-tooltip" id="tooltip"></span>
+          </div>
+        </div>
 
-		<div class="conditions-section">
-			<h4>📌 Conditions for creating warehouse</h4>
-			<ol>
-				<li>Warehouse ID must be in <strong>upper case</strong>.
-				</li>
-				<li>Warehouse ID can contain only alphabets, numbers and
-					hyphens.</li>
-				<li>Warehouse ID must be at least 3 characters long.</li>
-				<li>Warehouse ID must be maximum 5 characters only.</li>
-				<li>Warehouse Name must be at least 5 characters long.</li>
-				<li>Warehouse Name must be maximum 15 characters only.</li>
-				<li>Warehouse Address must be at least 10 characters long.</li>
-				<li>Warehouse Address must be maximum 50 characters only.</li>
-				<li><strong>Active</strong> = Shipping is allowed. <strong>Disabled</strong>
-					= Not allowed.</li>
-			</ol>
-		</div>
-	</div>
+      </div>
+    </div>
 
-	<script>
-    window.addEventListener("load", function () {
-      /* var msg = document.getElementById("msgBox");
-      if (msg) setTimeout(() => msg.style.display = "none", 10000); */
-    });
-    
-    /* ══ ZIP / PIN CODE ══ */
-    function onZipInput() {
-      const val = document.getElementById('zipCode').value;
-      document.getElementById('btnZip').disabled = val.length !== 6;
-      document.getElementById('zipHint').textContent = '';
-      document.getElementById('zipHint').className   = 'zip-hint';
+    <div class="conditions-section">
+      <h4>📌 Requirements</h4>
+      <ol>
+        <li>Warehouse ID: 3-5 chars, letters/numbers/hyphens only, uppercase</li>
+        <li>Warehouse Name: 5-30 characters</li>
+        <li>Status: Active or Inactive</li>
+        <li>First Name, Last Name, Email, Phone (10 digits)</li>
+        <li>Address Line 1: 10+ characters</li>
+        <li>PIN Code: 6 digits (auto-fills location)</li>
+        <li>Address Line 2 is optional</li>
+      </ol>
+    </div>
+  </div>
+
+  <script>
+    /* ══ TOGGLE COLLAPSIBLE ══ */
+    function toggleSection(sectionId) {
+      const section = document.getElementById(sectionId);
+      section.classList.toggle('collapsed');
+      localStorage.setItem(sectionId, section.classList.contains('collapsed') ? 'collapsed' : 'expanded');
     }
 
-    async function checkZip() {
-  	  
-      const zip  = document.getElementById('zipCode').value.trim();
-      const hint = document.getElementById('zipHint');
-      const btn  = document.getElementById('btnZip');
+    window.addEventListener('load', () => {
+      const addressSection = document.getElementById('addressSection');
+      if (localStorage.getItem('addressSection') === 'collapsed') {
+        addressSection.classList.add('collapsed');
+      }
+      validateForm();
+    });
 
-      hint.className   = 'zip-hint loading';
-      hint.textContent = '⏳ Checking PIN code…';
-      btn.disabled     = true;
+    /* ══ VALIDATE FORM ══ */
+    function validateForm() {
+      const warehouseId = document.getElementById('warehouseId').value.trim();
+      const warehouseName = document.getElementById('warehouseName').value.trim();
+      const status = document.getElementById('warehouseStatus').value;
+      const firstName = document.getElementById('firstName').value.trim();
+      const lastName = document.getElementById('lastName').value.trim();
+      const email = document.getElementById('email').value.trim();
+      const phone = document.getElementById('phone').value.trim();
+      const address1 = document.getElementById('address1').value.trim();
+      const zipCode = document.getElementById('zipCode').value.trim();
+      const district = document.getElementById('district').value.trim();
+      const taluk = document.getElementById('taluk').value.trim();
+      const state = document.getElementById('state').value.trim();
 
-      // clear previous auto-filled fields
+      const btn = document.getElementById('btnCreate');
+      const tooltip = document.getElementById('tooltip');
+
+      // Validate warehouse ID format
+      const validId = /^[A-Z0-9\-]{3,5}$/.test(warehouseId);
+      // Validate warehouse name
+      const validName = warehouseName.length >= 5 && warehouseName.length <= 30;
+      // Validate address fields
+      const validAddress = address1.length >= 10 && address1.length <= 50;
+      // Validate other fields
+      const allFilled = validId && validName && status && firstName && lastName && 
+                        email && phone.length === 10 && validAddress && 
+                        zipCode.length === 6 && district && taluk && state;
+
+      btn.disabled = !allFilled;
+
+      // Build tooltip message
+      let missing = [];
+      if (!validId) missing.push('Valid ID (3-5 chars)');
+      if (!validName) missing.push('Name (5-30 chars)');
+      if (!status) missing.push('Status');
+      if (!firstName) missing.push('First Name');
+      if (!lastName) missing.push('Last Name');
+      if (!email) missing.push('Email');
+      if (phone.length !== 10) missing.push('Phone (10 digits)');
+      if (!validAddress) missing.push('Address (10-50 chars)');
+      if (zipCode.length !== 6) missing.push('Valid PIN (6 digits)');
+      if (!district) missing.push('District');
+      if (!taluk) missing.push('Taluk');
+      if (!state) missing.push('State');
+
+      tooltip.textContent = missing.length > 0 
+        ? '⚠ Missing: ' + missing.join(', ') 
+        : '';
+    }
+
+    /* ══ ZIP CODE ══ */
+    function clearLocationFields() {
       ['district','taluk','state'].forEach(id => {
         const el = document.getElementById(id);
         el.value = '';
         el.classList.remove('input-ok','input-error');
       });
-      document.getElementById('country').value = 'India';
+      document.getElementById('country').value = 'INDIA';
+      document.getElementById('zipHint').textContent = '';
+      document.getElementById('zipHint').className = 'zip-hint';
+      validateForm();
+    }
+
+    function onZipInput() {
+      const val = document.getElementById('zipCode').value;
+      document.getElementById('btnZip').disabled = val.length !== 6;
+      document.getElementById('zipHint').textContent = '';
+      document.getElementById('zipHint').className = 'zip-hint';
+    }
+
+    async function checkZip() {
+      const zip = document.getElementById('zipCode').value.trim();
+      const hint = document.getElementById('zipHint');
+      const btn = document.getElementById('btnZip');
+
+      hint.className = 'zip-hint loading';
+      hint.textContent = '⏳ Checking…';
+      btn.disabled = true;
 
       try {
-        // India Post public API (free, no key required)
         const resp = await fetch(`https://api.postalpincode.in/pincode/${zip}`);
         const data = await resp.json();
 
-        const status = data[0]?.Status;
-        if (status !== 'Success' || !data[0]?.PostOffice?.length) {
-          hint.className   = 'zip-hint error';
-          hint.textContent = '❌ Invalid PIN code or delivery not available for this area.';
+        if (data[0]?.Status !== 'Success' || !data[0]?.PostOffice?.length) {
+          hint.className = 'zip-hint error';
+          hint.textContent = '❌ Invalid PIN or delivery not available';
           document.getElementById('zipCode').classList.add('input-error');
           btn.disabled = false;
           return;
         }
 
         const po = data[0].PostOffice[0];
+        document.getElementById('district').value = (po.District || '').toUpperCase();
+        document.getElementById('taluk').value = (po.Taluk || po.Division || '').toUpperCase();
+        document.getElementById('state').value = (po.State || '').toUpperCase();
+        document.getElementById('country').value = 'INDIA';
 
-        // populate fields
-        document.getElementById('district').value = po.District || '';
-        document.getElementById('taluk').value    = po.Taluk    || po.Block || '';
-        document.getElementById('state').value    = po.State    || '';
-        document.getElementById('country').value  = 'India';
-
-        // mark fields as auto-filled
-        ['district','taluk','state','country'].forEach(id => {
+        ['district','taluk','state'].forEach(id => {
           document.getElementById(id).classList.add('input-ok');
         });
-        document.getElementById('zipCode').classList.remove('input-error');
         document.getElementById('zipCode').classList.add('input-ok');
 
-        hint.className   = 'zip-hint ok';
-        hint.textContent = `✔ Delivery available — ${po.Name}, ${po.District}, ${po.State}`;
+        hint.className = 'zip-hint ok';
+        hint.textContent = `✔ ${(po.District || '').toUpperCase()}, ${(po.State || '').toUpperCase()}`;
+        validateForm();
 
       } catch (err) {
-        hint.className   = 'zip-hint error';
-        hint.textContent = '❌ Could not verify PIN code. Please check your connection or fill manually.';
+        hint.className = 'zip-hint error';
+        hint.textContent = '❌ Could not verify PIN. Fill manually.';
       }
 
       btn.disabled = false;
     }
-    
+
+    /* ══ CREATE WAREHOUSE ══ */
     async function createWarehouse() {
+      const warehouseId = document.getElementById('warehouseId').value.trim();
+      const warehouseName = document.getElementById('warehouseName').value.trim();
+      const warehouseStatus = document.getElementById('warehouseStatus').value;
 
-        let warehouseId = document.getElementById("warehouseId").value;
-        let warehouseName = document.getElementById("warehouseName").value;
-        let warehouseStatus = document.getElementById("warehouseStatus").value;
+      const address = {
+        firstName: document.getElementById('firstName').value.trim(),
+        lastName: document.getElementById('lastName').value.trim(),
+        email: document.getElementById('email').value.trim(),
+        phone: document.getElementById('phone').value.trim(),
+        address1: document.getElementById('address1').value.trim(),
+        address2: document.getElementById('address2').value.trim(),
+        zipCode: document.getElementById('zipCode').value.trim(),
+        district: document.getElementById('district').value.trim(),
+        taluk: document.getElementById('taluk').value.trim(),
+        state: document.getElementById('state').value.trim(),
+        country: document.getElementById('country').value.trim()
+      };
 
-        let errorMessage = '';
-        let isError = false;
+      try {
+        const resp = await fetch(
+          `/warehouses/createWarehouseWithAddress?warehouseId=${encodeURIComponent(warehouseId)}&warehouseName=${encodeURIComponent(warehouseName)}&warehouseStatus=${encodeURIComponent(warehouseStatus)}`,
+          { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(address) }
+        );
 
-        if (/\s/.test(warehouseId)) {
-            isError = true;
-            errorMessage += "Warehouse ID cannot contain whitespaces!\n";
-        } else if (warehouseId.length < 3) {
-            isError = true;
-            errorMessage += "Warehouse ID must be at least 3 characters!\n";
-        } else if (warehouseId.length > 5) {
-            isError = true;
-            errorMessage += "Warehouse ID must be maximum 5 characters!\n";
+        const message = await resp.text();
+        const msgBox = document.getElementById('msgBox');
+
+        if (resp.ok && !message.includes('ALREADY_EXISTS')) {
+          // SUCCESS
+          msgBox.className = 'show success';
+          msgBox.innerHTML = `
+            <div class="success-message">
+              ✅ Warehouse created successfully
+              <a href="/warehouses/viewOrEditWarehouse/${warehouseId}" style="margin-left:12px;">
+                View Warehouse →
+              </a>
+            </div>`;
+          clearForm();
+        } else {
+          // ERROR
+          msgBox.className = 'show error';
+          msgBox.innerHTML = `<div class="error-message">❌ ${message}</div>`;
         }
 
-        if (warehouseName.trim().length < 5) {
-            isError = true;
-            errorMessage += "Warehouse Name must be at least 5 characters!\n";
-        } else if (warehouseName.trim().length > 30) {
-            isError = true;
-            errorMessage += "Warehouse Name must be maximum 30 characters!\n";
-        }
+        window.scrollTo({ top: 0, behavior:'smooth' });
+        setTimeout(() => msgBox.classList.remove('show'), 10000);
 
-        if (isError) {
-            alert(errorMessage);
-            return;
-        }
+      } catch (err) {
+        const msgBox = document.getElementById('msgBox');
+        msgBox.className = 'show error';
+        msgBox.innerHTML = `<div class="error-message">❌ Failed to create warehouse</div>`;
+        setTimeout(() => msgBox.classList.remove('show'), 10000);
+      }
+    }
 
-        const enteredWarehouseAddress = {
-            firstName: document.getElementById('firstName').value.trim(),
-            lastName: document.getElementById('lastName').value.trim(),
-            email: document.getElementById('email').value.trim(),
-            phone: document.getElementById('phone').value.trim(),
-            address1: document.getElementById('address1').value.trim(),
-            address2: document.getElementById('address2').value.trim(),
-            zipCode: document.getElementById('zipCode').value.trim(),
-            district: document.getElementById('district').value.trim(),
-            taluk: document.getElementById('taluk').value.trim(),
-            state: document.getElementById('state').value.trim(),
-            country: document.getElementById('country').value.trim()
-        };
-
-        console.log(JSON.stringify(enteredWarehouseAddress, null, 2));
-
-        try {
-
-            const resp = await fetch(
-                `/warehouses/createWarehouseWithAddress?warehouseId=${encodeURIComponent(warehouseId)}&warehouseName=${encodeURIComponent(warehouseName)}&warehouseStatus=${encodeURIComponent(warehouseStatus)}`,
-                {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(enteredWarehouseAddress)
-                }
-            );
-
-            let message = await resp.text();
-            
-            // scroll to top of window to show the message
-            window.scrollTo({
-                top: 0,
-                behavior: 'smooth'
-            });
-
-            console.log('message: ' + message); 
-            
-            if (resp.ok) {
-            	alert('resp OK: '+ message);
-                let msgBox = document.getElementById("msgBox");
-                msgBox.style.display = 'block';
-                
-                
-                const warehouseId = message.split(':')[1]?.trim();
-
-                msgBox.innerHTML = `
-                    <div style="background:#d4edda;padding:10px;">
-                        <span style="display:inline;">
-                            ✅ Warehouse created successfully.
-                        </span>
-                        <a
-                            href="/warehouses/viewOrEditWarehouse/${warehouseId}"
-                            style="display:inline;margin-left:10px;"
-                        >
-                            View Warehouse: (${warehouseId})
-                        </a>
-                    </div>
-                `;
-                
-                setTimeout(() => {
-   				 msgBox.style.display = 'none';
-				}, 10000);
-                
-                return;
-            } else {
-            	alert('resp NOTOK: ' + message);
-                msgBox.innerHTML = `
-                    <div class="error-message">
-                        ❌ ${message}
-                    </div>
-                `;
-            }
-            
-            
-
-        } catch (err) {
-            console.error(err);
-            alert('Failed to create warehouse');
-        }
+    /* ══ CLEAR FORM ══ */
+    function clearForm() {
+      document.getElementById('warehouseId').value = '';
+      document.getElementById('warehouseName').value = '';
+      document.getElementById('warehouseStatus').value = '';
+      ['firstName','lastName','email','phone','address1','address2','zipCode',
+       'district','taluk','state'].forEach(id => {
+        const el = document.getElementById(id);
+        el.value = '';
+        el.classList.remove('input-ok','input-error');
+      });
+      document.getElementById('country').value = 'INDIA';
+      document.getElementById('zipHint').textContent = '';
+      validateForm();
     }
   </script>
 </body>

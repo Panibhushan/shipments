@@ -4,6 +4,10 @@ import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.HashMap;
+import java.util.Map;
+
+import org.apache.commons.codec.digest.DigestUtils;
 
 import dev.shipping.shipments.model.Address;
 import tools.jackson.databind.JsonNode;
@@ -12,28 +16,48 @@ import tools.jackson.databind.ObjectMapper;
 public class MyCustomUtils {
 
 
-	public static Address buildAddressFields(Address warehouseAddress) {
+	public static Map<String, Address> buildAddressFields(Address warehouseAddress) {
 
+		Map<String, Address> addrMap = new HashMap<>();  
+		
 		Address address = new Address();
 
-		try {
-			address.setAddress1(warehouseAddress.getAddress1());
-			address.setAddress2(warehouseAddress.getAddress2());
-			address.setCountry(warehouseAddress.getCountry());
-			address.setDistrict(warehouseAddress.getDistrict());
-			address.setTaluk(warehouseAddress.getTaluk());
-			address.setFirstName(warehouseAddress.getFirstName());
-			address.setLastName(warehouseAddress.getLastName());
-			address.setState(warehouseAddress.getState());
-			address.setZipCode(warehouseAddress.getZipCode());
-			address.setEmail(warehouseAddress.getEmail());
-			address.setPhone(warehouseAddress.getPhone());
+		try { 
+			
+			String address1 = warehouseAddress.getAddress1();
+			String address2 = warehouseAddress.getAddress2();
+			String country = warehouseAddress.getCountry();
+			String district = warehouseAddress.getDistrict();
+			String taluk = warehouseAddress.getTaluk();
+			String firstName = warehouseAddress.getFirstName();
+			String lastName = warehouseAddress.getLastName();
+			String state = warehouseAddress.getState();
+			String zipCode = warehouseAddress.getZipCode();
+			String email = warehouseAddress.getEmail();
+			String phone = warehouseAddress.getPhone();
+			
+			
+			address.setAddress1(address1);
+			address.setAddress2(address2);
+			address.setCountry(country);
+			address.setDistrict(district);
+			address.setTaluk(taluk);
+			address.setFirstName(firstName);
+			address.setLastName(lastName);
+			address.setState(state);
+			address.setZipCode(zipCode);
+			address.setEmail(email);
+			address.setPhone(phone);
+			
+			String hash = MyCustomUtils.generateAddressHash(address1, address2, country, "IN", district, email, firstName, lastName, phone, state, taluk, zipCode);
+			
+			addrMap.put(hash, address);
 
 		} catch (Exception e) {
 			System.out.println("Exception occurred while buildingAddress in MyCustomUtils: " + e.getMessage());
 		}
 
-		return address;
+		return addrMap;
 
 	}
 
@@ -110,6 +134,18 @@ public class MyCustomUtils {
 		double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
 		return EARTH_RADIUS_KM * c;
+	}
+
+	public static String generateAddressHash(String address1, String address2, String country, String countryShortform,
+			String district, String email, String firstName, String lastName, String phone, String state, String taluk, String zipCode) {
+		
+		String normalized =
+	            (address1+ "|" +address2+ "|" +country+ "|" +countryShortform+ "|" +district+ "|" +email+ "|" +firstName+ "|" +lastName+ "|" +phone+ "|" +state+ "|" +taluk+ "|" +zipCode)
+	            .trim()
+	            .toUpperCase();
+
+		String hash = DigestUtils.sha256Hex(normalized);
+		return hash;
 	}
 
 }

@@ -373,7 +373,7 @@ td {
 
 	<p th:if="${msg}" id="msgBox"
 		th:style="'background:' + ${bgColor} + '; color:' + ${textColor} + ';'">
-		<span th:text="${msg}"></span> <span
+		<span th:utext="${msg}"></span> <span
 			onclick="this.parentElement.style.display='none'"
 			style="position: absolute; right: 14px; top: 50%; transform: translateY(-50%); cursor: pointer; font-weight: bold;">✕</span>
 	</p>
@@ -448,7 +448,7 @@ td {
 						</span></td>
 
 						<td th:text="${w.warehouseName}"></td>
-						<td th:text="${w.warehouseAddress}"></td>
+						<td th:text="${w.warehouseShortAddress}"></td>
 
 						<td><span class="badge"
 							th:classappend="${w.warehouseStatus == 'Active'} ? 'badge-active' : 'badge-inactive'"

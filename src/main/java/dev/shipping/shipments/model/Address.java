@@ -1,6 +1,8 @@
 package dev.shipping.shipments.model;
 
 import jakarta.persistence.*;
+import utils.MyCustomUtils;
+
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -50,7 +52,7 @@ public class Address {
 	private String country = "INDIA";
 
 	@Column(name = "country_shortform")
-	private String countryShortform = "INA";
+	private String countryShortform = "IN";
 
 	@Column(name = "latitude")
 	private Double  latitude;
@@ -65,6 +67,9 @@ public class Address {
 	// Store as LocalDateTime in DB (no timezone conversion by Hibernate)
 	@Column(name = "modified_at", columnDefinition = "DATETIME(6)")
 	private LocalDateTime modifiedAt;
+	
+	@Column(name = "address_hash", unique = true, nullable = false, length = 64)
+	private String addressHash;
 
 	@PrePersist
 	public void generateFields() {
@@ -78,6 +83,7 @@ public class Address {
 		// Get current IST time as LocalDateTime (no timezone stored, but value is IST)
 		this.createdAt = LocalDateTime.now(ZoneId.of("Asia/Kolkata"));
 		this.modifiedAt = LocalDateTime.now(ZoneId.of("Asia/Kolkata"));
+		// this.addressHash = MyCustomUtils.generateAddressHash(address1, address2, country, countryShortform, district, email, firstName, lastName, phone, state, taluk, zipCode);
 	}
 
 	// Update modified date-time every time you make update to the table
@@ -218,14 +224,21 @@ public class Address {
 		this.latitude = latitude;
 	}
 
+	public String getAddressHash() {
+		return addressHash;
+	}
+
+	public void setAddressHash(String addressHash) {
+		this.addressHash = addressHash;
+	}
+
 	@Override
 	public String toString() {
 		return "Address [addressId=" + addressId + ", firstName=" + firstName + ", lastName=" + lastName + ", email="
 				+ email + ", phone=" + phone + ", address1=" + address1 + ", address2=" + address2 + ", zipCode="
 				+ zipCode + ", district=" + district + ", taluk=" + taluk + ", state=" + state + ", country=" + country
 				+ ", countryShortform=" + countryShortform + ", latitude=" + latitude + ", longitude=" + longitude
-				+ ", createdAt=" + createdAt + ", modifiedAt=" + modifiedAt + "]";
-	}
-
-	 
+				+ ", createdAt=" + createdAt + ", modifiedAt=" + modifiedAt + ", addressHash=" + addressHash + "]";
+	} 
+		 
 }

@@ -1,142 +1,611 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-  <link rel="stylesheet" th:href="@{/css/navbar.css}" />
-  <style>
-    *, *::before, *::after { box-sizing: border-box; }
-    body { font-family: Arial, sans-serif; background: #f4f6f9; margin: 0; min-height: 100vh; }
-    #msgBox { margin: 8px 24px 0; padding: 8px 40px 8px 14px; border-radius: 8px; font-weight: bold; position: relative; }
-    .page-wrapper { display: flex; gap: 20px; padding: 14px 24px; align-items: flex-start; }
-    .form-section { width: 60%; }
-    .form-section h2 { font-size: 1rem; color: #1e293b; margin: 0 0 10px; font-weight: 700; }
-    .form-card { background: #fff; border-radius: 12px; padding: 20px 24px; box-shadow: 0 2px 12px rgba(0,0,0,0.07); }
-    .section-title { font-size: 0.68rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: #94a3b8; margin: 14px 0 8px; padding-bottom: 5px; border-bottom: 1px solid #e2e8f0; }
-    .section-title:first-child { margin-top: 0; }
-    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 24px; }
-    .full-span { grid-column: 1 / -1; }
-    label { display: block; font-size: 0.7rem; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.06em; margin-top: 10px; margin-bottom: 3px; }
-    input[type=text], select {
-      width: 100%; padding: 9px 12px; margin: 0 0 2px;
-      border: 1.5px solid #cbd5e1; border-radius: 8px;
-      font-size: 0.92rem; font-family: Arial, sans-serif;
-      background: #f8fafc; color: #1e293b; outline: none;
-      transition: border-color 0.2s, box-shadow 0.2s;
-    }
-    input[type=text]:focus, select:focus { border-color: #6a73b2; box-shadow: 0 0 0 3px rgba(106,115,178,0.15); background: #fff; }
-    .button-row { margin-top: 18px; padding-top: 14px; border-top: 1px solid #e2e8f0; }
-    .btn-submit { background-color: #4CAF50; color: #fff; font-weight: 700; font-size: 0.9rem; padding: 10px 26px; border: none; border-radius: 8px; cursor: pointer; transition: background-color 0.2s, transform 0.15s; }
-    .btn-submit:hover { background-color: #3d9140; transform: translateY(-1px); }
-    .conditions-section { width: 40%; background: #f0f7f2; border: 1px solid #c8e0d0; border-radius: 12px; padding: 18px 22px; align-self: flex-start; margin-top: 30px; }
-    .conditions-section h4 { margin: 0 0 10px; font-size: 0.92rem; color: #2d5a3d; }
-    .conditions-section ol { padding-left: 18px; color: #374151; line-height: 2; margin: 0; font-size: 0.85rem; }
-  </style>
+<link rel="stylesheet" th:href="@{/css/navbar.css}" />
+<style>
+*, *::before, *::after {
+	box-sizing: border-box;
+}
+
+body {
+	font-family: Arial, sans-serif;
+	background: #f4f6f9;
+	margin: 0;
+	min-height: 100vh;
+}
+
+#msgBox {
+	margin: 8px 24px 0;
+	padding: 8px 40px 8px 14px;
+	border-radius: 8px;
+	font-weight: bold;
+	position: relative; 
+}
+
+.page-wrapper {
+	display: flex;
+	gap: 20px;
+	padding: 14px 24px;
+	align-items: flex-start;
+}
+
+.form-section {
+	width: 60%;
+}
+
+.form-section h2 {
+	font-size: 1rem;
+	color: #1e293b;
+	margin: 0 0 10px;
+	font-weight: 700;
+}
+
+.form-card {
+	background: #fff;
+	border-radius: 12px;
+	padding: 20px 24px;
+	box-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
+}
+
+.section-title {
+	font-size: 0.68rem;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.1em;
+	color: #94a3b8;
+	margin: 14px 0 8px;
+	padding-bottom: 5px;
+	border-bottom: 1px solid #e2e8f0;
+}
+
+.section-title:first-child {
+	margin-top: 0;
+}
+
+.form-grid {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 0 24px;
+}
+
+.full-span {
+	grid-column: 1/-1;
+}
+
+label {
+	display: block;
+	font-size: 0.7rem;
+	font-weight: 700;
+	color: #94a3b8;
+	text-transform: uppercase;
+	letter-spacing: 0.06em;
+	margin-top: 10px;
+	margin-bottom: 3px;
+}
+
+input[type=text], input[type=tel], select {
+	width: 100%;
+	padding: 9px 12px;
+	margin: 0 0 2px;
+	border: 1.5px solid #cbd5e1;
+	border-radius: 8px;
+	font-size: 0.92rem;
+	font-family: Arial, sans-serif;
+	background: #f8fafc;
+	color: #1e293b;
+	outline: none;
+	transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+input[type=text]:focus, select:focus {
+	border-color: #6a73b2;
+	box-shadow: 0 0 0 3px rgba(106, 115, 178, 0.15);
+	background: #fff;
+}
+
+.button-row {
+	margin-top: 18px;
+	padding-top: 14px;
+	border-top: 1px solid #e2e8f0;
+}
+
+.btn-submit {
+	background-color: #4CAF50;
+	color: #fff;
+	font-weight: 700;
+	font-size: 0.9rem;
+	padding: 10px 26px;
+	border: none;
+	border-radius: 8px;
+	cursor: pointer;
+	transition: background-color 0.2s, transform 0.15s;
+}
+
+.btn-submit:hover {
+	background-color: #3d9140;
+	transform: translateY(-1px);
+}
+
+.conditions-section {
+	width: 40%;
+	background: #f0f7f2;
+	border: 1px solid #c8e0d0;
+	border-radius: 12px;
+	padding: 18px 22px;
+	align-self: flex-start;
+	margin-top: 30px;
+}
+
+.conditions-section h4 {
+	margin: 0 0 10px;
+	font-size: 0.92rem;
+	color: #2d5a3d;
+}
+
+.conditions-section ol {
+	padding-left: 18px;
+	color: #374151;
+	line-height: 2;
+	margin: 0;
+	font-size: 0.85rem;
+}
+
+/* ── TWO-COL GRID ── */
+.form-grid-2 {
+	display: grid;
+	grid-template-columns: 1fr 1fr;
+	gap: 0 16px;
+}
+
+.form-grid-3 {
+	display: grid;
+	grid-template-columns: 1fr 1fr 1fr;
+	gap: 0 16px;
+}
+
+.full-span {
+	grid-column: 1/-1;
+}
+
+/* ── ZIP ROW ── */
+.zip-row {
+	display: flex;
+	gap: 8px;
+	align-items: flex-end;
+}
+
+.zip-row input {
+	flex: 1;
+}
+
+.zip-row .btn-zip {
+	padding: 8px 14px;
+	background: #6a73b2;
+	color: #fff;
+	border: none;
+	border-radius: 7px;
+	cursor: pointer;
+	font-size: 0.82rem;
+	font-weight: 700;
+	white-space: nowrap;
+	transition: background 0.2s, transform 0.15s;
+	flex-shrink: 0;
+}
+
+.zip-row .btn-zip:hover:not(:disabled) {
+	background: #555fa0;
+	transform: translateY(-1px);
+}
+
+.zip-row .btn-zip:disabled {
+	background: #b0b5d8;
+	cursor: not-allowed;
+}
+
+.zip-hint {
+	font-size: 0.72rem;
+	margin-top: 4px;
+	min-height: 16px;
+	font-weight: 600;
+}
+
+.zip-hint.error {
+	color: #ed4758;
+}
+
+.zip-hint.ok {
+	color: #4CAF50;
+}
+
+.zip-hint.loading {
+	color: #6a73b2;
+}
+
+input.input-error {
+	border-color: #ed4758 !important;
+	box-shadow: 0 0 0 3px rgba(237, 71, 88, 0.1) !important;
+}
+
+input.input-ok {
+	border-color: #4CAF50 !important;
+}
+
+.success-message {
+    background: #d4edda;
+    color: #155724;
+    padding: 10px;
+    border-radius: 4px;
+}
+
+.success-message a {
+    display: inline;
+}
+
+/* 
+.success-message {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: #d4edda;
+    color: #155724;
+    padding: 10px;
+    border-radius: 4px;
+}
+
+.success-message a {
+    color: #0056b3;
+    font-weight: 600;
+}
+ */
+.error-message {
+    background: #f8d7da;
+    color: #721c24;
+    padding: 10px;
+    border-radius: 4px;
+}
+
+</style>
 </head>
 <body>
 
-  <div th:replace="~{fragments/navbar :: navbar}"></div>
+	<div th:replace="~{fragments/navbar :: navbar}"></div>
 
-  <p th:if="${msg}" id="msgBox"
-     th:style="'background:' + ${bgColor} + '; color:' + ${textColor} + ';'">
-    <span th:utext="${msg}"></span>&nbsp;&nbsp;
-    <a href="/warehouses/" th:style="|color:${textColor}|">Show ALL Warehouses</a>
-    <span onclick="this.parentElement.style.display='none'"
-          style="position:absolute;right:14px;top:50%;transform:translateY(-50%);cursor:pointer;font-weight:bold;">✕</span>
-  </p>
+	<!-- <p th:if="${msg}" id="msgBox"
+		th:style="'background:' + ${bgColor} + '; color:' + ${textColor} + ';'">
+		<span th:utext="${msg}"></span> <span
+			onclick="this.parentElement.style.display='none'"
+			style="position: absolute; right: 14px; top: 50%; transform: translateY(-50%); cursor: pointer; font-weight: bold;">✕</span>
+	</p> -->
+	
+	<p  id="msgBox" >msgBox</p>
 
-  <div class="page-wrapper">
-    <div class="form-section">
-      <h2>🏭 Create New Warehouse</h2>
-      <div class="form-card">
-        <form action="/warehouses/createWarehouse" method="post" id="warehouseForm">
+	<div class="page-wrapper">
+		<div class="form-section">
+			<h2>🏭 Create New Warehouse</h2>
+			<div class="form-card">
 
-          <div class="section-title">Warehouse Details</div>
-          <div class="form-grid">
-            <div>
-              <label for="warehouseId">Warehouse ID</label>
-              <input type="text" name="warehouseId" id="warehouseId" placeholder="e.g. MUMWH"
-                     th:value="${warehouseIdFromController != null} ? ${warehouseIdFromController} : ''"
-                     oninput="this.value = this.value.toUpperCase()" required />
-            </div>
-            <div>
-              <label for="warehouseName">Warehouse Name</label>
-              <input type="text" name="warehouseName" id="warehouseName" placeholder="Enter warehouse name"
-                     th:value="${warehouseNameFromController != null} ? ${warehouseNameFromController} : ''"
-                     required />
-            </div>
-            <div class="full-span">
-              <label for="warehouseAddress">Warehouse Address</label>
-              <input type="text" name="warehouseAddress" id="warehouseAddress" placeholder="Enter full address"
-                     th:value="${warehouseAddressFromController != null} ? ${warehouseAddressFromController} : ''"
-                     required />
-            </div>
-            <div>
-              <label for="warehouseStatus">Warehouse Status</label>
-              <select name="warehouseStatus" id="warehouseStatus" required>
-                <option value="">— Select Status —</option>
-                <option value="Active">Active</option>
-                <option value="Disabled">Disabled</option>
-              </select>
-            </div>
-          </div>
 
-          <div class="button-row">
-            <button type="submit" class="btn-submit">✔ Create Warehouse</button>
-          </div>
+				<div class="section-title">Warehouse Details</div>
+				<div class="form-grid">
+					<div>
+						<label for="warehouseId">Warehouse ID</label> <input type="text"
+							name="warehouseId" id="warehouseId" placeholder="e.g. MUMWH"
+							th:value="${warehouseIdFromController != null} ? ${warehouseIdFromController} : ''"
+							oninput="this.value = this.value.toUpperCase()" required />
+					</div>
+					<div>
+						<label for="warehouseName">Warehouse Name</label> <input
+							type="text" name="warehouseName" id="warehouseName"
+							placeholder="Enter warehouse name"
+							th:value="${warehouseNameFromController != null} ? ${warehouseNameFromController} : ''"
+							required />
+					</div>
+					<!-- 	<div class="full-span">
+							<label for="warehouseAddress">Warehouse Address</label> <input
+								type="text" name="warehouseAddress" id="warehouseAddress"
+								placeholder="Enter full address"
+								th:value="${warehouseAddressFromController != null} ? ${warehouseAddressFromController} : ''"
+								required />
+						</div> -->
+					<div>
+						<label for="warehouseStatus">Warehouse Status</label> <select
+							name="warehouseStatus" id="warehouseStatus" required>
+							<option value="Active">Active</option>
+							<option value="Disabled">Disabled</option>
+						</select>
+					</div>
+				</div>
 
-        </form>
-      </div>
-    </div>
+				<!-- ── Warehouse ADDRESS ── -->
+				<div class="section-title">Warehouse Address</div>
 
-    <div class="conditions-section">
-      <h4>📌 Conditions for creating warehouse</h4>
-      <ol>
-        <li>Warehouse ID must be in <strong>upper case</strong>.</li>
-        <li>Warehouse ID can contain only alphabets, numbers and hyphens.</li>
-        <li>Warehouse ID must be at least 3 characters long.</li>
-        <li>Warehouse ID must be maximum 5 characters only.</li>
-        <li>Warehouse Name must be at least 5 characters long.</li>
-        <li>Warehouse Name must be maximum 15 characters only.</li>
-        <li>Warehouse Address must be at least 10 characters long.</li>
-        <li>Warehouse Address must be maximum 50 characters only.</li>
-        <li><strong>Active</strong> = Shipping is allowed. <strong>Disabled</strong> = Not allowed.</li>
-      </ol>
-    </div>
-  </div>
+				<div class="form-grid-2">
+					<div>
+						<label class="field-label">First Name</label> <input type="text"
+							id="firstName" name="firstName" placeholder="e.g. Pani" required />
+					</div>
+					<div>
+						<label class="field-label">Last Name</label> <input type="text"
+							id="lastName" name="lastName" placeholder="e.g. VS" required />
+					</div>
 
-  <script>
+					<div>
+						<label class="field-label">Email</label> <input type="text"
+							id="email" name="email" placeholder="e.g. pani@gmail.com"
+							required />
+					</div>
+					<div>
+						<label class="field-label">Phone (+91)</label> <input type="tel"
+							maxlength="10" pattern="[0-9]{10}" id="phone" name="phone"
+							placeholder="just enter the 10 digit phone number e.g. 9999999999"
+							required />
+					</div>
+
+					<div class="full-span">
+						<label class="field-label">Address Line 1</label> <input
+							type="text" id="address1" name="address1"
+							placeholder="House / Flat No., Street Name" required />
+					</div>
+					<div class="full-span">
+						<label class="field-label">Address Line 2</label> <input
+							type="text" id="address2" name="address2"
+							placeholder="Landmark, Area (optional)" />
+					</div>
+				</div>
+
+				<!-- ZIP ROW -->
+				<label class="field-label">PIN Code</label>
+				<div class="zip-row">
+					<input type="text" id="zipCode" name="zipCode" maxlength="6"
+						placeholder="6-digit Indian PIN code" oninput="onZipInput()"
+						required />
+					<button type="button" class="btn-zip" id="btnZip"
+						onclick="checkZip()">📍 Check Zipcode</button>
+				</div>
+				<div class="zip-hint" id="zipHint"></div>
+
+				<!-- auto-populated + editable address fields -->
+				<div class="form-grid-3" style="margin-top: 8px;">
+					<div>
+						<label class="field-label">District</label> <input type="text"
+							id="district" name="district" placeholder="Auto-filled" disabled />
+					</div>
+					<div>
+						<label class="field-label">Taluk / Tehsil</label> <input
+							type="text" id="taluk" name="taluk"
+							placeholder="Auto-filled if available" disabled />
+					</div>
+					<div>
+						<label class="field-label">State</label> <input type="text"
+							id="state" name="state" placeholder="Auto-filled" disabled />
+					</div>
+					<div>
+						<label class="field-label">Country</label> <input type="text"
+							id="country" name="country" value="India" disabled />
+					</div>
+				</div>
+
+				<div class="button-row">
+					<button type="button" class="btn-submit"
+						onclick="createWarehouse()">✔ Create Warehouse</button>
+				</div>
+
+			</div>
+		</div>
+
+		<div class="conditions-section">
+			<h4>📌 Conditions for creating warehouse</h4>
+			<ol>
+				<li>Warehouse ID must be in <strong>upper case</strong>.
+				</li>
+				<li>Warehouse ID can contain only alphabets, numbers and
+					hyphens.</li>
+				<li>Warehouse ID must be at least 3 characters long.</li>
+				<li>Warehouse ID must be maximum 5 characters only.</li>
+				<li>Warehouse Name must be at least 5 characters long.</li>
+				<li>Warehouse Name must be maximum 15 characters only.</li>
+				<li>Warehouse Address must be at least 10 characters long.</li>
+				<li>Warehouse Address must be maximum 50 characters only.</li>
+				<li><strong>Active</strong> = Shipping is allowed. <strong>Disabled</strong>
+					= Not allowed.</li>
+			</ol>
+		</div>
+	</div>
+
+	<script>
     window.addEventListener("load", function () {
-      var msg = document.getElementById("msgBox");
-      if (msg) setTimeout(() => msg.style.display = "none", 10000);
+      /* var msg = document.getElementById("msgBox");
+      if (msg) setTimeout(() => msg.style.display = "none", 10000); */
     });
+    
+    /* ══ ZIP / PIN CODE ══ */
+    function onZipInput() {
+      const val = document.getElementById('zipCode').value;
+      document.getElementById('btnZip').disabled = val.length !== 6;
+      document.getElementById('zipHint').textContent = '';
+      document.getElementById('zipHint').className   = 'zip-hint';
+    }
 
-    document.getElementById("warehouseForm").addEventListener("submit", function (event) {
-      let warehouseId      = document.getElementById("warehouseId").value;
-      let warehouseName    = document.getElementById("warehouseName").value;
-      let warehouseAddress = document.getElementById("warehouseAddress").value;
-      let errorMessage = '', isError = false;
+    async function checkZip() {
+  	  
+      const zip  = document.getElementById('zipCode').value.trim();
+      const hint = document.getElementById('zipHint');
+      const btn  = document.getElementById('btnZip');
 
-      if (/\s/.test(warehouseId)) {
-        isError = true; errorMessage += "Warehouse ID cannot contain whitespaces!\n";
-      } else if (warehouseId.length < 3) {
-        isError = true; errorMessage += "Warehouse ID must be at least 3 characters!\n";
-      } else if (warehouseId.length > 5) {
-        isError = true; errorMessage += "Warehouse ID must be maximum 5 characters!\n";
+      hint.className   = 'zip-hint loading';
+      hint.textContent = '⏳ Checking PIN code…';
+      btn.disabled     = true;
+
+      // clear previous auto-filled fields
+      ['district','taluk','state'].forEach(id => {
+        const el = document.getElementById(id);
+        el.value = '';
+        el.classList.remove('input-ok','input-error');
+      });
+      document.getElementById('country').value = 'India';
+
+      try {
+        // India Post public API (free, no key required)
+        const resp = await fetch(`https://api.postalpincode.in/pincode/${zip}`);
+        const data = await resp.json();
+
+        const status = data[0]?.Status;
+        if (status !== 'Success' || !data[0]?.PostOffice?.length) {
+          hint.className   = 'zip-hint error';
+          hint.textContent = '❌ Invalid PIN code or delivery not available for this area.';
+          document.getElementById('zipCode').classList.add('input-error');
+          btn.disabled = false;
+          return;
+        }
+
+        const po = data[0].PostOffice[0];
+
+        // populate fields
+        document.getElementById('district').value = po.District || '';
+        document.getElementById('taluk').value    = po.Taluk    || po.Block || '';
+        document.getElementById('state').value    = po.State    || '';
+        document.getElementById('country').value  = 'India';
+
+        // mark fields as auto-filled
+        ['district','taluk','state','country'].forEach(id => {
+          document.getElementById(id).classList.add('input-ok');
+        });
+        document.getElementById('zipCode').classList.remove('input-error');
+        document.getElementById('zipCode').classList.add('input-ok');
+
+        hint.className   = 'zip-hint ok';
+        hint.textContent = `✔ Delivery available — ${po.Name}, ${po.District}, ${po.State}`;
+
+      } catch (err) {
+        hint.className   = 'zip-hint error';
+        hint.textContent = '❌ Could not verify PIN code. Please check your connection or fill manually.';
       }
 
-      if (warehouseName.trim().length < 5) {
-        isError = true; errorMessage += "Warehouse Name must be at least 5 characters!\n";
-      } else if (warehouseName.trim().length > 15) {
-        isError = true; errorMessage += "Warehouse Name must be maximum 15 characters!\n";
-      }
+      btn.disabled = false;
+    }
+    
+    async function createWarehouse() {
 
-      if (warehouseAddress.trim().length < 10) {
-        isError = true; errorMessage += "Warehouse Address must be at least 10 characters!\n";
-      } else if (warehouseAddress.trim().length > 50) {
-        isError = true; errorMessage += "Warehouse Address must be maximum 50 characters!\n";
-      }
+        let warehouseId = document.getElementById("warehouseId").value;
+        let warehouseName = document.getElementById("warehouseName").value;
+        let warehouseStatus = document.getElementById("warehouseStatus").value;
 
-      if (isError) { alert(errorMessage); event.preventDefault(); }
-    });
+        let errorMessage = '';
+        let isError = false;
+
+        if (/\s/.test(warehouseId)) {
+            isError = true;
+            errorMessage += "Warehouse ID cannot contain whitespaces!\n";
+        } else if (warehouseId.length < 3) {
+            isError = true;
+            errorMessage += "Warehouse ID must be at least 3 characters!\n";
+        } else if (warehouseId.length > 5) {
+            isError = true;
+            errorMessage += "Warehouse ID must be maximum 5 characters!\n";
+        }
+
+        if (warehouseName.trim().length < 5) {
+            isError = true;
+            errorMessage += "Warehouse Name must be at least 5 characters!\n";
+        } else if (warehouseName.trim().length > 30) {
+            isError = true;
+            errorMessage += "Warehouse Name must be maximum 30 characters!\n";
+        }
+
+        if (isError) {
+            alert(errorMessage);
+            return;
+        }
+
+        const enteredWarehouseAddress = {
+            firstName: document.getElementById('firstName').value.trim(),
+            lastName: document.getElementById('lastName').value.trim(),
+            email: document.getElementById('email').value.trim(),
+            phone: document.getElementById('phone').value.trim(),
+            address1: document.getElementById('address1').value.trim(),
+            address2: document.getElementById('address2').value.trim(),
+            zipCode: document.getElementById('zipCode').value.trim(),
+            district: document.getElementById('district').value.trim(),
+            taluk: document.getElementById('taluk').value.trim(),
+            state: document.getElementById('state').value.trim(),
+            country: document.getElementById('country').value.trim()
+        };
+
+        console.log(JSON.stringify(enteredWarehouseAddress, null, 2));
+
+        try {
+
+            const resp = await fetch(
+                `/warehouses/createWarehouseWithAddress?warehouseId=${encodeURIComponent(warehouseId)}&warehouseName=${encodeURIComponent(warehouseName)}&warehouseStatus=${encodeURIComponent(warehouseStatus)}`,
+                {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(enteredWarehouseAddress)
+                }
+            );
+
+            let message = await resp.text();
+            
+            // scroll to top of window to show the message
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth'
+            });
+
+            console.log('message: ' + message); 
+            
+            if (resp.ok) {
+            	alert('resp OK: '+ message);
+                let msgBox = document.getElementById("msgBox");
+                msgBox.style.display = 'block';
+                
+                
+                const warehouseId = message.split(':')[1]?.trim();
+                let divclass = 'success-message';
+                let messageToDisplay = '✅ Warehouse created successfully'
+                
+                if(message.includes('WAREHOUSE_ALREADY_EXISTS')){
+                	divclass = 'error-message';
+                	messageToDisplay = '❌ Warehouse already exists'
+                } 
+
+                msgBox.innerHTML = `
+                    <div style="background:#d4edda;padding:10px;" class="${divclass}">
+                        <span style="display:inline;">
+                            ${messageToDisplay}.
+                        </span>
+                        <a
+                            href="/warehouses/viewOrEditWarehouse/${warehouseId}"
+                            style="display:inline;margin-left:10px;"
+                        >
+                            View Warehouse: ${warehouseId}
+                        </a>
+                    </div>
+                `;
+                
+                setTimeout(() => {
+   				 msgBox.style.display = 'none';
+				}, 10000);
+                
+                return;
+            } else {
+            	alert('resp NOTOK: ' + message);
+                msgBox.innerHTML = `
+                    <div class="error-message">
+                        ❌ ${message}
+                    </div>
+                `;
+            }
+            
+            
+
+        } catch (err) {
+            console.error(err);
+            alert('Failed to create warehouse');
+        }
+    }
   </script>
 </body>
 </html>

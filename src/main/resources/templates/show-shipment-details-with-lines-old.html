@@ -265,17 +265,6 @@ button:disabled {
 	animation: modalIn 0.2s ease;
 }
 
-@
-keyframes modalIn {from { opacity:0;
-	transform: translateY(-16px);
-}
-
-to {
-	opacity: 1;
-	transform: translateY(0);
-}
-
-}
 .modal-box h3 {
 	margin: 0 0 6px;
 	font-size: 1.05rem;
@@ -695,6 +684,11 @@ table.lines-table input, table.lines-table select {
 				<div class="info-field">
 					<div class="field-label">Modified At</div>
 					<div class="field-value" th:text="${shipment.modifiedAt}"></div>
+				</div>
+				
+				<div class="info-field">
+					<div class="field-label">Delivery Address</div>
+					<div class="field-value" th:utext="${address}"></div>
 				</div>
 
 			</div>

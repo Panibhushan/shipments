@@ -53,7 +53,6 @@ public class ShipmentsService {
 	private final AddressRepository addressRepo;
 	private final AddressService addressService;
 
-
 	public ShipmentsService(ShipmentsRepository shipmentsRepo, CustomersRepository customersRepo,
 			CustomerWarehousesRepository customerWarehousesRepo, WarehousesRepository warehousesRepo,
 			InventoryRepository inventoryRepo, ShipmentLinesRepository shipmentLinesRepo,
@@ -258,7 +257,7 @@ public class ShipmentsService {
 		} else {
 			// Build a specific error message for each failed condition
 			StringBuilder errorMessage = new StringBuilder(
-					"Shipment# " + shipmentId + " cannot be updated because of below comment(s) \n");
+					"Shipment# " + shipmentId + " cannot be updated because of below reason(s) \n");
 
 			if (!singleCustomer.isPresent()) {
 				errorMessage.append("Customer: ").append(customerId).append(" is not found !!");
@@ -403,13 +402,8 @@ public class ShipmentsService {
 			conditions.add("s.createdAt <= :dateTo");
 
 		// shipmentlines table is yet to be created
-		/*
-		 * THIS WILL BE UNCOMMENTED WHEN SHIPMENTLINES TABLE IS CREATED if
-		 * (!itemId.equals("ALL")) conditions.
-		 * add("s.shipmentId in ( select sl.shipmentId from shipmentlines sl where sl.itemId= :itemId )"
-		 * );
-		 * 
-		 */
+		if (!itemId.equals("ALL"))
+			conditions.add("s.shipmentId in ( SELECT sl.shipmentId FROM ShipmentLines sl WHERE sl.itemId= :itemId )");
 
 		// Append WHERE + AND automatically
 		if (!conditions.isEmpty()) {
@@ -442,11 +436,10 @@ public class ShipmentsService {
 		// 2026-05-30 00:00:00, so that it includes data of 2026-05-29 as well
 		if (!dateTo.equals("ALL"))
 			typedQuery.setParameter("dateTo", LocalDate.parse(dateTo).plusDays(1).atStartOfDay());
+ 
+		if (!itemId.equals("ALL"))
+			typedQuery.setParameter("itemId", itemId);
 
-		/*
-		 * THIS WILL BE UNCOMMENTED WHEN SHIPMENTLINES TABLE IS CREATED if
-		 * (!itemId.equals("ALL")) typedQuery.setParameter("itemId", itemId);
-		 */
 		System.out.println("getShipmentListByAdvancedFilters()::: FinalQuery: \n" + query.toString());
 
 		List<Shipments> resultList = typedQuery.getResultList();
@@ -523,10 +516,13 @@ public class ShipmentsService {
 	public void createAddress(String shipmentId, Address deliveryAddress) {
 
 		System.out.println("ShipmentsService createAddress():: deliveryAddress: " + deliveryAddress.toString());
-		
-		Address address = MyCustomUtils.buildAddressFields(deliveryAddress);
 
-		String addressId = addressService.createAddress(address) ;
+		Map<String, Address> addrMap = MyCustomUtils.buildAddressFields(deliveryAddress);
+
+		String addrHash = addrMap.keySet().iterator().next();
+		Address address = addrMap.getOrDefault(addrHash, new Address());
+
+		String addressId = addressService.createAddress(addrHash, address);
 
 		if (!(addressId.isEmpty()) && addressId != null) {
 			Optional<Shipments> optShipment = shipmentsRepo.findById(shipmentId);
@@ -545,6 +541,5 @@ public class ShipmentsService {
 	public Optional<Address> getShipingAddressById(String addressId) {
 		return addressRepo.findById(addressId);
 	}
- 
 
 }

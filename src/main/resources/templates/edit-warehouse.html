@@ -3,7 +3,9 @@
 <head>
 <link rel="stylesheet" th:href="@{/css/navbar.css}" />
 <style>
-*, *::before, *::after { box-sizing: border-box; }
+*, *::before, *::after {
+	box-sizing: border-box;
+}
 
 body {
 	font-family: Arial, sans-serif;
@@ -27,7 +29,9 @@ body {
 	align-items: flex-start;
 }
 
-.form-section { width: 62%; }
+.form-section {
+	width: 62%;
+}
 
 .form-section h2 {
 	font-size: 1rem;
@@ -40,7 +44,7 @@ body {
 	background: #fff;
 	border-radius: 12px;
 	padding: 20px 24px;
-	box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+	box-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
 }
 
 .section-title {
@@ -54,7 +58,9 @@ body {
 	border-bottom: 1px solid #e2e8f0;
 }
 
-.section-title:first-child { margin-top: 0; }
+.section-title:first-child {
+	margin-top: 0;
+}
 
 .form-grid {
 	display: grid;
@@ -62,7 +68,9 @@ body {
 	gap: 0 24px;
 }
 
-.full-span { grid-column: 1/-1; }
+.full-span {
+	grid-column: 1/-1;
+}
 
 label {
 	display: block;
@@ -100,7 +108,7 @@ input[type=text], select {
 
 input:focus, select:focus {
 	border-color: #6a73b2;
-	box-shadow: 0 0 0 3px rgba(106,115,178,0.15);
+	box-shadow: 0 0 0 3px rgba(106, 115, 178, 0.15);
 	background: #fff;
 }
 
@@ -124,7 +132,10 @@ input:focus, select:focus {
 	transition: background-color 0.2s, transform 0.15s;
 }
 
-.btn-update:hover { background-color: #555fa0; transform: translateY(-1px); }
+.btn-update:hover {
+	background-color: #555fa0;
+	transform: translateY(-1px);
+}
 
 .btn-delete {
 	background-color: #ed4758;
@@ -138,7 +149,10 @@ input:focus, select:focus {
 	transition: background-color 0.2s, transform 0.15s;
 }
 
-.btn-delete:hover { background-color: #c73444; transform: translateY(-1px); }
+.btn-delete:hover {
+	background-color: #c73444;
+	transform: translateY(-1px);
+}
 
 /* ── Full Address Card (display) ── */
 .full-address-card {
@@ -152,7 +166,11 @@ input:focus, select:focus {
 	margin-top: 2px;
 }
 
-.address-icon { font-size: 1.3rem; flex-shrink: 0; margin-top: 2px; }
+.address-icon {
+	font-size: 1.3rem;
+	flex-shrink: 0;
+	margin-top: 2px;
+}
 
 .address-text {
 	flex: 1;
@@ -176,14 +194,18 @@ input:focus, select:focus {
 	align-self: center;
 }
 
-.btn-edit-address:hover { background: #6a73b2; color: #fff; transform: translateY(-1px); }
+.btn-edit-address:hover {
+	background: #6a73b2;
+	color: #fff;
+	transform: translateY(-1px);
+}
 
 /* ── Modal Overlay ── */
 .addr-modal-overlay {
 	display: none;
 	position: fixed;
 	inset: 0;
-	background: rgba(15,23,42,0.45);
+	background: rgba(15, 23, 42, 0.45);
 	z-index: 1000;
 	align-items: center;
 	justify-content: center;
@@ -194,8 +216,16 @@ input:focus, select:focus {
 	animation: fadeOverlay 0.18s ease;
 }
 
-@keyframes fadeOverlay { from { opacity:0; } to { opacity:1; } }
+@
+keyframes fadeOverlay {from { opacity:0;
+	
+}
 
+to {
+	opacity: 1;
+}
+
+}
 .addr-modal {
 	background: #fff;
 	border-radius: 14px;
@@ -203,15 +233,21 @@ input:focus, select:focus {
 	max-width: 96vw;
 	max-height: 90vh;
 	overflow-y: auto;
-	box-shadow: 0 20px 60px rgba(15,23,42,0.28);
-	animation: popIn 0.22s cubic-bezier(0.34,1.56,0.64,1);
+	box-shadow: 0 20px 60px rgba(15, 23, 42, 0.28);
+	animation: popIn 0.22s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-@keyframes popIn {
-	from { opacity:0; transform: scale(0.92) translateY(16px); }
-	to   { opacity:1; transform: scale(1) translateY(0); }
+@
+keyframes popIn {from { opacity:0;
+	transform: scale(0.92) translateY(16px);
 }
 
+to {
+	opacity: 1;
+	transform: scale(1) translateY(0);
+}
+
+}
 .addr-modal-header {
 	display: flex;
 	align-items: center;
@@ -239,9 +275,14 @@ input:focus, select:focus {
 	transition: background 0.15s, color 0.15s;
 }
 
-.addr-modal-close:hover { background: #f1f5f9; color: #1e293b; }
+.addr-modal-close:hover {
+	background: #f1f5f9;
+	color: #1e293b;
+}
 
-.addr-modal-body { padding: 16px 22px 8px; }
+.addr-modal-body {
+	padding: 16px 22px 8px;
+}
 
 .address-edit-grid {
 	display: grid;
@@ -249,18 +290,20 @@ input:focus, select:focus {
 	gap: 0 22px;
 }
 
-.address-full-span { grid-column: 1/-1; }
+.address-full-span {
+	grid-column: 1/-1;
+}
 
 .address-custom-span {
-    display: grid;
-    grid-column: 1/-1; 
-    grid-template-columns: repeat(3, 1fr);
-    gap: 15px;
- }
+	display: grid;
+	grid-column: 1/-1;
+	grid-template-columns: repeat(3, 1fr);
+	gap: 15px;
+}
 
-.address-custom-span > div {
-    display: flex;
-    flex-direction: column;
+.address-custom-span>div {
+	display: flex;
+	flex-direction: column;
 }
 
 .addr-modal-footer {
@@ -280,8 +323,17 @@ input:focus, select:focus {
 	display: none;
 }
 
-.addr-result-msg.success { background: #dcfce7; color: #166534; display: block; }
-.addr-result-msg.error   { background: #fee2e2; color: #991b1b; display: block; }
+.addr-result-msg.success {
+	background: #dcfce7;
+	color: #166534;
+	display: block;
+}
+
+.addr-result-msg.error {
+	background: #fee2e2;
+	color: #991b1b;
+	display: block;
+}
 
 .btn-cancel-address {
 	background: #f1f5f9;
@@ -296,7 +348,10 @@ input:focus, select:focus {
 	white-space: nowrap;
 }
 
-.btn-cancel-address:hover { background: #e2e8f0; color: #1e293b; }
+.btn-cancel-address:hover {
+	background: #e2e8f0;
+	color: #1e293b;
+}
 
 .btn-update-address {
 	background-color: #6a73b2;
@@ -314,23 +369,39 @@ input:focus, select:focus {
 	gap: 6px;
 }
 
-.btn-update-address:disabled { opacity: 0.38; cursor: not-allowed; }
-.btn-update-address:not(:disabled):hover { background-color: #555fa0; transform: translateY(-1px); }
+.btn-update-address:disabled {
+	opacity: 0.38;
+	cursor: not-allowed;
+}
+
+.btn-update-address:not(:disabled):hover {
+	background-color: #555fa0;
+	transform: translateY(-1px);
+}
 
 .btn-spinner {
 	display: none;
 	width: 13px;
 	height: 13px;
-	border: 2px solid rgba(255,255,255,0.35);
+	border: 2px solid rgba(255, 255, 255, 0.35);
 	border-top-color: #fff;
 	border-radius: 50%;
 	animation: spin 0.7s linear infinite;
 }
 
-@keyframes spin { to { transform: rotate(360deg); } }
+@
+keyframes spin {to { transform:rotate(360deg);
+	
+}
 
-.btn-update-address.loading .btn-spinner { display: inline-block; }
-.btn-update-address.loading .btn-label  { opacity: 0.7; }
+}
+.btn-update-address.loading .btn-spinner {
+	display: inline-block;
+}
+
+.btn-update-address.loading .btn-label {
+	opacity: 0.7;
+}
 
 /* ── Conditions Panel ── */
 .conditions-section {
@@ -343,7 +414,11 @@ input:focus, select:focus {
 	margin-top: 30px;
 }
 
-.conditions-section h4 { margin: 0 0 10px; font-size: 0.92rem; color: #2d5a3d; }
+.conditions-section h4 {
+	margin: 0 0 10px;
+	font-size: 0.92rem;
+	color: #2d5a3d;
+}
 
 .conditions-section ol {
 	padding-left: 18px;
@@ -359,9 +434,9 @@ input:focus, select:focus {
 
 	<p th:if="${msg}" id="msgBox"
 		th:style="'background:' + ${bgColor} + '; color:' + ${textColor} + ';'">
-		<span th:utext="${msg}"></span>
-		<span onclick="this.parentElement.style.display='none'"
-			style="position:absolute;right:14px;top:50%;transform:translateY(-50%);cursor:pointer;font-weight:bold;">✕</span>
+		<span th:utext="${msg}"></span> <span
+			onclick="this.parentElement.style.display='none'"
+			style="position: absolute; right: 14px; top: 50%; transform: translateY(-50%); cursor: pointer; font-weight: bold;">✕</span>
 	</p>
 
 	<div class="page-wrapper">
@@ -370,20 +445,21 @@ input:focus, select:focus {
 			<div class="form-card">
 				<form action="/warehouses/updateWarehouse" method="post"
 					name="updateWarehouseDetails" id="updateWarehouseDetails">
-					<input type="hidden" name="warehouseId" th:value="${warehouse.warehouseId}" />
+					<input type="hidden" name="warehouseId" id="warehouseId"
+						th:value="${warehouse.warehouseId}" />
 
 					<div class="section-title">Warehouse Details</div>
 					<div class="form-grid">
 						<div>
 							<label>Warehouse ID</label>
 							<div class="readonly-value" th:text="${warehouse.warehouseId}">WH-001</div>
-							<label for="warehouseName">Warehouse Name</label>
-							<input type="text" name="warehouseName" id="warehouseName"
+							<label for="warehouseName">Warehouse Name</label> <input
+								type="text" name="warehouseName" id="warehouseName"
 								placeholder="Enter warehouse name"
 								th:value="${warehouse.warehouseName != null} ? ${warehouse.warehouseName} : ''"
-								required />
-							<label for="warehouseStatus">Warehouse Status</label>
-							<select name="warehouseStatus" id="warehouseStatus" required>
+								required /> <label for="warehouseStatus">Warehouse
+								Status</label> <select name="warehouseStatus" id="warehouseStatus"
+								required>
 								<option th:each="opt : ${options}" th:value="${opt}"
 									th:text="${opt}" th:selected="${opt == selectedStatus}"></option>
 							</select>
@@ -406,7 +482,7 @@ input:focus, select:focus {
 								required />
 						</div>
  -->
- <br />
+						<br />
 						<!-- Full Address Display Card -->
 						<div class="full-span">
 							<label>Warehouse Address</label>
@@ -415,22 +491,23 @@ input:focus, select:focus {
 								<div class="address-text" id="fullWarehouseAddressDisplay"
 									th:utext="${fullWarehouseAddress != null} ? ${fullWarehouseAddress} : 'No address details on record.'">
 								</div>
-								<button type="button" class="btn-edit-address" onclick="openAddressModal()">
-									✏️ Edit
-								</button>
+								<button type="button" class="btn-edit-address"
+									onclick="openAddressModal()">✏️ Edit</button>
 							</div>
 						</div>
 					</div>
 
 					<div class="button-row">
-						<button type="button" class="btn-update" onclick="submitIfChanged(event)">✔ Update Warehouse</button>
-						<button type="button" class="btn-delete" onclick="confirmDelete()">🗑 Delete Warehouse</button>
+						<button type="button" class="btn-update"
+							onclick="submitIfChanged(event)">✔ Update Warehouse</button>
+						<button type="button" class="btn-delete" onclick="confirmDelete()">🗑
+							Delete Warehouse</button>
 					</div>
 				</form>
 
 				<form id="deleteWarehouseForm"
 					th:action="@{'/warehouses/deleteWarehouse/' + ${warehouse.warehouseId}}"
-					method="post" style="display:none;"></form>
+					method="post" style="display: none;"></form>
 			</div>
 		</div>
 
@@ -441,88 +518,110 @@ input:focus, select:focus {
 				<li>Warehouse Name must be maximum 15 characters only.</li>
 				<li>Warehouse Address must be at least 10 characters long.</li>
 				<li>Warehouse Address must be maximum 50 characters only.</li>
-				<li><strong>Active</strong> = Shipping is allowed. <strong>Disabled</strong> = Not allowed.</li>
+				<li><strong>Active</strong> = Shipping is allowed. <strong>Disabled</strong>
+					= Not allowed.</li>
 			</ol>
 		</div>
 	</div>
 
 	<!-- ══════════ Address Edit Modal ══════════ -->
-	<div class="addr-modal-overlay" id="addrModalOverlay" onclick="onOverlayClick(event)">
+	<div class="addr-modal-overlay" id="addrModalOverlay"
+		onclick="onOverlayClick(event)">
 		<div class="addr-modal" id="addrModal">
 			<div class="addr-modal-header">
 				<h3>📮 Edit Full Warehouse Address</h3>
-				<button type="button" class="addr-modal-close" onclick="closeAddressModal()" title="Close">✕</button>
+				<button type="button" class="addr-modal-close"
+					onclick="closeAddressModal()" title="Close">✕</button>
 			</div>
 
 			<div class="addr-modal-body">
 				<div class="address-edit-grid">
-			 
-						<input type="hidden" name="addressId" id="addressId" th:value="${fullAddressToEdit.addressId}" /> 
+
+					<input type="hidden" name="addressId" id="addressId"
+						th:value="${fullAddressToEdit.addressId}" />
 					<div>
-						<label for="firstName">First Name</label>
-						<input type="text" name="firstName" id="firstName" placeholder="First name"
+						<label for="firstName">First Name</label> <input type="text"
+							name="firstName" id="firstName" placeholder="First name"
 							th:value="${fullAddressToEdit.firstName != null} ? ${fullAddressToEdit.firstName} : ''" />
 					</div>
 					<div>
-						<label for="lastName">Last Name</label>
-						<input type="text" name="lastName" id="lastName" placeholder="Last name"
+						<label for="lastName">Last Name</label> <input type="text"
+							name="lastName" id="lastName" placeholder="Last name"
 							th:value="${fullAddressToEdit.lastName != null} ? ${fullAddressToEdit.lastName} : ''" />
 					</div>
 					<div>
-						<label for="phone">Phone</label>
-						<input type="text" name="phone" id="phone" placeholder="Phone number"
+						<label for="phone">Phone</label> <input type="text" name="phone"
+							id="phone" placeholder="Phone number"
 							th:value="${fullAddressToEdit.phone != null} ? ${fullAddressToEdit.phone} : ''" />
 					</div>
 					<div>
-						<label for="email">Email</label>
-						<input type="text" name="email" id="email" placeholder="Email address"
+						<label for="email">Email</label> <input type="text" name="email"
+							id="email" placeholder="Email address"
 							th:value="${fullAddressToEdit.email != null} ? ${fullAddressToEdit.email} : ''" />
 					</div>
 					<div class="address-full-span">
-						<label for="address1">Address Line 1</label>
-						<input type="text" name="address1" id="address1" placeholder="Street address, building"
+						<label for="address1">Address Line 1</label> <input type="text"
+							name="address1" id="address1"
+							placeholder="Street address, building"
 							th:value="${fullAddressToEdit.address1 != null} ? ${fullAddressToEdit.address1} : ''" />
 					</div>
 					<div class="address-full-span">
-						<label for="address2">Address Line 2</label>
-						<input type="text" name="address2" id="address2" placeholder="Apartment, suite, unit (optional)"
+						<label for="address2">Address Line 2</label> <input type="text"
+							name="address2" id="address2"
+							placeholder="Apartment, suite, unit (optional)"
 							th:value="${fullAddressToEdit.address2 != null} ? ${fullAddressToEdit.address2} : ''" />
 					</div>
 					<br />
 					<div class="address-custom-span">
-					
-					<div class="readonly-value">
-						<label for="taluk">Taluk</label>
-						<span th:text="${fullAddressToEdit.taluk != null} ? ${fullAddressToEdit.taluk} : ''" >Taluk</span> 
-					</div>
-					<div class="readonly-value">
-						<label for="district">District</label>
-												<span th:text="${fullAddressToEdit.district != null} ? ${fullAddressToEdit.district} : ''" >District</span> 
-					</div>
-					<div  ></div>
-					<div class="readonly-value">
-						<label for="state">State</label>
-												<span th:text="${fullAddressToEdit.state != null} ? ${fullAddressToEdit.state} : ''" >State</span> 
-					</div>
-					<div class="readonly-value">
-						<label for="country">Country</label>						
-						<span th:text="${fullAddressToEdit.country != null} ? ${fullAddressToEdit.country} : ''" >Country</span> 						
-					</div>	
-					<div class="readonly-value">
-						<label for="zipCode">ZIP Code</label>
-						<span th:text="${fullAddressToEdit.zipCode != null} ? ${fullAddressToEdit.zipCode} : ''" >zipCode</span> 
-					</div>
+
+						<div class="readonly-value">
+							<label for="taluk">Taluk</label> <input type="hidden"
+								name="taluk" id="taluk"
+								th:value="${fullAddressToEdit.taluk != null} ? ${fullAddressToEdit.taluk} : ''" />
+							<span
+								th:text="${fullAddressToEdit.taluk != null} ? ${fullAddressToEdit.taluk} : ''">Taluk</span>
+						</div>
+						<div class="readonly-value">
+							<label for="district">District</label> <input type="hidden"
+								name="district" id="district"
+								th:value="${fullAddressToEdit.district != null} ? ${fullAddressToEdit.district} : ''" />
+							<span
+								th:text="${fullAddressToEdit.district != null} ? ${fullAddressToEdit.district} : ''">District</span>
+						</div>
+						<div></div>
+						<div class="readonly-value">
+							<label for="state">State</label> <input type="hidden"
+								name="state" id="state"
+								th:value="${fullAddressToEdit.state != null} ? ${fullAddressToEdit.state} : ''" />
+							<span
+								th:text="${fullAddressToEdit.state != null} ? ${fullAddressToEdit.state} : ''">State</span>
+						</div>
+						<div class="readonly-value">
+							<label for="country">Country</label><input type="hidden"
+								name="country" id="country"
+								th:value="${fullAddressToEdit.country != null} ? ${fullAddressToEdit.country} : ''" />
+							<span
+								th:text="${fullAddressToEdit.country != null} ? ${fullAddressToEdit.country} : ''">Country</span>
+						</div>
+						<div class="readonly-value">
+							<label for="zipCode">ZIP Code</label><input type="hidden"
+								name="zipCode" id="zipCode"
+								th:value="${fullAddressToEdit.zipCode != null} ? ${fullAddressToEdit.zipCode} : ''" />
+							<span
+								th:text="${fullAddressToEdit.zipCode != null} ? ${fullAddressToEdit.zipCode} : ''">zipCode</span>
+						</div>
 					</div>
 				</div>
 			</div>
 
 			<div class="addr-modal-footer">
 				<div class="addr-result-msg" id="addrResultMsg"></div>
-				<button type="button" class="btn-cancel-address" onclick="closeAddressModal()">✕ Cancel</button>
-				<button type="button" class="btn-update-address" id="btnUpdateAddress"
-					disabled onclick="submitAddressUpdate()">
-					<span class="btn-spinner" id="addrSpinner"></span>
-					<span class="btn-label">✔ Update Address</span>
+				<button type="button" class="btn-cancel-address"
+					onclick="closeAddressModal()">✕ Cancel</button>
+				<button type="button" class="btn-update-address"
+					id="btnUpdateAddress" disabled onclick="submitAddressUpdate()">
+					<span class="btn-spinner" id="addrSpinner"></span> <span
+						class="btn-label">✔ Update Address</span>
 				</button>
 			</div>
 		</div>
@@ -592,6 +691,10 @@ input:focus, select:focus {
       addrFields.forEach(id => {
         document.getElementById(id).removeEventListener("input", checkAddrChanges);
       });
+      
+    //Automatically reload page to reflec the updated address
+     window.location.reload();
+
     }
 
     function onOverlayClick(e) {
@@ -604,6 +707,8 @@ input:focus, select:focus {
     }
 
     function submitAddressUpdate() {
+    	
+    const warehouseId = document.getElementById("warehouseId").value;
       const btn = document.getElementById("btnUpdateAddress");
       const msg = document.getElementById("addrResultMsg");
 
@@ -621,11 +726,11 @@ input:focus, select:focus {
                 phone     : document.getElementById('phone').value.trim(),
                 address1  : document.getElementById('address1').value.trim(),
                 address2  : document.getElementById('address2').value.trim(),
-               /*  zipCode   : document.getElementById('zipCode').value.trim(),
+               zipCode   : document.getElementById('zipCode').value.trim(),
                 district  : document.getElementById('district').value.trim(),
                 taluk     : document.getElementById('taluk').value.trim(),
                 state     : document.getElementById('state').value.trim(),
-                country   : document.getElementById('country').value.trim(), */
+                country   : document.getElementById('country').value.trim(),  
         };
       });
 
@@ -637,7 +742,7 @@ input:focus, select:focus {
       
       console.log('fieldMap: ',fieldMap);
 
-     fetch("/address/updateAddress", {
+     fetch(`/warehouses/updateAddress?warehouseId=${encodeURIComponent(warehouseId)}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(fieldMap) 
@@ -653,6 +758,10 @@ input:focus, select:focus {
           addrOriginal = {};
           addrFields.forEach(id => { addrOriginal[id] = document.getElementById(id).value; });
           btn.disabled = true;
+         /*  //Automatically reload page after success-- to reflec the updated address
+          setTimeout(() => {
+        	    window.location.reload();
+        	}, 3000); */
         } else {
           btn.disabled = false;
         }
@@ -666,4 +775,4 @@ input:focus, select:focus {
     }
   </script>
 </body>
-</html> 
+</html>

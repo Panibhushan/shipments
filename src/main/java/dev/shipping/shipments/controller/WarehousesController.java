@@ -2,9 +2,11 @@ package dev.shipping.shipments.controller;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import org.springframework.stereotype.Controller;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -18,16 +20,20 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import dev.shipping.shipments.model.Address;
 import dev.shipping.shipments.model.CreateShipmentRequestWithLinesAndAddress;
 import dev.shipping.shipments.model.Warehouses;
+import dev.shipping.shipments.service.AddressService;
 import dev.shipping.shipments.service.WarehousesService;
 import dev.shipping.shipments.utils.MyResourceUtils;
+import utils.MyCustomUtils;
 
 @Controller
 public class WarehousesController {
 
 	private final WarehousesService warehousesService;
+	private final AddressService addressService;
 
-	public WarehousesController(WarehousesService warehousesService) {
+	public WarehousesController(WarehousesService warehousesService, AddressService addressService) {
 		this.warehousesService = warehousesService;
+		this.addressService = addressService;
 	}
 
 	@GetMapping("/warehouses/")
@@ -125,16 +131,30 @@ public class WarehousesController {
 	@PostMapping("/warehouses/deleteWarehouse/{warehouseId}")
 	public String deleteWarehouse(@PathVariable String warehouseId, RedirectAttributes redirectAttributes) {
 
-		if (!warehousesService.warehouseExists(warehouseId)) {
-			redirectAttributes.addFlashAttribute("msg", "Warehouse " + warehouseId + " doesnt exists !!!");
+		String message = "";
+
+		if (warehousesService.warehouseExists(warehouseId)) {
+			String deletionStatus = warehousesService.deleteWarehouse(warehouseId);
+
+			if (deletionStatus.equals("WAREHOUSE_DELETED")) {
+				message = "Warehouse " + warehouseId + " is Deleted!!!";
+				redirectAttributes.addFlashAttribute("bgColor", "#d1fae5;");
+				redirectAttributes.addFlashAttribute("textColor", "#45484d");
+			} else {
+				message = "inventory Exists!! Adjust out all the inventory from <strong>" + warehouseId
+						+ "</strong> warehouse and then try to delete it"
+						+ "&nbsp;&nbsp;&nbsp;&nbsp;<a style='color: #ffffff;' target='_blank' href='/inventory/showInventoryByFilters?itemId=&itemUom=ALL&customerId=ALL&warehouseSelect="
+						+ warehouseId + "'>View Inventory</a>";
+				redirectAttributes.addFlashAttribute("bgColor", "#d95f6c");
+				redirectAttributes.addFlashAttribute("textColor", "#ffffff");
+			}
+		} else {
+			message = "Warehouse " + warehouseId + " doesnt exists !!!";
 			redirectAttributes.addFlashAttribute("bgColor", "#d95f6c");
 			redirectAttributes.addFlashAttribute("textColor", "#ffffff");
-		} else {
-			warehousesService.deleteWarehouse(warehouseId);
-			redirectAttributes.addFlashAttribute("msg", "Warehouse " + warehouseId + " is Deleted!!!");
-			redirectAttributes.addFlashAttribute("bgColor", "#d1fae5;");
-			redirectAttributes.addFlashAttribute("textColor", "#45484d");
 		}
+
+		redirectAttributes.addFlashAttribute("msg", message);
 
 		return "redirect:/warehouses/";
 	}
@@ -158,8 +178,8 @@ public class WarehousesController {
 			return "redirect:/warehouses/";
 		}
 
-		warehousesService.populateEditWarehouseModel(warehouseId, model);		
-		
+		warehousesService.populateEditWarehouseModel(warehouseId, model);
+
 		return "edit-warehouse";
 	}
 
@@ -195,28 +215,40 @@ public class WarehousesController {
 	@PostMapping("/warehouses/createWarehouseWithAddress")
 	@ResponseBody
 	public String createWarehouseWithAddress(@ModelAttribute Warehouses warehouse, @RequestParam String warehouseId,
-			@RequestParam String warehouseName, @RequestParam String warehouseStatus,  @RequestBody Address request) {
+			@RequestParam String warehouseName, @RequestParam String warehouseStatus, @RequestBody Address request) {
 
 		if (warehousesService.warehouseExists(warehouseId)) {
-			return "WAREHOUSE_ALREADY_EXISTS: "+warehouseId;
+			return "WAREHOUSE_ALREADY_EXISTS: " + warehouseId;
 		}
 
 		List<String> errors = warehousesService.validateNewWarehouse(warehouse);
 
 		if (!errors.isEmpty()) {
-			return errors.toString() ; 
+			return errors.toString();
 		} else {
 			System.out.println("/warehouses/createWarehouseWithAddress: " + warehouse.toString());
-			System.out.println(warehouseId + " -- " + warehouseName + " -- " + warehouseStatus + " -- " 
-					+ " -- " + request.toString());
+			System.out.println(warehouseId + " -- " + warehouseName + " -- " + warehouseStatus + " -- " + " -- "
+					+ request.toString());
 
-			String createdWarehouseId= warehousesService.createWarehouse(warehouse) ;
+			String createdWarehouseId = warehousesService.createWarehouse(warehouse);
 
-			String warehouseCreationWithAddressStatus = warehousesService.createWarehouseWithAddress(createdWarehouseId,  request);
+			String warehouseCreationWithAddressStatus = warehousesService.createWarehouseWithAddress(createdWarehouseId,
+					request);
 
 			return warehouseCreationWithAddressStatus;
 		}
- 
+	}
+
+	@PostMapping("/warehouses/updateAddress")
+	@ResponseBody
+	public String updateAddress(@RequestParam String warehouseId, @RequestBody Address address) {
+
+		System.out.println(
+				"/address/updateAddress: warehouseId, address: " + warehouseId + " ---- " + address.toString());
+
+		String addressUpdateStatus = warehousesService.updateAddress(warehouseId, address);
+
+		return addressUpdateStatus;
 	}
 
 }

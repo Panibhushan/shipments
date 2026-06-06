@@ -795,35 +795,42 @@ table.lines-table input, table.lines-table select {
 						<div class="form-grid-2">
 							<div>
 								<label class="field-label">First Name</label> <input type="text"
-									id="firstName" name="firstName" placeholder="e.g. Ravi"
-									onchange="validateCreateBtn()" oninput="validateCreateBtn()" />
+									id="firstName" name="firstName" placeholder="e.g. Pani"
+									onchange="validateCreateBtn(); convertToUppercase(this);"
+									oninput="validateCreateBtn(); convertToUppercase(this);" />
 							</div>
 							<div>
 								<label class="field-label">Last Name</label> <input type="text"
-									id="lastName" name="lastName" placeholder="e.g. Kumar"
-									onchange="validateCreateBtn()" oninput="validateCreateBtn()" />
+									id="lastName" name="lastName" placeholder="e.g. VS"
+									onchange="validateCreateBtn(); convertToUppercase(this);"
+									oninput="validateCreateBtn(); convertToUppercase(this);" />
 							</div>
 							<div>
 								<label class="field-label">Email</label> <input type="email"
-									id="email" name="email" placeholder="ravi@example.com"
-									onchange="validateCreateBtn()" oninput="validateCreateBtn()" />
+									id="email" name="email" placeholder="pani@example.com"
+									onchange="validateCreateBtn(); convertToUppercase(this);"
+									oninput="validateCreateBtn(); convertToUppercase(this);" />
 							</div>
 							<div>
 								<label class="field-label">Phone</label> <input type="tel"
-									id="phone" name="phone" placeholder="+91 98765 43210"
-									onchange="validateCreateBtn()" oninput="validateCreateBtn()" />
+									maxlength="10" pattern="[0-9]{10}" id="phone" name="phone"
+									placeholder="+91 98765 43210"
+									onchange="validateCreateBtn(); convertToUppercase(this);"
+									oninput="validateCreateBtn(); this.value = this.value.replace(/\D/g,'').slice(0,10);" />
 							</div>
 							<div class="full-span">
 								<label class="field-label">Address Line 1</label> <input
 									type="text" id="address1" name="address1"
 									placeholder="House/Flat No., Street Name"
-									onchange="validateCreateBtn()" oninput="validateCreateBtn()" />
+									onchange="validateCreateBtn(); convertToUppercase(this);"
+									oninput="validateCreateBtn(); convertToUppercase(this);" />
 							</div>
 							<div class="full-span">
 								<label class="field-label">Address Line 2 (Optional)</label> <input
 									type="text" id="address2" name="address2"
-									placeholder="Landmark, Area" onchange="validateCreateBtn()"
-									oninput="validateCreateBtn()" />
+									placeholder="Landmark, Area"
+									onchange="validateCreateBtn(); convertToUppercase(this);"
+									oninput="validateCreateBtn(); convertToUppercase(this);" />
 							</div>
 						</div>
 
@@ -842,24 +849,27 @@ table.lines-table input, table.lines-table select {
 							<div>
 								<label class="field-label">District</label> <input type="text"
 									id="district" placeholder="Auto-filled"
-									onchange="validateCreateBtn()" oninput="validateCreateBtn()"
+									onchange="validateCreateBtn(); convertToUppercase(this);"
+									oninput="validateCreateBtn(); convertToUppercase(this);"
 									disabled />
 							</div>
 							<div>
-								<label class="field-label">Taluk</label> <input type="text"
+								<label class="field-label">Taluk/Block</label> <input type="text"
 									id="taluk" placeholder="Auto-filled if available"
-									onchange="validateCreateBtn()" oninput="validateCreateBtn()"
+									onchange="validateCreateBtn(); convertToUppercase(this);"
+									oninput="validateCreateBtn(); convertToUppercase(this);"
 									disabled />
 							</div>
 							<div>
 								<label class="field-label">State</label> <input type="text"
 									id="state" placeholder="Auto-filled"
-									onchange="validateCreateBtn()" oninput="validateCreateBtn()"
+									onchange="validateCreateBtn(); convertToUppercase(this);"
+									oninput="validateCreateBtn(); convertToUppercase(this);"
 									disabled />
 							</div>
 							<div>
 								<label class="field-label">Country</label> <input type="text"
-									id="country" value="India" disabled /> <input type="hidden"
+									id="country" value="INDIA" disabled /> <input type="hidden"
 									id="latitude" name="latitude" /> <input type="hidden"
 									id="longitude" name="longitude" />
 
@@ -1061,6 +1071,13 @@ table.lines-table input, table.lines-table select {
       }
     }
 
+    function convertToUppercase(element) {
+
+        if (element) {
+            element.value = element.value.toUpperCase();
+        }
+    }
+    
     function validateCreateBtn() {
       const custId    = document.getElementById('customerId').value;
       const firstName = document.getElementById('firstName').value.trim();
@@ -1175,7 +1192,7 @@ table.lines-table input, table.lines-table select {
         el.value = '';
         el.classList.remove('input-ok','input-error');
       });
-      document.getElementById('country').value = 'India';
+      document.getElementById('country').value = 'INDIA';
 
       try {
          const resp = await fetch(`https://api.postalpincode.in/pincode/${zip}`);
@@ -1190,9 +1207,9 @@ table.lines-table input, table.lines-table select {
         }
 
         const po = data[0].PostOffice[0];
-        document.getElementById('district').value = po.District || '';
-        document.getElementById('taluk').value    = po.Taluk    || po.Block || '';
-        document.getElementById('state').value    = po.State    || '';
+        document.getElementById('district').value = (po.District || '' ).toUpperCase();
+        document.getElementById('taluk').value    = (po.Taluk    || po.Block || po.Name || '').toUpperCase();
+        document.getElementById('state').value    = (po.State    || '').toUpperCase();
 
         ['district','taluk','state','country'].forEach(id => {
           document.getElementById(id).classList.add('input-ok');
@@ -1429,7 +1446,7 @@ table.lines-table input, table.lines-table select {
           el.classList.remove('input-ok','input-error');
         }
       });
-      document.getElementById('country').value = 'India';
+      document.getElementById('country').value = 'INDIA';
       document.getElementById('zipHint').textContent = '';
       document.getElementById('btnZip').disabled = true;
 
