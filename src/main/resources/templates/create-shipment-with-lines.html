@@ -1411,7 +1411,7 @@ table.lines-table input, table.lines-table select {
           msgBox.style.background = 'linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%)';
           msgBox.style.color = '#065f46';
           msgBox.style.border = '1px solid #6ee7b7';
-          msgText.innerHTML = `✔ Shipment created! <a href="/shipments/showShipmentDetails/${shipmentId}" style="color:#059669;font-weight:700;text-decoration:underline;">View Details</a>`;
+          msgText.innerHTML = `✔ Shipment created with ID: ${shipmentId} <a href="/shipments/showShipmentDetails/${shipmentId}" style="color:#059669;font-weight:700;text-decoration:underline;">View Details</a>`;
           msgBox.classList.add('show');
           clearForm();
           closeInventorySection();

@@ -9,80 +9,101 @@
 
 body {
 	font-family: Arial, sans-serif;
-	background: #f4f6f9;
+	background: #f0f2f7;
 	margin: 0;
 	min-height: 100vh;
+	scroll-padding-top: 60px;
+}
+
+/* ── STICKY NAVBAR ── */
+/* Targets the Thymeleaf-replaced navbar fragment container */
+body > div:first-child,
+body > nav:first-child,
+body > header:first-child {
+	position: sticky;
+	top: 0;
+	z-index: 999;
+	box-shadow: 0 2px 8px rgba(0,0,0,0.08);
 }
 
 #msgBox {
-	margin: 8px 24px 0;
-	padding: 8px 40px 8px 14px;
-	border-radius: 8px;
+	margin: 10px 24px 0;
+	padding: 10px 44px 10px 16px;
+	border-radius: 10px;
 	font-weight: bold;
 	position: relative;
+	box-shadow: 0 2px 8px rgba(0,0,0,0.07);
 }
 
 .page-content {
-	padding: 14px 24px;
+	padding: 18px 28px 32px;
+	max-width: 1200px;
+	margin: 0 auto;
 }
 
 .top-bar {
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
-	margin-bottom: 16px;
+	margin-bottom: 20px;
 }
 
 .top-bar h2 {
 	margin: 0;
-	font-size: 1rem;
+	font-size: 1.15rem;
 	font-weight: 700;
 	color: #1e293b;
+	letter-spacing: -0.01em;
 }
 
 /* ── DETAILS CARD ── */
 .details-card {
 	background: #fff;
-	border-radius: 12px;
-	box-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
-	padding: 20px 24px;
-	margin-bottom: 16px;
+	border-radius: 14px;
+	box-shadow: 0 1px 4px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.06);
+	padding: 22px 28px;
+	margin-bottom: 18px;
 }
 
 .section-title {
-	font-size: 0.68rem;
+	font-size: 0.67rem;
 	font-weight: 700;
 	text-transform: uppercase;
-	letter-spacing: 0.1em;
-	color: #94a3b8;
-	margin: 0 0 14px;
-	padding-bottom: 5px;
-	border-bottom: 1px solid #e2e8f0;
+	letter-spacing: 0.12em;
+	color: #a0aec0;
+	margin: 0 0 16px;
+	padding-bottom: 8px;
+	border-bottom: 1.5px solid #edf2f7;
 }
 
 .info-grid {
 	display: grid;
-	grid-template-columns: repeat(3, 1fr);
-	gap: 0 28px;
+	grid-template-columns: repeat(4, 1fr);
+	gap: 0 32px;
+}
+
+@media (max-width: 900px) {
+	.info-grid { grid-template-columns: repeat(2, 1fr); }
 }
 
 .info-field {
-	margin-bottom: 14px;
+	margin-bottom: 18px;
 }
 
 .info-field .field-label {
-	font-size: 0.7rem;
+	font-size: 0.67rem;
 	font-weight: 700;
 	text-transform: uppercase;
-	letter-spacing: 0.06em;
-	color: #94a3b8;
-	margin-bottom: 4px;
+	letter-spacing: 0.07em;
+	color: #a0aec0;
+	margin-bottom: 5px;
 }
 
 .info-field .field-value {
-	font-size: 1rem;
-	font-weight: 700;
+	font-size: 0.97rem;
+	font-weight: 600;
 	color: #1e293b;
+	line-height: 1.4;
 }
 
 .cell-link a {
@@ -133,10 +154,10 @@ body {
 /* ── ACTION BUTTONS ── */
 .action-card {
 	background: #fff;
-	border-radius: 12px;
-	box-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
-	padding: 18px 24px;
-	margin-bottom: 16px;
+	border-radius: 14px;
+	box-shadow: 0 1px 4px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.06);
+	padding: 20px 28px;
+	margin-bottom: 18px;
 }
 
 .action-card .section-title {
@@ -455,33 +476,41 @@ button:disabled {
 
 .lines-table-wrap {
 	overflow-x: auto;
-	margin-top: 8px
+	margin-top: 4px;
 }
 
 table.lines-table {
 	width: 100%;
 	border-collapse: collapse;
-	min-width: 640px
+	min-width: 560px;
 }
 
 table.lines-table th {
-	font-size: 0.68rem;
+	font-size: 0.67rem;
 	font-weight: 700;
 	text-transform: uppercase;
-	letter-spacing: 0.07em;
-	color: var(--color-text-secondary);
-	padding: 6px 8px;
-	background: var(--color-background-secondary);
-	border-bottom: 1.5px solid var(--color-border-tertiary);
+	letter-spacing: 0.09em;
+	color: #94a3b8;
+	padding: 8px 12px;
+	background: #f8fafc;
+	border-bottom: 1.5px solid #e2e8f0;
 	white-space: nowrap;
-	text-align: left
+	text-align: center;
 }
 
 table.lines-table td {
-	padding: 5px 6px;
-	/* 	border-bottom: 0.5px solid var(--color-border-tertiary); */
-	border-bottom: 0.3px solid #e1e5ea;
-	vertical-align: middle
+	padding: 10px 12px;
+	border-bottom: 1px solid #f1f5f9;
+	vertical-align: middle;
+	text-align: center;
+}
+
+table.lines-table tbody tr:last-child td {
+	border-bottom: none;
+}
+
+table.lines-table tbody tr:hover {
+	background: #f8fafc;
 }
 
 /* table.lines-table tr:last-child td {
@@ -502,13 +531,33 @@ table.lines-table input, table.lines-table select {
 }
 
 .readonly-value {
-	font-size: 1rem;
-	font-weight: 700;
+	font-size: 0.95rem;
+	font-weight: 600;
 	color: #1e293b;
 	padding: 6px 0 8px;
-	/* 	border-bottom: 2px solid #e2e8f0;
- */
 	margin-bottom: 4px;
+}
+
+/* ── SHORTAGE QTY PILLS ── */
+.shortage-pill {
+	display: inline-block;
+	padding: 3px 14px;
+	border-radius: 999px;
+	font-size: 0.82rem;
+	font-weight: 700;
+	line-height: 1.6;
+	min-width: 44px;
+	text-align: center;
+}
+
+.shortage-zero {
+	background: #dcfce7;
+	color: #166534;
+}
+
+.shortage-nonzero {
+	background: #fee2e2;
+	color: #991b1b;
 }
 
 /* warehouse selection */
@@ -699,14 +748,12 @@ table.lines-table input, table.lines-table select {
 			<div class="info-grid"> -->
 			<table class="lines-table info-field " id="linesTable">
 				<thead>
-					<tr class="section-title" style="border-bottom: 2px solid #e2e8f0;">
-						<th class="field-label" style="width: 120px; text-align: center">Line#</th>
-						<th class="field-label" style="width: 120px; text-align: center">Item
-							ID</th>
-						<th class="field-label" style="width: 110px; text-align: center">UOM</th>
-						<th class="field-label" style="width: 90px; text-align: center">Quantity</th>
-						<th class="field-label" style="width: 36px; text-align: center">Shortage
-							Qty</th>
+					<tr>
+						<th style="width: 120px;">Line #</th>
+						<th style="width: 180px;">Item ID</th>
+						<th style="width: 120px;">UOM</th>
+						<th style="width: 110px;">Quantity</th>
+						<th style="width: 140px;">Shortage Qty</th>
 					</tr>
 				</thead>
 				<tbody id="linesBody" style="text-align: center;">
@@ -725,8 +772,10 @@ table.lines-table input, table.lines-table select {
 						</td>
 						<td><div class="readonly-value" th:text="${sl.quantity}">1</div></td>
 						</td>
-						<td><div class="readonly-value"
-								th:text="${sl.shortageQuantity}">0</div></td>
+						<td>
+							<span th:classappend="${sl.shortageQuantity == 0} ? 'shortage-zero' : 'shortage-nonzero'"
+								  class="shortage-pill"
+								  th:text="${sl.shortageQuantity}">0</span>
 						</td>
 					</tr>
 				</tbody>

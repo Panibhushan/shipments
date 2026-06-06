@@ -24,13 +24,16 @@ body {
 
 .page-wrapper {
 	display: flex;
-	gap: 20px;
-	padding: 14px 24px;
+	gap: 28px;
+	padding: 24px;
+	max-width: 1600px;
+	margin: 0 auto;
 	align-items: flex-start;
 }
 
 .form-section {
-	width: 62%;
+	flex: 1 1 auto;
+	min-width: 0;
 }
 
 .form-section h2 {
@@ -118,6 +121,8 @@ input:focus, select:focus {
 	border-top: 1px solid #e2e8f0;
 	display: flex;
 	gap: 10px;
+	flex-wrap: wrap;
+	align-items: center;
 }
 
 .btn-update {
@@ -150,11 +155,55 @@ input:focus, select:focus {
 }
 
 .btn-delete:hover {
-	background-color: #c73444;
+	background-color: #ea2828;
+	color: white;
 	transform: translateY(-1px);
 }
 
-/* ── Full Address Card (display) ── */
+/* ── ACTION LINKS ── */
+.action-link {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	padding: 10px 16px;
+	text-decoration: none;
+	border-radius: 8px;
+	font-weight: 700;
+	font-size: 0.9rem;
+	border: 1.5px solid #93c5fd;
+	transition: all 0.2s ease;
+	cursor: pointer;
+}
+
+.add-inv-btn {
+	background-color: #4CAF50;
+	color: #ffffff;
+}
+
+.view-inv-btn {
+	background-color: #f1f5f9;
+	color: #374151;
+	border: 1.5px solid #cbd5e1;
+}
+
+.add-inv-btn:hover {
+	background-color: #3d9140;
+	transform: translateY(-1px);
+}
+
+.view-inv-btn:hover {
+	background-color: #e2e8f0;
+	color: #1e293b;
+	transform: translateY(-1px);
+}
+
+.btn-delete {
+	margin-left: auto;
+	background-color: #fee2e2;
+	color: #991b1b;
+	border: 1.5px solid #fca5a5;
+}
+
 .full-address-card {
 	display: flex;
 	align-items: flex-start;
@@ -405,13 +454,14 @@ keyframes spin {to { transform:rotate(360deg);
 
 /* ── Conditions Panel ── */
 .conditions-section {
-	width: 38%;
-	background: #f0f7f2;
-	border: 1px solid #c8e0d0;
+	flex: 0 0 320px;
+	background: linear-gradient(135deg, #f0fdf4 0%, #f0f9ff 100%);
+	border: 2px solid #dcfce7;
 	border-radius: 12px;
 	padding: 18px 22px;
 	align-self: flex-start;
-	margin-top: 30px;
+	position: sticky;
+	top: 80px;
 }
 
 .conditions-section h4 {
@@ -426,6 +476,51 @@ keyframes spin {to { transform:rotate(360deg);
 	line-height: 2;
 	margin: 0;
 	font-size: 0.85rem;
+}
+
+/* ── RESPONSIVE LAYOUT ── */
+@media ( max-width : 1200px) {
+	.page-wrapper {
+		flex-direction: column;
+		gap: 24px;
+		padding: 18px;
+	}
+	.form-section {
+		width: 100%;
+	}
+	.conditions-section {
+		flex: 1;
+		width: 100%;
+		position: static;
+		margin-top: 0;
+	}
+}
+
+@media ( max-width : 768px) {
+	.page-wrapper {
+		padding: 16px;
+		gap: 16px;
+	}
+	.button-row {
+		flex-direction: column;
+		gap: 8px;
+	}
+	.btn-update, .btn-delete, .action-link {
+		width: 100%;
+		text-align: center;
+	}
+	.btn-delete {
+		margin-left: 0 !important;
+	}
+	.action-link {
+		justify-content: center;
+	}
+	.conditions-section {
+		padding: 14px 16px;
+	}
+	.form-grid {
+		grid-template-columns: 1fr;
+	}
 }
 </style>
 </head>
@@ -499,9 +594,15 @@ keyframes spin {to { transform:rotate(360deg);
 
 					<div class="button-row">
 						<button type="button" class="btn-update"
-							onclick="submitIfChanged(event)">✔ Update Warehouse</button>
+							onclick="submitIfChanged(event)">✔ Update</button>
+						<a
+							th:href="@{'/inventory/allInventory?warehouseId=' + ${warehouse.warehouseId}}"
+							class="action-link view-inv-btn"> 📦 View Inventory </a> <a
+							th:href="@{'/inventory/addInventory?warehouseId=' + ${warehouse.warehouseId}}"
+							class="action-link add-inv-btn"> ➕ Add Inventory </a>
 						<button type="button" class="btn-delete" onclick="confirmDelete()">🗑
-							Delete Warehouse</button>
+							Delete</button>
+
 					</div>
 				</form>
 

@@ -1,12 +1,9 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
-<link rel="stylesheet"  href="P:\panibhushan_eclipse\eclipse-workspace\shipments\src\main\resources\static\css\navbar.css" />
-<!-- <link rel="stylesheet"  href="@{/css/navbar.css}" />
- -->
- 
+<link rel="stylesheet" th:href="@{/css/navbar.css}" />
 <style>
- *, *::before, *::after {
+*, *::before, *::after {
 	box-sizing: border-box;
 }
 
@@ -14,27 +11,36 @@ body {
 	font-family: Arial, sans-serif;
 	background: #f4f6f9;
 	margin: 0;
-	min-height: 100vh;
+	height: 100vh;
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
 }
 
 #msgBox {
-	margin: 8px 24px 0;
-	padding: 8px 40px 8px 14px;
+	margin: 6px 24px 0;
+	padding: 7px 40px 7px 14px;
 	border-radius: 8px;
 	font-weight: bold;
 	position: relative;
+	flex-shrink: 0;
 }
 
-/* ── PAGE LAYOUT ── */
+/* ── PAGE SHELL ── */
 .page-content {
-	padding: 14px 24px;
+	padding: 10px 16px 0;
+	display: flex;
+	flex-direction: column;
+	flex: 1;
+	min-height: 0;
 }
 
 .top-bar {
 	display: flex;
 	align-items: center;
 	justify-content: space-between;
-	margin-bottom: 14px;
+	margin-bottom: 10px;
+	flex-shrink: 0;
 }
 
 .top-bar h2 {
@@ -49,8 +55,8 @@ body {
 	background-color: #4CAF50;
 	color: #fff;
 	font-weight: 700;
-	font-size: 0.88rem;
-	padding: 9px 20px;
+	font-size: 0.85rem;
+	padding: 8px 18px;
 	text-decoration: none;
 	border-radius: 8px;
 	transition: background-color 0.2s, transform 0.15s;
@@ -61,74 +67,107 @@ body {
 	transform: translateY(-1px);
 }
 
-/* ── TWO-COLUMN WRAPPER ── */
+/* ── TWO-COLUMN WRAPPER — fills remaining height ── */
 .layout-wrapper {
 	display: flex;
-	gap: 16px;
-	align-items: flex-start;
+	gap: 14px;
+	flex: 1;
+	min-height: 0;
 }
 
-/* ── LEFT: FILTER PANEL ── */
+/* ══════════════════════════════
+   LEFT FILTER PANEL — 25%, fixed height, no scroll unless small screen
+══════════════════════════════ */
 .filter-panel {
 	width: 25%;
 	flex-shrink: 0;
 	background: #ffffff;
 	border-radius: 12px;
 	box-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
-	padding: 16px 16px;
+	padding: 12px 14px;
+	display: flex;
+	flex-direction: column;
+	/* fills the wrapper height exactly */
+	align-self: stretch;
+	/* sticky relative to the two-col wrapper */
 	position: sticky;
-	top: 14px;
+	top: 0;
+	/* overflow hidden by default; auto only when content doesn't fit */
+	overflow-y: hidden;
+}
+
+/* if viewport shrinks below ~700px, allow panel to scroll */
+@media ( max-height : 650px) {
+	.filter-panel {
+		overflow-y: auto;
+	}
 }
 
 .filter-panel h3 {
-	margin: 0 0 4px;
-	font-size: 0.72rem;
+	margin: 0 0 2px;
+	font-size: 0.7rem;
 	font-weight: 700;
 	text-transform: uppercase;
 	letter-spacing: 0.1em;
 	color: #94a3b8;
-	padding-bottom: 8px;
+	padding-bottom: 6px;
 	border-bottom: 1px solid #e2e8f0;
+	flex-shrink: 0;
 }
 
 .filter-hint {
-	font-size: 0.72rem;
+	font-size: 0.68rem;
 	color: #6a73b2;
-	margin: 1px 0 6px;
-	line-height: 1.4;
+	margin: 3px 0 6px;
+	line-height: 1.3;
+	flex-shrink: 0;
+}
+
+/* scrollable area inside panel for the filter fields */
+.filter-fields {
+	flex: 1;
+	overflow-y: auto;
+	padding-right: 2px;
+	/* thin custom scrollbar */
+	scrollbar-width: thin;
+	scrollbar-color: #c7d2fe transparent;
+}
+
+.filter-fields::-webkit-scrollbar {
+	width: 4px;
+}
+
+.filter-fields::-webkit-scrollbar-thumb {
+	background: #c7d2fe;
+	border-radius: 4px;
 }
 
 .filter-group {
-	margin-bottom: 14px;
+	margin-bottom: 8px;
 }
 
 .filter-group label {
 	display: block;
-	font-size: 0.7rem;
+	font-size: 0.67rem;
 	font-weight: 700;
 	color: #4a4e8a;
 	text-transform: uppercase;
 	letter-spacing: 0.06em;
-	margin-bottom: 5px;
+	margin-bottom: 3px;
 }
 
 .filter-group select, .filter-group input[type=text], .filter-group input[type=date]
 	{
 	width: 100%;
-	padding: 8px 10px;
+	padding: 6px 8px;
 	border: 1.5px solid #b0baf5;
-	border-radius: 7px;
-	font-size: 0.86rem;
+	border-radius: 6px;
+	font-size: 0.82rem;
 	font-family: Arial, sans-serif;
 	color: #2c2f6b;
 	background: #f8fafc;
 	outline: none;
 	transition: border-color 0.2s, box-shadow 0.2s;
-}
-
-.filter-group input[type=date] {
-	width: 100%;
-	padding: 8px;
 }
 
 .filter-group select:focus, .filter-group input:focus {
@@ -137,22 +176,21 @@ body {
 	background: #fff;
 }
 
-/* Range row: two inputs side by side */
 .range-row {
 	display: grid;
 	grid-template-columns: 1fr 1fr;
-	gap: 6px;
+	gap: 5px;
 }
 
 .range-row-label {
 	display: grid;
 	grid-template-columns: 1fr 1fr;
-	gap: 6px;
-	margin-bottom: 3px;
+	gap: 5px;
+	margin-bottom: 2px;
 }
 
 .range-row-label span {
-	font-size: 0.65rem;
+	font-size: 0.62rem;
 	color: #94a3b8;
 	font-weight: 600;
 	text-transform: uppercase;
@@ -162,101 +200,19 @@ body {
 .filter-divider {
 	border: none;
 	border-top: 1px solid #e2e8f0;
-	margin: 1px 0;
+	margin: 6px 0;
 }
 
-/* ── FILTER BUTTONS ── */
-
-/* Basic filter link — sits below the button row, separated by a divider */
-.basic-filter-link {
-	display: block;
-	width: 100%;
-	padding: 9px 12px;
-	background: none;
-	border: 1.5px solid #6a73b2;
-	border-radius: 7px;
-	color: #6a73b2;
-	font-weight: 700;
-	font-size: 0.85rem;
-	font-family: Arial, sans-serif;
-	text-align: center;
-	text-decoration: none;
-	cursor: pointer;
-	transition: background-color 0.2s, color 0.2s, transform 0.15s;
-	letter-spacing: 0.03em;
-	margin-top: 6px;
-}
-
-.basic-filter-link:hover {
-	background-color: #6a73b2;
-	color: #fff;
-	transform: translateY(-1px);
-}
-
-.filter-btn-row {
+/* ── BUTTON AREA — pinned to bottom of panel ── */
+.filter-btn-area {
+	flex-shrink: 0;
+	padding-top: 8px;
+	border-top: 1px solid #e2e8f0;
 	display: flex;
 	flex-direction: column;
-	gap: 8px;
-	margin-top: 16px;
+	gap: 6px;
 }
 
-.btn-filter {
-	width: 100%;
-	padding: 9px 12px;
-	background-color: #6a73b2;
-	color: #fff;
-	font-weight: 700;
-	font-size: 0.86rem;
-	font-family: Arial, sans-serif;
-	border: none;
-	border-radius: 7px;
-	cursor: pointer;
-	letter-spacing: 0.03em;
-	text-align: center;
-	text-decoration: none;
-	display: block;
-	transition: background-color 0.2s, transform 0.15s;
-}
-
-.btn-filter:hover:not(:disabled) {
-	background-color: #555fa0;
-	transform: translateY(-1px);
-}
-
-.btn-filter:disabled {
-	background-color: #b0b5d8;
-	cursor: not-allowed;
-	transform: none;
-}
-
-.btn-clear {
-	width: 100%;
-	padding: 9px 12px;
-	background-color: #ee5a5a;
-	color: #fff;
-	font-weight: 700;
-	font-size: 0.86rem;
-	font-family: Arial, sans-serif;
-	border: none;
-	border-radius: 7px;
-	cursor: pointer;
-	text-align: center;
-	text-decoration: none;
-	display: block;
-	transition: background-color 0.2s, transform 0.15s;
-}
-
-.btn-clear:hover {
-	background-color: #d44040;
-	transform: translateY(-1px);
-}
-
-.btn-clear.disabled-link {
-	pointer-events: none;
-	opacity: 0.5;
-}
-
-/* tooltip on disabled apply button */
 .tooltip-wrapper {
 	position: relative;
 	display: block;
@@ -265,15 +221,15 @@ body {
 .tooltip-wrapper .tip {
 	visibility: hidden;
 	opacity: 0;
-	width: 220px;
+	width: 200px;
 	background: #334155;
 	color: #fff;
 	text-align: center;
 	border-radius: 7px;
-	padding: 7px 10px;
-	font-size: 0.74rem;
+	padding: 6px 10px;
+	font-size: 0.72rem;
 	position: absolute;
-	bottom: 115%;
+	bottom: 112%;
 	left: 50%;
 	transform: translateX(-50%);
 	transition: opacity 0.2s;
@@ -299,11 +255,103 @@ body {
 	opacity: 1;
 }
 
-/* ── RIGHT: TABLE ── */
+.btn-filter {
+	width: 100%;
+	padding: 8px 10px;
+	background-color: #6a73b2;
+	color: #fff;
+	font-weight: 700;
+	font-size: 0.82rem;
+	font-family: Arial, sans-serif;
+	border: none;
+	border-radius: 7px;
+	cursor: pointer;
+	text-align: center;
+	text-decoration: none;
+	display: block;
+	transition: background-color 0.2s, transform 0.15s;
+	letter-spacing: 0.03em;
+}
+
+.btn-filter:hover:not(:disabled) {
+	background-color: #555fa0;
+	transform: translateY(-1px);
+}
+
+.btn-filter:disabled {
+	background-color: #b0b5d8;
+	cursor: not-allowed;
+	transform: none;
+}
+
+.btn-clear {
+	width: 100%;
+	padding: 8px 10px;
+	background-color: #ee5a5a;
+	color: #fff;
+	font-weight: 700;
+	font-size: 0.82rem;
+	font-family: Arial, sans-serif;
+	border: none;
+	border-radius: 7px;
+	cursor: pointer;
+	text-align: center;
+	text-decoration: none;
+	display: block;
+	transition: background-color 0.2s, transform 0.15s;
+}
+
+.btn-clear:hover {
+	background-color: #d44040;
+	transform: translateY(-1px);
+}
+
+.btn-clear.disabled-link {
+	pointer-events: none;
+	opacity: 0.5;
+}
+
+.btn-outline {
+	width: 100%;
+	padding: 8px 10px;
+	background: none;
+	border: 1.5px solid #6a73b2;
+	border-radius: 7px;
+	color: #6a73b2;
+	font-weight: 700;
+	font-size: 0.82rem;
+	font-family: Arial, sans-serif;
+	text-align: center;
+	text-decoration: none;
+	display: block;
+	cursor: pointer;
+	transition: background-color 0.2s, color 0.2s, transform 0.15s;
+}
+
+.btn-outline:hover {
+	background-color: #6a73b2;
+	color: #fff;
+	transform: translateY(-1px);
+}
+
+/* ══════════════════════════════
+   RIGHT TABLE SECTION — 75%, scrollable
+══════════════════════════════ */
 .table-section {
 	flex: 1;
 	min-width: 0;
-	overflow: hidden;
+	overflow-y: auto;
+	scrollbar-width: thin;
+	scrollbar-color: #c7d2fe transparent;
+}
+
+.table-section::-webkit-scrollbar {
+	width: 5px;
+}
+
+.table-section::-webkit-scrollbar-thumb {
+	background: #c7d2fe;
+	border-radius: 4px;
 }
 
 .table-wrapper {
@@ -317,7 +365,7 @@ table {
 	width: 100%;
 	border-collapse: collapse;
 	font-family: Arial, sans-serif;
-	font-size: 0.85rem;
+	font-size: 0.84rem;
 	table-layout: auto;
 }
 
@@ -326,12 +374,15 @@ thead th {
 	padding: 10px 10px;
 	color: #374151;
 	background: #d9e2ed;
-	font-size: 0.7rem;
+	font-size: 0.68rem;
 	font-weight: 700;
 	text-transform: uppercase;
 	letter-spacing: 0.06em;
 	border-bottom: 2px solid #e2e8f0;
 	white-space: nowrap;
+	position: sticky;
+	top: 0;
+	z-index: 2;
 }
 
 tbody tr {
@@ -349,7 +400,7 @@ tbody tr:hover {
 }
 
 td {
-	padding: 9px 10px;
+	padding: 8px 10px;
 	text-align: center;
 	color: #374151;
 }
@@ -375,8 +426,8 @@ td {
 	opacity: 0;
 	background: #1e293b;
 	color: #fff;
-	font-size: 0.72rem;
-	padding: 5px 10px;
+	font-size: 0.7rem;
+	padding: 4px 9px;
 	border-radius: 5px;
 	white-space: nowrap;
 	position: absolute;
@@ -409,8 +460,8 @@ td {
 	background-color: #6a73b2;
 	color: #fff;
 	font-weight: 700;
-	font-size: 0.78rem;
-	padding: 7px 14px;
+	font-size: 0.75rem;
+	padding: 6px 12px;
 	text-decoration: none;
 	border-radius: 6px;
 	white-space: nowrap;
@@ -427,8 +478,8 @@ td {
 	opacity: 0;
 	background: #1e293b;
 	color: #fff;
-	font-size: 0.72rem;
-	padding: 5px 10px;
+	font-size: 0.7rem;
+	padding: 4px 9px;
 	border-radius: 5px;
 	white-space: nowrap;
 	position: absolute;
@@ -458,9 +509,9 @@ td {
 
 .badge {
 	display: inline-block;
-	padding: 4px 12px;
+	padding: 3px 10px;
 	border-radius: 12px;
-	font-size: 0.78rem;
+	font-size: 0.75rem;
 	font-weight: 700;
 }
 
@@ -489,6 +540,41 @@ td {
 	color: #991b1b;
 }
 
+/* ── SORTABLE HEADERS ── */
+thead th.sortable {
+	cursor: pointer;
+	user-select: none;
+	transition: background 0.15s, color 0.15s;
+}
+
+thead th.sortable:hover {
+	background: #c8d6e8;
+	color: #1e293b;
+}
+
+thead th.sort-asc, thead th.sort-desc {
+	background: #c8d1f1;
+	color: #1b0db1;
+}
+
+thead th.sortable .sort-arrow {
+	display: inline-block;
+	margin-left: 4px;
+	font-size: 0.6rem;
+	opacity: 0.35;
+	vertical-align: middle;
+	transition: opacity 0.15s;
+}
+
+thead th.sortable:hover .sort-arrow {
+	opacity: 0.7;
+}
+
+thead th.sort-asc .sort-arrow, thead th.sort-desc .sort-arrow {
+	opacity: 1;
+	color: #4f46e5;
+}
+
 .empty-state {
 	text-align: center;
 	padding: 40px 20px;
@@ -500,159 +586,14 @@ td {
 	margin-bottom: 14px;
 }
 
-/* ── SORTABLE HEADERS ── */
-thead th.sortable {
-	cursor: pointer;
-	user-select: none;
-	white-space: nowrap;
-	transition: background 0.15s, color 0.15s;
-}
-
-thead th.sortable:hover {
-	background: #e2e8f0;
-	color: #1e293b;
-}
-
-thead th.sort-asc, thead th.sort-desc {
-	background: #e0e7ff;
-	color: #3730a3;
-}
-
-/* sort arrow sits inline after text */
-thead th.sortable .sort-arrow {
-	display: inline-block;
-	margin-left: 5px;
-	font-size: 0.65rem;
-	opacity: 0.35;
-	transition: opacity 0.15s, transform 0.2s;
-	vertical-align: middle;
-}
-
-thead th.sortable:hover .sort-arrow {
-	opacity: 0.7;
-}
-
-thead th.sort-asc  .sort-arrow, thead th.sort-desc .sort-arrow {
-	opacity: 1;
-	color: #4f46e5;
+.disabled-link {
+	pointer-events: none;
+	opacity: 0.5;
 }
 </style>
 </head>
 <body>
-<nav th:fragment="navbar">
 
-  <ul class="navbar">
-
-    <!-- ── HOME ── -->
-    <li><a href="/">HOME</a></li>
-
-    <!-- ── SHIPMENTS ── -->
-    <li>
-      <span class="nav-toggle">SHIPMENTS <span class="caret">▾</span></span>
-      <ul class="dropdown-menu">
-        <li>
-          <a th:href="${activePage == 'createShipment'} ? '#' : '/shipments/goToCreateShipmentPage'"
-             th:classappend="${activePage == 'createShipment'} ? ' nav-active'"
-             th:onclick="${activePage == 'createShipment'} ? 'return false;' : ''">
-            Create New Shipment
-          </a>
-        </li>
-        <li>
-          <a th:href="${activePage == 'allShipments'} ? '#' : '/shipments/'"
-             th:classappend="${activePage == 'allShipments'} ? ' nav-active'"
-             th:onclick="${activePage == 'allShipments'} ? 'return false;' : ''">
-            Show ALL Shipments
-          </a>
-        </li>
-      </ul>
-    </li>
-
-    <!-- ── CUSTOMERS ── -->
-    <li>
-      <span class="nav-toggle">CUSTOMERS <span class="caret">▾</span></span>
-      <ul class="dropdown-menu">
-        <li>
-          <a th:href="${activePage == 'createCustomer'} ? '#' : '/customers/goToCreateCustomerPage'"
-             th:classappend="${activePage == 'createCustomer'} ? ' nav-active'"
-             th:onclick="${activePage == 'createCustomer'} ? 'return false;' : ''">
-            Create New Customer
-          </a>
-        </li>
-        <li>
-          <a th:href="${activePage == 'allCustomers'} ? '#' : '/customers/'"
-             th:classappend="${activePage == 'allCustomers'} ? ' nav-active'"
-             th:onclick="${activePage == 'allCustomers'} ? 'return false;' : ''">
-            Show ALL Customers
-          </a>
-        </li>
-      </ul>
-    </li>
-
-    <!-- ── WAREHOUSES ── -->
-    <li>
-      <span class="nav-toggle">WAREHOUSES <span class="caret">▾</span></span>
-      <ul class="dropdown-menu">
-        <li>
-          <a th:href="${activePage == 'createWarehouse'} ? '#' : '/warehouses/goToCreateWarehousePage'"
-             th:classappend="${activePage == 'createWarehouse'} ? ' nav-active'"
-             th:onclick="${activePage == 'createWarehouse'} ? 'return false;' : ''">
-            Create New Warehouse
-          </a>
-        </li>
-        <li>
-          <a th:href="${activePage == 'allWarehouses'} ? '#' : '/warehouses/'"
-             th:classappend="${activePage == 'allWarehouses'} ? ' nav-active'"
-             th:onclick="${activePage == 'allWarehouses'} ? 'return false;' : ''">
-            Show ALL Warehouses
-          </a>
-        </li>
-      </ul>
-    </li>
-
-    <!-- ── ITEMS ── -->
-    <li>
-      <span class="nav-toggle">ITEMS <span class="caret">▾</span></span>
-      <ul class="dropdown-menu">
-        <li>
-          <a th:href="${activePage == 'createItem'} ? '#' : '/items/goToCreateItemPage'"
-             th:classappend="${activePage == 'createItem'} ? ' nav-active'"
-             th:onclick="${activePage == 'createItem'} ? 'return false;' : ''">
-            Create New Item
-          </a>
-        </li>
-        <li>
-          <a th:href="${activePage == 'allItems'} ? '#' : '/items/'"
-             th:classappend="${activePage == 'allItems'} ? ' nav-active'"
-             th:onclick="${activePage == 'allItems'} ? 'return false;' : ''">
-            Show ALL Items
-          </a>
-        </li>
-      </ul>
-    </li>
-
-    <!-- ── INVENTORY ── -->
-    <li>
-      <span class="nav-toggle">INVENTORY <span class="caret">▾</span></span>
-      <ul class="dropdown-menu">
-        <li>
-          <a th:href="${activePage == 'addOrUpdateInventory'} ? '#' : '/inventory/goToAddOrUpdateInventoryPage'"
-             th:classappend="${activePage == 'addOrUpdateInventory'} ? ' nav-active'"
-             th:onclick="${activePage == 'addOrUpdateInventory'} ? 'return false;' : ''">
-            Add/Edit Inventory
-          </a>
-        </li>
-        <li>
-          <a  href="/inventory/"
-             th:classappend="${activePage == 'allInventory'} ? ' nav-active'" >
-            Show ALL Inventory
-          </a>
-        </li>
-      </ul>
-    </li>
-
-  </ul>
-
-</nav>
 	<div th:replace="~{fragments/navbar :: navbar}"></div>
 
 	<p th:if="${msg}" id="msgBox"
@@ -665,149 +606,155 @@ thead th.sort-asc  .sort-arrow, thead th.sort-desc .sort-arrow {
 	<div class="page-content">
 
 		<div class="top-bar">
-			<h2>🚢 Shipments</h2>
-			<a href="/shipments/goToCreateShipmentPage" class="btn-add">＋
-				Create New Shipment</a>
+			<h2>🚢 Shipments — Advanced Filters</h2>
+			<a href="/shipments/createShipmentPage" class="btn-add">＋ Create
+				New Shipment</a>
 		</div>
 
 		<div class="layout-wrapper">
 
 			<!-- ══ LEFT: FILTER PANEL ══ -->
 			<div class="filter-panel">
-
-				<h3>🔍 Filter Shipments</h3>
+				<h3>🔍 Advanced Filters</h3>
 				<p class="filter-hint">💡 Changing Customer reloads Warehouse
 					options.</p>
 
-				<form id="shipmentFilterForm"
-					th:action="@{/shipments/showShipmentsByAdvancedFilters/ALL/ALL/ALL/ALL/ALL/ALL/ALL/ALL}"
-					method="post">
+				<form id="advancedShipmentFilterForm"
+					th:action="@{/shipments/showShipmentsByAdvancedFilters}"
+					method="get"
+					style="display: flex; flex-direction: column; flex: 1; min-height: 0;">
 
-					<!-- Shipment Id -->
-					<div class="filter-group">
-						<label>Shipment ID</label> <input type="text" name="shipmentId"
-							id="shipmentId" placeholder="Enter shipment-id. e.g. BLDRT1"
-							th:value="${selectedShipmentId != null} ? ${selectedShipmentId} : ''" />
-					</div>
+					<!-- scrollable fields area -->
+					<div class="filter-fields">
 
-					<!-- Customer -->
-					<div class="filter-group">
-						<label for="customerId">Customer</label> <select name="customerId"
-							id="customerId" onchange="loadWarehouses(this.value)" required>
-							<option value="ALL">— ALL —</option>
-							<option th:each="c : ${customers}" th:value="${c.customerId}"
-								th:selected="${c.customerId == selectedCustomer}"
-								th:text="|${c.customerId} = ${c.customerName}|"></option>
-						</select>
-					</div>
-
-					<!-- Warehouse -->
-					<div class="filter-group">
-						<label for="warehouseSelect">Warehouse</label> <select
-							name="warehouseSelect" id="warehouseSelect" required>
-							<option value="ALL">— ALL —</option>
-							<option th:each="w : ${warehouses}" th:value="${w.warehouseId}"
-								th:selected="${w.warehouseId == selectedWarehouse}"
-								th:text="|${w.warehouseId} = ${w.warehouseName}|"></option>
-						</select>
-					</div>
-
-					<hr class="filter-divider" />
-
-					<!-- Status: FROM / TO -->
-					<div class="filter-group">
-						<label>Status Range</label>
-						<div class="range-row-label">
-							<span>From</span> <span>To</span>
+						<div class="filter-group">
+							<label>Shipment ID</label> <input type="text" name="shipmentId"
+								id="shipmentId"
+								placeholder="e.g. BLDRT_SHIPMENT_20260530224547168"
+								th:value="${enteredShipmentId != null} ? ${enteredShipmentId} : ''" />
 						</div>
-						<div class="range-row">
-							<select name="statusFrom" id="statusFrom">
-								<option value="ALL"
-									th:selected="${selectedStatusFrom == 'ALL' or selectedStatusFrom == null}">—
-									ALL —</option>
-								<option value="1100"
-									th:selected="${selectedStatusFrom == '1100'}">1100 —
-									Created</option>
-								<option value="1200"
-									th:selected="${selectedStatusFrom == '1200'}">1200 —
-									Picked</option>
-								<option value="1300"
-									th:selected="${selectedStatusFrom == '1300'}">1300 —
-									Packed</option>
-								<option value="1400"
-									th:selected="${selectedStatusFrom == '1400'}">1400 —
-									Shipped</option>
-								<option value="9000"
-									th:selected="${selectedStatusFrom == '9000'}">9000 —
-									Cancelled</option>
-							</select> <select name="statusTo" id="statusTo">
-								<option value="ALL"
-									th:selected="${selectedStatusTo == 'ALL' or selectedStatusTo == null}">—
-									ALL —</option>
-								<option value="1100" th:selected="${selectedStatusTo == '1100'}">1100
-									— Created</option>
-								<option value="1200" th:selected="${selectedStatusTo == '1200'}">1200
-									— Picked</option>
-								<option value="1300" th:selected="${selectedStatusTo == '1300'}">1300
-									— Packed</option>
-								<option value="1400" th:selected="${selectedStatusTo == '1400'}">1400
-									— Shipped</option>
-								<option value="9000" th:selected="${selectedStatusTo == '9000'}">9000
-									— Cancelled</option>
+
+						<div class="filter-group">
+							<label for="customerId">Customer</label> <select
+								name="customerId" id="customerId"
+								onchange="loadWarehouses(this.value)" required>
+								<option value="ALL">— ALL —</option>
+								<option th:each="c : ${customers}" th:value="${c.customerId}"
+									th:selected="${c.customerId == selectedCustomer}"
+									th:text="|${c.customerId} = ${c.customerName}|"></option>
 							</select>
 						</div>
-					</div>
 
-					<hr class="filter-divider" />
-
-					<!-- Created Date: FROM / TO -->
-					<div class="filter-group">
-						<label>Created Date Range</label>
-						<div class="range-row-label">
-							<span>From</span> <span>&nbsp;&nbsp;&nbsp;To</span>
+						<div class="filter-group">
+							<label for="warehouseId">Warehouse</label> <select
+								name="warehouseId" id="warehouseId" required>
+								<option value="ALL">— ALL —</option>
+								<option th:each="w : ${warehouses}" th:value="${w.warehouseId}"
+									th:selected="${w.warehouseId == selectedWarehouse}"
+									th:text="|${w.warehouseId} = ${w.warehouseName}|"></option>
+							</select>
 						</div>
-						<div class="range-row">
-							<input type="date" name="createdFrom" id="createdFrom"
-								th:value="${selectedCreatedFrom != null} ? ${selectedCreatedFrom} : ''" />
-							<input type="date" name="createdTo" id="createdTo"
-								th:value="${selectedCreatedTo != null} ? ${selectedCreatedTo} : ''"
-								style="margin-left: 0px" />
+
+						<div class="filter-group">
+							<label>Item ID</label> <input type="text" name="itemId"
+								id="itemId" placeholder="e.g. ITEM001"
+								th:value="${selectedItemId != null} ? ${selectedItemId} : ''" />
 						</div>
+
+						<hr class="filter-divider" />
+
+						<!-- Status range -->
+						<div class="filter-group">
+							<label>Status Range</label>
+							<div class="range-row-label">
+								<span>From</span><span>To</span>
+							</div>
+							<div class="range-row">
+								<select name="statusFrom" id="statusFrom">
+									<option value="ALL"
+										th:selected="${selectedStatusFrom == 'ALL' or selectedStatusFrom == null}">—
+										ALL —</option>
+									<option value="1100"
+										th:selected="${selectedStatusFrom == '1100'}">1100 —
+										Created</option>
+									<option value="1200"
+										th:selected="${selectedStatusFrom == '1200'}">1200 —
+										Picked</option>
+									<option value="1300"
+										th:selected="${selectedStatusFrom == '1300'}">1300 —
+										Packed</option>
+									<option value="1400"
+										th:selected="${selectedStatusFrom == '1400'}">1400 —
+										Shipped</option>
+									<option value="9000"
+										th:selected="${selectedStatusFrom == '9000'}">9000 —
+										Cancelled</option>
+								</select> <select name="statusTo" id="statusTo">
+									<option value="ALL"
+										th:selected="${selectedStatusTo == 'ALL' or selectedStatusTo == null}">—
+										ALL —</option>
+									<option value="1100"
+										th:selected="${selectedStatusTo == '1100'}">1100 —
+										Created</option>
+									<option value="1200"
+										th:selected="${selectedStatusTo == '1200'}">1200 —
+										Picked</option>
+									<option value="1300"
+										th:selected="${selectedStatusTo == '1300'}">1300 —
+										Packed</option>
+									<option value="1400"
+										th:selected="${selectedStatusTo == '1400'}">1400 —
+										Shipped</option>
+									<option value="9000"
+										th:selected="${selectedStatusTo == '9000'}">9000 —
+										Cancelled</option>
+								</select>
+							</div>
+						</div>
+
+						<hr class="filter-divider" />
+
+						<!-- Created date range -->
+						<div class="filter-group">
+							<label>Created Date Range</label>
+							<div class="range-row-label">
+								<span>From</span><span>To</span>
+							</div>
+							<div class="range-row">
+								<input type="date" name="createdFrom" id="createdFrom"
+									th:value="${selectedCreatedFrom != null} ? ${selectedCreatedFrom} : ''" />
+								<input type="date" name="createdTo" id="createdTo"
+									th:value="${selectedCreatedTo != null} ? ${selectedCreatedTo} : ''" />
+							</div>
+						</div>
+
+
+
 					</div>
+					<!-- /filter-fields -->
 
-					<!-- Item Id -->
-					<div class="filter-group">
-						<label>Item ID</label> <input type="text" name="itemId"
-							id="itemId" placeholder="Enter item-id. e.g. BLDRT1"
-							th:value="${selectedItemId != null} ? ${selectedItemId} : ''" />
-
-					</div>
-
-					<hr class="filter-divider" />
-
-					<!-- Buttons -->
-					<div class="filter-btn-row">
+					<!-- ── PINNED BUTTON AREA ── -->
+					<div class="filter-btn-area">
 						<div class="tooltip-wrapper show-tip" id="submitBtnWrapper">
 							<button type="submit" class="btn-filter" id="applyFiltersBtn"
 								disabled>✔ Apply Filters</button>
 							<span class="tip">Change at least one filter to enable</span>
 						</div>
-						<hr class="filter-divider" />
-						<a href="/shipments/" class="btn-clear disabled-link"
-							id="clearFiltersLink"> ✕ Clear Filters </a> <a href="/shipments/"
-							class="basic-filter-link"> ⚙ Show Basic Filters </a>
-
+						<a href="/shipments/advancedShipmentFilters/"
+							class="btn-clear disabled-link" id="clearFiltersLink"> ✕
+							Clear Filters </a> <a href="/shipments/" class="btn-outline"> ←
+							Basic Filters </a>
 					</div>
 
 				</form>
 			</div>
 			<!-- /filter-panel -->
 
-			<!-- ══ RIGHT: TABLE ══ -->
+			<!-- ══ RIGHT: TABLE (scrollable) ══ -->
 			<div class="table-section">
 
-				<div class="table-wrapper" th:if="${not #lists.isEmpty(shipments)}">
-					<table>
+				<div class="table-wrapper">
+					<table id="shipmentsTable">
 						<thead>
 							<tr>
 								<th class="sortable" data-col="0">Shipment ID <span
@@ -816,14 +763,16 @@ thead th.sort-asc  .sort-arrow, thead th.sort-desc .sort-arrow {
 									class="sort-arrow">⇅</span></th>
 								<th class="sortable" data-col="2">Warehouse <span
 									class="sort-arrow">⇅</span></th>
-								<th class="sortable" data-col="3">Status <span
+									<th class="sortable" data-col="3">SHIP TO <span
 									class="sort-arrow">⇅</span></th>
-								<th class="sortable" data-col="4">Created At <span
+								<th class="sortable" data-col="4">Status <span
+									class="sort-arrow">⇅</span></th>
+								<th class="sortable" data-col="5">Created At <span
 									class="sort-arrow">⇅</span></th>
 								<th>Details</th>
 							</tr>
 						</thead>
-						<tbody>
+						<tbody th:if="${not #lists.isEmpty(shipments)}">
 							<tr th:each="s : ${shipments}"
 								th:data-href="@{'/shipments/showShipmentDetails/' + ${s.shipmentId}}"
 								onclick="rowClick(event, this)">
@@ -844,6 +793,10 @@ thead th.sort-asc  .sort-arrow, thead th.sort-desc .sort-arrow {
 										th:href="@{'/warehouses/showWarehouseDetails/' + ${s.warehouseId}}"
 										th:text="${s.warehouseId}" onclick="event.stopPropagation()"></a>
 										<span class="cell-tip">View warehouse details</span>
+								</span></td>
+								
+								<td><span class="cell-link"> <span
+										th:text="${s.shipTo}"></span>
 								</span></td>
 
 								<td><span th:switch="${s.shipStatus}"> <span
@@ -869,11 +822,20 @@ thead th.sort-asc  .sort-arrow, thead th.sort-desc .sort-arrow {
 					</table>
 				</div>
 
-				<div th:if="${#lists.isEmpty(shipments)}" class="empty-state">
+				<div th:if="${#lists.isEmpty(shipments) && !filterApplied}"
+					class="empty-state">
 					<p>No shipment records to display.</p>
-					<a href="/shipments/goToCreateShipmentPage"
-						style="background: #4CAF50; color: white; padding: 9px 20px; border-radius: 8px; text-decoration: none; font-weight: bold;">
-						＋ Create New Shipment </a>
+					<a href="/shipments/createShipmentPage"
+						style="background: #4CAF50; color: white; padding: 9px 20px; border-radius: 8px; text-decoration: none; font-weight: bold;">＋
+						Create New Shipment</a>
+				</div>
+
+				<div th:if="${#lists.isEmpty(shipments) && filterApplied}"
+					class="empty-state">
+					<p>No shipment records found for the provided inputs.</p>
+					<a href="/shipments/advancedShipmentFilters/"
+						style="background-color: #ee5a5a; color: #fff; padding: 9px 20px; border-radius: 8px; text-decoration: none; font-weight: bold;">
+						✕ Clear Filters </a>
 				</div>
 
 			</div>
@@ -887,7 +849,7 @@ thead th.sort-asc  .sort-arrow, thead th.sort-desc .sort-arrow {
     let filtersChanged = false;
 
     window.addEventListener("load", function () {
-      var msg = document.getElementById("msgBox");
+      const msg = document.getElementById("msgBox");
       if (msg) setTimeout(() => msg.style.display = "none", 10000);
       evaluateClearLink();
     });
@@ -897,13 +859,15 @@ thead th.sort-asc  .sort-arrow, thead th.sort-desc .sort-arrow {
     function evaluateClearLink() {
       const s  = document.getElementById('shipmentId').value;
       const c  = document.getElementById('customerId').value;
-      const w  = document.getElementById('warehouseSelect').value;
+      const w  = document.getElementById('warehouseId').value;
       const sf = document.getElementById('statusFrom').value;
       const st = document.getElementById('statusTo').value;
       const df = document.getElementById('createdFrom').value;
       const dt = document.getElementById('createdTo').value;
+      const it = document.getElementById('itemId').value;
       const lnk = document.getElementById('clearFiltersLink');
-      const allDefault = c === 'ALL' && w === 'ALL' && sf === 'ALL' && st === 'ALL' && df === '' && dt === '' && s === '';
+      const allDefault = s === '' && c === 'ALL' && w === 'ALL' &&
+                         sf === 'ALL' && st === 'ALL' && df === '' && dt === '' && it === '';
       allDefault ? lnk.classList.add('disabled-link') : lnk.classList.remove('disabled-link');
     }
 
@@ -914,32 +878,25 @@ thead th.sort-asc  .sort-arrow, thead th.sort-desc .sort-arrow {
       evaluateClearLink();
     }
 
-    document.getElementById('customerId').addEventListener('change', function () { enableFilter(); loadWarehouses(this.value); });
-    document.getElementById('warehouseSelect').addEventListener('change', enableFilter);
-    document.getElementById('statusFrom').addEventListener('change', enableFilter);
-    document.getElementById('statusTo').addEventListener('change', enableFilter);
-    document.getElementById('createdFrom').addEventListener('change', enableFilter);
-    document.getElementById('createdTo').addEventListener('change', enableFilter);
-    document.getElementById('shipmentId').addEventListener('change', enableFilter);
-    
-    document.getElementById('shipmentFilterForm').addEventListener('submit', function (e) {
+    ['customerId','warehouseId','statusFrom','statusTo','createdFrom','createdTo'].forEach(id => {
+      document.getElementById(id).addEventListener('change', id === 'customerId'
+        ? function () { enableFilter(); loadWarehouses(this.value); }
+        : enableFilter);
+    });
+    ['shipmentId','itemId'].forEach(id => {
+      document.getElementById(id).addEventListener('input', enableFilter);
+    });
+
+    document.getElementById('advancedShipmentFilterForm').addEventListener('submit', function (e) {
       e.preventDefault();
-      if (!filtersChanged) return;
-      const s  = document.getElementById('shipmentId').value;
-      const c  = document.getElementById('customerId').value;
-      const w  = document.getElementById('warehouseSelect').value;
-      const sf = document.getElementById('statusFrom').value;
-      const st = document.getElementById('statusTo').value;
-      const df = document.getElementById('createdFrom').value || 'ALL';
-      const dt = document.getElementById('createdTo').value || 'ALL';
-      const it = document.getElementById('itemId').value || 'ALL';
-      // pass all params; adjust your controller mapping accordingly
-      this.action = `/shipments/showShipmentsByAdvancedFilters/${s}/${c}/${w}/${sf}/${st}/${df}/${dt}/${it}`;
-      this.submit();
+      if (!filtersChanged) 
+    	  return;
+      else
+	      this.submit();
     });
 
     function loadWarehouses(customerId) {
-      const ws = document.getElementById('warehouseSelect');
+      const ws = document.getElementById('warehouseId');
       ws.innerHTML = '<option value="ALL">— ALL —</option>';
       if (!customerId || customerId === 'ALL') return;
       fetch(`/shipments/getWarehousesByCustomer?customerId=${customerId}`, {
@@ -962,66 +919,39 @@ thead th.sort-asc  .sort-arrow, thead th.sort-desc .sort-arrow {
 
     /* ══ TABLE SORT ══ */
     (function () {
-      // track current sort state: { col: number, asc: boolean }
       let sortState = { col: -1, asc: true };
-
-      // status numeric order for correct badge sorting
-      const statusOrder = { '1100': 1, '1200': 2, '1300': 3, '1400': 4, '9000': 5 };
+      const statusOrder = { '1100':1, '1200':2, '1300':3, '1400':4, '9000':5 };
 
       document.querySelectorAll('thead th.sortable').forEach(th => {
         th.addEventListener('click', function () {
           const col = parseInt(this.dataset.col, 10);
+          sortState.col === col ? (sortState.asc = !sortState.asc) : (sortState.col = col, sortState.asc = true);
 
-          // toggle direction if same column, else start asc
-          if (sortState.col === col) {
-            sortState.asc = !sortState.asc;
-          } else {
-            sortState.col = col;
-            sortState.asc = true;
-          }
-
-          // update header classes & arrows
           document.querySelectorAll('thead th.sortable').forEach(h => {
-            h.classList.remove('sort-asc', 'sort-desc');
+            h.classList.remove('sort-asc','sort-desc');
             h.querySelector('.sort-arrow').textContent = '⇅';
           });
           this.classList.add(sortState.asc ? 'sort-asc' : 'sort-desc');
           this.querySelector('.sort-arrow').textContent = sortState.asc ? '↑' : '↓';
 
-          // sort tbody rows
-          const tbody = document.querySelector('table tbody');
+          const tbody = document.querySelector('#shipmentsTable tbody');
           const rows  = Array.from(tbody.querySelectorAll('tr'));
 
           rows.sort((a, b) => {
             const cellA = getCellText(a, col);
             const cellB = getCellText(b, col);
-            if (col === 4) console.log('Sorting dates:', cellA, '|', cellB);
-
             let cmp;
-            if (col === 3) {
-              // status column — sort by numeric order
-              const orderA = statusOrder[cellA.split(' ')[0]] ?? 99;
-              const orderB = statusOrder[cellB.split(' ')[0]] ?? 99;
-              cmp = orderA - orderB;
-            } else if (col === 4) {
-              // created at — replace space with T so all browsers parse it correctly
-              // e.g. "2024-06-15 14:30:00" → "2024-06-15T14:30:00"
-              const dateA = new Date(cellA.replace(' ', 'T'));
-              const dateB = new Date(cellB.replace(' ', 'T'));
-              // fall back to string compare if parsing fails (NaN)
-              if (isNaN(dateA) || isNaN(dateB)) {
-                cmp = cellA.localeCompare(cellB);
-              } else {
-                cmp = dateA - dateB;
-              }
+            if (col === 4) {
+              cmp = (statusOrder[cellA.split(' ')[0]] ?? 99) - (statusOrder[cellB.split(' ')[0]] ?? 99);
+            } else if (col === 5) {
+              const dA = new Date(cellA.trim().replace(' ','T'));
+              const dB = new Date(cellB.trim().replace(' ','T'));
+              cmp = (isNaN(dA)||isNaN(dB)) ? cellA.localeCompare(cellB) : dA - dB;
             } else {
-              cmp = cellA.localeCompare(cellB, undefined, { numeric: true, sensitivity: 'base' });
+              cmp = cellA.localeCompare(cellB, undefined, { numeric:true, sensitivity:'base' });
             }
-
             return sortState.asc ? cmp : -cmp;
           });
-
-          // re-append sorted rows
           rows.forEach(r => tbody.appendChild(r));
         });
       });
@@ -1029,8 +959,7 @@ thead th.sort-asc  .sort-arrow, thead th.sort-desc .sort-arrow {
       function getCellText(row, col) {
         const cell = row.querySelectorAll('td')[col];
         if (!cell) return '';
-        // for datetime column, prefer data-sort attribute for accurate sorting
-        if (col === 4 && cell.dataset.sort) return cell.dataset.sort;
+        if (col === 5 && cell.dataset.sort) return cell.dataset.sort;
         const link = cell.querySelector('a');
         return (link ? link.textContent : cell.textContent).trim();
       }

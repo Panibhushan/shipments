@@ -358,7 +358,8 @@ body {
 	background: #fff;
 	border-radius: 12px;
 	box-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
-	overflow-x: auto;
+	width: 100%;
+	overflow: visible;
 }
 
 table {
@@ -366,7 +367,55 @@ table {
 	border-collapse: collapse;
 	font-family: Arial, sans-serif;
 	font-size: 0.84rem;
-	table-layout: auto;
+	table-layout: fixed;
+}
+
+/* ── COLUMN WIDTH MANAGEMENT ── */
+thead th:nth-child(1) { width: 27%; }  /* Shipment ID */
+thead th:nth-child(2) { width: 10%; }  /* Customer */
+thead th:nth-child(3) { width: 11%; }  /* Warehouse */
+thead th:nth-child(4) { width: 13%; }  /* Ship To (address) */
+thead th:nth-child(5) { width: 12%; }  /* Status */
+thead th:nth-child(6) { width: 19%; }  /* Created At */
+thead th:nth-child(7) { width: 8%; }   /* Details */
+
+/* ── TEXT TRUNCATION ── */
+td {
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	padding: 8px 10px;
+}
+
+/* ── SHIP TO COLUMN — Allow wrapping ── */
+tbody td:nth-child(4) {
+	white-space: normal;
+	word-break: break-word;
+	max-height: 60px;
+	overflow: auto;
+}
+
+/* ── TOOLTIP ON HOVER ── */
+tbody td {
+	position: relative;
+}
+
+tbody td[title]:hover::after {
+	content: attr(title);
+	position: absolute;
+	background: #1e293b;
+	color: #fff;
+	padding: 6px 10px;
+	border-radius: 6px;
+	font-size: 0.75rem;
+	white-space: normal;
+	width: 200px;
+	z-index: 100;
+	bottom: 125%;
+	left: 50%;
+	transform: translateX(-50%);
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+	pointer-events: none;
 }
 
 thead th {
@@ -380,6 +429,8 @@ thead th {
 	letter-spacing: 0.06em;
 	border-bottom: 2px solid #e2e8f0;
 	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
 	position: sticky;
 	top: 0;
 	z-index: 2;
@@ -591,6 +642,7 @@ thead th.sort-asc .sort-arrow, thead th.sort-desc .sort-arrow {
 	opacity: 0.5;
 }
 </style>
+</style>
 </head>
 <body>
 
@@ -750,7 +802,7 @@ thead th.sort-asc .sort-arrow, thead th.sort-desc .sort-arrow {
 			</div>
 			<!-- /filter-panel -->
 
-			<!-- ══ RIGHT: TABLE (scrollable) ══ -->
+			<!-- ══ RIGHT: TABLE (scrollable) ══ --> 
 			<div class="table-section">
 
 				<div class="table-wrapper">
