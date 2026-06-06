@@ -189,11 +189,11 @@ jobs:
           sudo tee /etc/nginx/conf.d/myapp.conf > /dev/null << 'EOF'
           server {
               listen 80;
-              server_name panivsprojects.dnsps.org;
+              server_name panivsawsproject.dnsps.org;
 
               # Forward all requests to the Spring Boot app
               location / {
-                  proxy_pass         http://localhost:8888;
+                  proxy_pass         http://localhost:8080;
                   proxy_http_version 1.1;
 
                   # Pass real client info to the app
