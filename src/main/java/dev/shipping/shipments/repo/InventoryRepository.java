@@ -25,12 +25,16 @@ public interface InventoryRepository extends JpaRepository<Inventory, String> {
 	@Query("SELECT inv FROM Inventory inv WHERE inv.quantity > 0")
 	List<Inventory> getValidInventory();
 
-	@Query("SELECT inv FROM Inventory inv WHERE inv.customerId = :customerId and inv.itemId = :itemId and inv.itemUom = :itemUom")
+	@Query("SELECT inv FROM Inventory inv WHERE inv.customerId = :customerId AND inv.itemId = :itemId AND inv.itemUom = :itemUom"
+			+ " AND inv.warehouseId IN (SELECT cw.warehouseId FROM CustomerWarehouses cw WHERE cw.customerId = :customerId )")
 	List<Inventory> getInventoryDetailsToVerifyAvailability(String customerId, String itemId, String itemUom);
 
 	@Modifying // ← tells JPA this is not a SELECT
 	@Transactional // ← required for any write operation
 	@Query("UPDATE Inventory inv SET inv.allocatedQuantity = inv.allocatedQuantity + :quantity WHERE inv.itemCustomerUomWarehouseId = :itemCustomerUomWarehouseId")
 	void updateInventoryAllocatedQuantity(String itemCustomerUomWarehouseId, int quantity);
+
+	List<Inventory> findByCustomerIdAndItemIdInAndItemUomIn(String customerId, List<String> itemIds,
+			List<String> itemUoms);
 
 }

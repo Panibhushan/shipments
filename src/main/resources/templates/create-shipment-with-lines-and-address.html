@@ -971,7 +971,8 @@ table.lines-table input, table.lines-table select {
 
     // load saved state
     window.addEventListener('load', () => {
-      ['addressSection', 'linesSection'].forEach(id => {
+    	window.scrollTo({ top: 0, behavior: 'smooth' });      
+    	['addressSection', 'linesSection'].forEach(id => {
         const section = document.getElementById(id);
         if (localStorage.getItem(id) === 'collapsed') {
           section.classList.add('collapsed');
@@ -1269,8 +1270,9 @@ table.lines-table input, table.lines-table select {
       const wrap = document.getElementById('whSelectionWrap');
  
       if (!results || results.length === 0) {
-        wrap.innerHTML = noInvHtml('No warehouses have sufficient inventory.');
+        wrap.innerHTML = noInvHtml('No warehouses have sufficient inventory.', lines);
         wrap.style.display = 'block';
+        wrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
         return;
       }
  
@@ -1283,8 +1285,9 @@ table.lines-table input, table.lines-table select {
       const fullWarehouses = Object.values(byWh).filter(w => w.items.length === lines.length);
  
       if (fullWarehouses.length === 0) {
-        wrap.innerHTML = noInvHtml('No single warehouse covers all lines.');
+        wrap.innerHTML = noInvHtml('No single warehouse covers all lines.', lines);
         wrap.style.display = 'block';
+        wrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
         return;
       }
  
@@ -1324,27 +1327,138 @@ table.lines-table input, table.lines-table select {
         <div class="button-row" id="createBtnRow" style="display:block;">
         <div class="btn-submit-wrapper">
           <button type="button" class="btn-submit" id="btnCreate" disabled onclick="createShipment()">
-            ✔ Create Shipment After Warehouse
+            ✔ Create Shipment 
           </button>
           <span class="tooltip-hint"></span>
         </div>
       </div> </div>`;
                 
       wrap.style.display = 'block';
+      wrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
  
-    function noInvHtml(msg) {
+    function noInvHtml(msg, lines) {
+      // Serialise lines so the controller can receive them
+      const linesJson = JSON.stringify(lines || []);
+      const linesJsonEscaped = linesJson.replace(/'/g, '&#39;');
+
+      // Build a compact summary table of the requested lines
+      let lineRows = '';
+      (lines || []).forEach((l, i) => {
+        lineRows += `<tr>
+          <td>${i + 1}</td>
+          <td><span class="item-pill pill-item">${l.itemId}</span></td>
+          <td><span class="item-pill pill-uom">${l.itemUom}</span></td>
+          <td><span class="item-pill pill-req">${l.quantity}</span></td>
+        </tr>`;
+      });
+
+      const linesSummary = lines && lines.length > 0 ? `
+        <table class="wh-items-table" style="margin-top:12px;">
+          <thead>
+            <tr>
+              <td style="font-weight:800;font-size:0.7rem;color:#7f1d1d;text-transform:uppercase;letter-spacing:.07em;">#</td>
+              <td style="font-weight:800;font-size:0.7rem;color:#7f1d1d;text-transform:uppercase;letter-spacing:.07em;">Item</td>
+              <td style="font-weight:800;font-size:0.7rem;color:#7f1d1d;text-transform:uppercase;letter-spacing:.07em;">UOM</td>
+              <td style="font-weight:800;font-size:0.7rem;color:#7f1d1d;text-transform:uppercase;letter-spacing:.07em;">Qty</td>
+            </tr>
+          </thead>
+          <tbody>${lineRows}</tbody>
+        </table>` : '';
+
       return `<div class="no-inv-card">
         <div style="display:flex;justify-content:space-between;align-items:flex-start;">
-          <div>
+          <div style="flex:1;">
             <div class="ni-icon">⚠️</div>
             <h3>Shipment cannot be fulfilled</h3>
             <p>${msg}</p>
-            <a class="btn-view-inventory" href="/inventory/">👁️ View Inventory</a>
+            ${linesSummary}
+            <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;">
+              <a class="btn-view-inventory" href="/inventory/">👁️ View Inventory</a>
+              <button class="btn-check" style="font-size:0.83rem;padding:9px 18px;"
+                onclick='fetchInventoryForLines(${linesJsonEscaped})'>
+                🔄 Fetch Inventory for These Lines
+              </button>
+            </div>
           </div>
           <button class="btn-reset" onclick="closeInventorySection()" style="margin-left:16px;">✕ Close</button>
         </div>
+        <!-- Hidden input carrying lines data for controller use -->
+        <input type="hidden" id="noInvLinesData" value='${linesJsonEscaped}' />
       </div>`;
+    }
+
+    /**
+     * Opens a new browser tab showing the inventory results for the given lines.
+     *
+     * The controller at POST /inventory/fetchForLines expects:
+     *   - @RequestParam  customerId  (query string)
+     *   - @RequestBody   List<ShipmentLines>  (JSON body)
+     * and returns a full HTML page (show-all-inventory template).
+     *
+     * Because fetch() cannot open a Thymeleaf HTML response in a new tab,
+     * we build a hidden <form target="_blank"> on the fly, attach the JSON
+     * payload as a single hidden input, and submit it.  The browser opens
+     * the rendered page in a new tab automatically.
+     */
+    function fetchInventoryForLines(lines) {
+      const customerId = document.getElementById('customerId').value;
+
+      // Build a temporary form that posts to the controller and opens in a new tab
+      const form = document.createElement('form');
+      form.method  = 'POST';
+      form.action  = `/inventory/fetchForLines?customerId=${encodeURIComponent(customerId)}`;
+      form.target  = '_blank';                 // ← opens result in new tab
+      form.style.display = 'none';
+
+      // The controller reads @RequestBody List<ShipmentLines>,
+      // so we send the whole array as a single JSON hidden field.
+      // Spring needs Content-Type: application/json for @RequestBody,
+      // but a plain HTML form always sends application/x-www-form-urlencoded.
+      //
+      // Solution: change the controller parameter to @RequestParam String linesJson
+      // and deserialise it manually, OR (simpler) keep the POST but send via fetch
+      // writing the response into a new window — see approach below.
+      form.remove();   // discard the form; we use the window approach instead
+
+      // Open a blank tab immediately (must be in direct user-gesture call stack
+      // to avoid pop-up blockers), then write the fetched HTML into it.
+      const newTab = window.open('', '_blank');
+      if (!newTab) {
+        alert('Pop-up blocked. Please allow pop-ups for this site and try again.');
+        return;
+      }
+
+      newTab.document.write(`
+        <html><head><title>Loading inventory…</title></head>
+        <body style="font-family:sans-serif;padding:32px;color:#374151;">
+          <p>⏳ Loading inventory for your lines…</p>
+        </body></html>`);
+      newTab.document.close();
+
+      fetch(`/inventory/fetchForLines?customerId=${encodeURIComponent(customerId)}`, {
+        method  : 'POST',
+        headers : { 'Content-Type': 'application/json' },
+        body    : JSON.stringify(lines)
+      })
+      .then(resp => {
+        if (!resp.ok) throw new Error(`Server returned ${resp.status}`);
+        return resp.text();                    // full HTML string from Thymeleaf
+      })
+      .then(html => {
+        newTab.document.open();
+        newTab.document.write(html);           // render the page in the new tab
+        newTab.document.close();
+      })
+      .catch(err => {
+        newTab.document.open();
+        newTab.document.write(`
+          <html><body style="font-family:sans-serif;padding:32px;color:#991b1b;">
+            <h2>❌ Failed to load inventory</h2>
+            <p>${err.message}</p>
+          </body></html>`);
+        newTab.document.close();
+      });
     }
  
     function selectWarehouse(whId, cardEl) {
@@ -1396,7 +1510,7 @@ table.lines-table input, table.lines-table select {
 
       try {
         const resp = await fetch(
-          `/shipments/createShipmentWithLines?customerId=${encodeURIComponent(customerId)}&warehouseId=${encodeURIComponent(warehouseId)}`,
+          `/shipments/createShipmentWithLinesAndAddress?customerId=${encodeURIComponent(customerId)}&warehouseId=${encodeURIComponent(warehouseId)}`,
           { method:'POST', headers:{'Content-Type':'application/json'},
             body: JSON.stringify({ lines, deliveryAddress }) }
         );
@@ -1419,14 +1533,17 @@ table.lines-table input, table.lines-table select {
           msgBox.style.background = 'linear-gradient(135deg, #fee2e2 0%, #fecaca 100%)';
           msgBox.style.color = '#991b1b';
           msgBox.style.border = '1px solid #fca5a5';
-          msgText.textContent = '❌ ' + message;
+          msgText.innerHTML = '❌ ' + message;
           msgBox.classList.add('show');
           unlockForm();
           btn.disabled  = false;
           btn.innerHTML = '✔ Create Shipment';
         }
 
-        msgBox.scrollIntoView({ behavior:'smooth', block:'nearest' });
+       // msgBox.scrollIntoView({ behavior:'smooth', block:'nearest' });
+        
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        
         setTimeout(() => msgBox.classList.remove('show'), 14000);
 
       } catch (err) {

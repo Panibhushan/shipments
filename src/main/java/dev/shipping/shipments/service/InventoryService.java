@@ -1,142 +1,335 @@
 package dev.shipping.shipments.service;
 
-import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.Random;
 
-import org.jspecify.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.ui.Model;
 
-import dev.shipping.shipments.model.Customers;
 import dev.shipping.shipments.model.Inventory;
+import dev.shipping.shipments.model.InventoryCheckResult;
 import dev.shipping.shipments.model.Items;
-import dev.shipping.shipments.model.Warehouses;
+import dev.shipping.shipments.model.ShipmentLines;
 import dev.shipping.shipments.repo.CustomersRepository;
 import dev.shipping.shipments.repo.InventoryRepository;
 import dev.shipping.shipments.repo.ItemsRepository;
-import dev.shipping.shipments.repo.WarehousesRepository;
+
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.Query;
 import jakarta.persistence.TypedQuery;
 
+/**
+ * Core business logic for inventory operations.
+ *
+ * Responsibilities:
+ *  - Read inventory with optional filters (dynamic JPQL)
+ *  - Create or update inventory quantities with guard-rails
+ *    (item must exist, item must be Active, quantity cannot go negative)
+ *  - Check inventory availability for a list of proposed shipment lines
+ *    using a single efficient SQL query with CTEs
+ *
+ * All public mutating methods are @Transactional so that a failure
+ * mid-operation rolls back every DB write made in that call.
+ */
 @Service
 public class InventoryService {
 
-	@Autowired
-	private EntityManager entityManager;
+    private static final Logger log = LoggerFactory.getLogger(InventoryService.class);
 
-	private final InventoryRepository inventoryRepo;
+    @Autowired
+    private EntityManager entityManager;
 
-	private final ItemsRepository itemsRepo;
-	private final CustomersRepository customersRepo;
+    private final InventoryRepository inventoryRepo;
+    private final ItemsRepository itemsRepo;
+    private final CustomersRepository customersRepo;
 
-	// List<String> itemUomsList = Arrays.asList("EACH", "MTR", "CMTR", "PAIR");
+    public InventoryService(InventoryRepository inventoryRepo, ItemsRepository itemsRepo,
+            CustomersRepository customersRepo) {
+        this.inventoryRepo = inventoryRepo;
+        this.itemsRepo = itemsRepo;
+        this.customersRepo = customersRepo;
+    }
 
-	public InventoryService(InventoryRepository inventoryRepo, ItemsRepository itemsRepo,
-			CustomersRepository customersRepo) {
-		this.inventoryRepo = inventoryRepo;
-		this.itemsRepo = itemsRepo;
-		this.customersRepo = customersRepo;
-	}
+    // ─────────────────────────────────────────────
+    // READ
+    // ─────────────────────────────────────────────
 
-	public List<Inventory> getAllInventory() {
-		return inventoryRepo.getValidInventory();
-	}
+    /**
+     * Returns all inventory records that are considered "valid"
+     * (as defined by the repo query — typically quantity > 0 or similar).
+     */
+    public List<Inventory> getAllInventory() {
+        return inventoryRepo.getValidInventory();
+    }
 
-	public Optional<Inventory> getInventoryByItemCustomerUomWarehouseId(String itemCustomerUomWarehouseId) {
-		return inventoryRepo.findById(itemCustomerUomWarehouseId);
-	}
+    /**
+     * Looks up a single inventory record by its composite PK.
+     * PK format: itemId_customerId_itemUom_warehouseId
+     * (e.g. "SKU001_CUST01_EACH_WH01")
+     *
+     * Returns empty Optional if no record exists for that combination.
+     */
+    public Optional<Inventory> getInventoryByItemCustomerUomWarehouseId(String itemCustomerUomWarehouseId) {
+        return inventoryRepo.findById(itemCustomerUomWarehouseId);
+    }
 
-	@Transactional
-	public String createOrUpdateInventory(Inventory inventory, String itemCustomerUomId,
-			String itemCustomerUomWarehouseId, int quantity, String adjustmentType) {
+    /**
+     * Builds and executes a dynamic JPQL query for the inventory filter view.
+     * Any field passed as "ALL" is excluded from the WHERE clause entirely,
+     * so the query only filters on fields the user actually specified.
+     *
+     * @param customerId  customer filter, or "ALL" for no filter
+     * @param warehouseId warehouse filter, or "ALL" for no filter
+     * @param itemId      item ID filter, or "ALL" for no filter
+     * @param itemUom     unit-of-measure filter, or "ALL" for no filter
+     */
+    @Transactional
+    public List<Inventory> getInventoryDetails(String customerId, String warehouseId,
+            String itemId, String itemUom) {
 
-		Optional<Items> item = itemsRepo.findById(itemCustomerUomId);
+        log.info("getInventoryDetails() → customerId={}, warehouseId={}, itemId={}, itemUom={}",
+                customerId, warehouseId, itemId, itemUom);
 
-		if (item.isEmpty()) {
-			System.out.println("InventoryService.createOrUpdateInventory(): ITEM_NOT_FOUND");
-			return "ITEM_NOT_FOUND";
-		}
+        StringBuilder query = new StringBuilder("SELECT i FROM Inventory i");
+        List<String> conditions = new ArrayList<>();
 
-		if (item.get().getItemStatus().toUpperCase().equals("DISABLED")) {
-			System.out.println("InventoryService.createOrUpdateInventory(): DISABLED");
-			return "ITEM_DISABLED";
-		}
+        // Only include a condition for fields the user actually filtered on
+        if (!customerId.equals("ALL"))  conditions.add("i.customerId = :customerId");
+        if (!warehouseId.equals("ALL")) conditions.add("i.warehouseId = :warehouseId");
+        if (!itemId.equals("ALL"))      conditions.add("i.itemId = :itemId");
+        if (!itemUom.equals("ALL"))     conditions.add("i.itemUom = :itemUom");
 
-		Optional<Inventory> existing = inventoryRepo.findById(itemCustomerUomWarehouseId);
+        if (!conditions.isEmpty()) {
+            query.append(" WHERE ").append(String.join(" AND ", conditions));
+        }
 
-		if (existing.isPresent()) {
-			// Update the FETCHED entity, not the passed-in one
-			Inventory toUpdate = existing.get();
-			
-			// When adjustingout inventory, if the entered quantity is more that current quantity then throw error
-			if(adjustmentType.equals("decreaseBy") && quantity > toUpdate.getQuantity())
-					return "CANNOT_MAKE_INVENTORY_NEGATIVE";
-			
-			// if the adjustmentType is increaseBy then add inventory else multiply it by -1
-			// so that it becomes negative value and decrease the qty
-			quantity = adjustmentType.equals("increaseBy") ? quantity : quantity * -1;
-			toUpdate.setQuantity(toUpdate.getQuantity() + quantity); // only update quantity to existing qty
+        log.debug("getInventoryDetails() → JPQL: {}", query);
 
-			toUpdate.setAllocatedQuantity(10);
-			inventoryRepo.save(toUpdate);
-		} else {
-			// New record — save the passed-in entity
-			inventoryRepo.save(inventory);
-		}
+        TypedQuery<Inventory> typedQuery = entityManager.createQuery(query.toString(), Inventory.class);
 
-		return "INVENTORY_UPDATED";
+        if (!customerId.equals("ALL"))  typedQuery.setParameter("customerId", customerId);
+        if (!warehouseId.equals("ALL")) typedQuery.setParameter("warehouseId", warehouseId);
+        if (!itemId.equals("ALL"))      typedQuery.setParameter("itemId", itemId);
+        if (!itemUom.equals("ALL"))     typedQuery.setParameter("itemUom", itemUom);
 
-	}
+        List<Inventory> resultList = typedQuery.getResultList();
+        log.info("getInventoryDetails() → returned {} record(s)", resultList.size());
+        return resultList;
+    }
 
-	// Dynamically setting the conditions and running a custom query in service
-	// instead of calling individual methods in Repo
-	@Transactional
-	public List<Inventory> getInventoryDetails(String customerId, String warehouseId, String itemId, String itemUom) {
+    // ─────────────────────────────────────────────
+    // CREATE / UPDATE
+    // ─────────────────────────────────────────────
 
-		StringBuilder query = new StringBuilder("SELECT i FROM Inventory i");
+    /**
+     * Creates a new inventory record or adjusts the quantity of an existing one.
+     *
+     * Pre-conditions (checked in order):
+     *  1. The item-customer-UOM combination must exist in the items table.
+     *  2. The item's status must be "Active" (not "Disabled").
+     *  3. For a "decreaseBy" adjustment, the requested quantity must not
+     *     exceed the current on-hand quantity (no negative inventory allowed).
+     *
+     * Adjustment logic:
+     *  - "increaseBy" → quantity is added to the existing value
+     *  - "decreaseBy" → quantity is subtracted from the existing value
+     *  - New record    → the passed-in inventory object is saved as-is
+     *
+     * @param inventory               the inventory entity (used only for new records)
+     * @param itemCustomerUomId       composite key: itemId_customerId_itemUom
+     * @param itemCustomerUomWarehouseId  full composite PK: itemId_customerId_itemUom_warehouseId
+     * @param quantity                the adjustment amount (always positive; direction set by adjustmentType)
+     * @param adjustmentType          "increaseBy" or "decreaseBy"
+     *
+     * @return one of:
+     *   "ITEM_NOT_FOUND"              – the item-customer-UOM combination doesn't exist
+     *   "ITEM_DISABLED"               – the item exists but is in Disabled status
+     *   "CANNOT_MAKE_INVENTORY_NEGATIVE" – decreaseBy qty exceeds current on-hand qty
+     *   "INVENTORY_UPDATED"           – record was successfully created or updated
+     */
+    @Transactional
+    public String createOrUpdateInventory(Inventory inventory, String itemCustomerUomId,
+            String itemCustomerUomWarehouseId, int quantity, String adjustmentType) {
 
-		// Dynamically build WHERE clause
-		List<String> conditions = new ArrayList<>();
+        log.info("createOrUpdateInventory() → itemCustomerUomWarehouseId={}, quantity={}, adjustmentType={}",
+                itemCustomerUomWarehouseId, quantity, adjustmentType);
 
-		if (!customerId.equals("ALL"))
-			conditions.add("i.customerId = :customerId");
-		if (!warehouseId.equals("ALL"))
-			conditions.add("i.warehouseId = :warehouseId");
-		if (!itemId.equals("ALL"))
-			conditions.add("i.itemId = :itemId");
-		if (!itemUom.equals("ALL"))
-			conditions.add("i.itemUom = :itemUom");
+        // ── 1. Item existence check ───────────────────────────────────────────
+        Optional<Items> item = itemsRepo.findById(itemCustomerUomId);
+        if (item.isEmpty()) {
+            log.warn("createOrUpdateInventory() → item not found: itemCustomerUomId={}", itemCustomerUomId);
+            return "ITEM_NOT_FOUND";
+        }
 
-		// Append WHERE + AND automatically
-		if (!conditions.isEmpty()) {
-			query.append(" WHERE ").append(String.join(" AND ", conditions));
-		}
+        // ── 2. Item active status check ───────────────────────────────────────
+        if ("DISABLED".equalsIgnoreCase(item.get().getItemStatus())) {
+            log.warn("createOrUpdateInventory() → item is Disabled: itemCustomerUomId={}", itemCustomerUomId);
+            return "ITEM_DISABLED";
+        }
 
-		// Create query
-		TypedQuery<Inventory> typedQuery = entityManager.createQuery(query.toString(), Inventory.class);
+        Optional<Inventory> existing = inventoryRepo.findById(itemCustomerUomWarehouseId);
 
-		// Bind only non-null parameters
-		if (!customerId.equals("ALL"))
-			typedQuery.setParameter("customerId", customerId);
-		if (!warehouseId.equals("ALL"))
-			typedQuery.setParameter("warehouseId", warehouseId);
-		if (!itemId.equals("ALL"))
-			typedQuery.setParameter("itemId", itemId);
-		if (!itemUom.equals("ALL"))
-			typedQuery.setParameter("itemUom", itemUom);
+        if (existing.isPresent()) {
+            // ── Update existing record ────────────────────────────────────────
+            Inventory toUpdate = existing.get();
+            int currentQty = toUpdate.getQuantity();
 
-		List<Inventory> resultList = typedQuery.getResultList();
+            // ── 3. Negative inventory guard ───────────────────────────────────
+            if ("decreaseBy".equals(adjustmentType) && quantity > currentQty) {
+                log.warn("createOrUpdateInventory() → would make inventory negative: "
+                        + "itemCustomerUomWarehouseId={}, currentQty={}, requestedDecrease={}",
+                        itemCustomerUomWarehouseId, currentQty, quantity);
+                return "CANNOT_MAKE_INVENTORY_NEGATIVE";
+            }
 
-		System.out.println("final Query: " + query.toString() + "\nresultList: " + resultList.toString());
+            // Apply the adjustment: increase adds, decrease subtracts
+            int adjustedQty = "increaseBy".equals(adjustmentType) ? quantity : -quantity;
+            toUpdate.setQuantity(currentQty + adjustedQty);
 
-		return resultList;
-	}
+            inventoryRepo.save(toUpdate);
+            log.info("createOrUpdateInventory() → updated: itemCustomerUomWarehouseId={}, oldQty={}, adjustment={}, newQty={}",
+                    itemCustomerUomWarehouseId, currentQty, adjustedQty, toUpdate.getQuantity());
 
+        } else {
+            // ── Create new record ─────────────────────────────────────────────
+            inventoryRepo.save(inventory);
+            log.info("createOrUpdateInventory() → created new record: itemCustomerUomWarehouseId={}",
+                    itemCustomerUomWarehouseId);
+        }
+
+        return "INVENTORY_UPDATED";
+    }
+
+    // ─────────────────────────────────────────────
+    // INVENTORY CHECK FOR SHIPMENT LINES
+    // ─────────────────────────────────────────────
+
+    /**
+     * Checks inventory availability for a list of proposed shipment lines in a single
+     * SQL round-trip, using two CTEs to keep the logic readable.
+     *
+     * CTE 1 – ExistingCustomerWarehouses:
+     *   Finds all warehouses that are configured for the given customer.
+     *   Used to flag lines whose warehouse is not yet enabled for this customer.
+     *
+     * CTE 2 – RequestedLines:
+     *   Built dynamically from the input list using UNION ALL, creating an in-memory
+     *   table of (item_id, item_uom, requested_qty) rows for the join.
+     *
+     * Main SELECT:
+     *   Joins inventory records against RequestedLines on item_id + item_uom, scoped
+     *   to the given customer and records with quantity > 0. The CASE expression in
+     *   the SELECT derives a human-readable stock_status per line:
+     *     - "WAREHOUSE NOT CONFIGURED / ENABLED FOR THIS CUSTOMER"
+     *     - "SHORTAGE BY <n>"  (when available_quantity < requested_qty)
+     *     - "OK"
+     *
+     * Each result row is mapped to an InventoryCheckResult DTO.
+     *
+     * @param customerId the customer whose inventory and warehouse config to check
+     * @param lines      the proposed shipment lines to check
+     * @return list of InventoryCheckResult DTOs, one per matching inventory record;
+     *         empty list if lines is null or empty.
+     */
+    @Transactional(readOnly = true)
+    public List<InventoryCheckResult> getInventoryForShipmentLines(String customerId, List<ShipmentLines> lines) {
+
+        log.info("getInventoryForShipmentLines() → customerId={}, lineCount={}",
+                customerId, lines == null ? 0 : lines.size());
+
+        if (lines == null || lines.isEmpty()) {
+            log.warn("getInventoryForShipmentLines() → called with null or empty lines list; returning empty result");
+            return Collections.emptyList();
+        }
+
+        // ── Build the RequestedLines CTE rows from the input list ─────────────
+        // Each line becomes one SELECT row; rows are combined with UNION ALL.
+        // Example output for two lines:
+        //   SELECT 'SKU001' AS item_id, 'EACH' AS item_uom, 10 AS requested_qty
+        //   UNION ALL
+        //   SELECT 'SKU002' AS item_id, 'MTR'  AS item_uom, 5  AS requested_qty
+        StringBuilder requestedLineRows = new StringBuilder();
+        for (int i = 0; i < lines.size(); i++) {
+            ShipmentLines line = lines.get(i);
+            requestedLineRows
+                    .append("SELECT '").append(line.getItemId()).append("' AS item_id, '")
+                    .append(line.getItemUom()).append("' AS item_uom, ")
+                    .append(line.getQuantity()).append(" AS requested_qty");
+            if (i < lines.size() - 1) {
+                requestedLineRows.append(" UNION ALL ");
+            }
+        }
+
+        log.debug("getInventoryForShipmentLines() → RequestedLines CTE rows: {}", requestedLineRows);
+
+        // ── Assemble the full SQL query ───────────────────────────────────────
+        // Note: INTERVAL syntax is MySQL-specific; the time-unit 'NOW(6)' uses
+        // microsecond precision to avoid rounding issues at midnight.
+        String sql = """
+                WITH
+                ExistingCustomerWarehouses AS (
+                    SELECT warehouse_id
+                    FROM customer_warehouses
+                    WHERE TRIM(customer_id) = :customerId
+                ),
+                RequestedLines AS (
+                """ + requestedLineRows + """
+                )
+                SELECT
+                    i.customer_id,
+                    i.item_id,
+                    i.warehouse_id,
+                    i.item_uom,
+                    i.quantity,
+                    i.allocated_quantity,
+                    i.available_quantity,
+                    r.requested_qty,
+                    CASE
+                        WHEN i.warehouse_id NOT IN (SELECT warehouse_id FROM ExistingCustomerWarehouses)
+                            THEN 'WAREHOUSE NOT CONFIGURED / ENABLED FOR THIS CUSTOMER'
+                        WHEN i.available_quantity < r.requested_qty
+                            THEN CONCAT('SHORTAGE BY ', (r.requested_qty - i.available_quantity))
+                        ELSE 'OK'
+                    END AS stock_status,
+                    i.item_customer_uom_warehouse_id
+                FROM inventory i
+                JOIN RequestedLines r
+                    ON TRIM(i.item_id) = r.item_id
+                    AND TRIM(i.item_uom) = r.item_uom
+                WHERE TRIM(i.customer_id) = :customerId
+                  AND i.quantity > 0
+                """;
+
+        Query query = entityManager.createNativeQuery(sql);
+        query.setParameter("customerId", customerId);
+
+        // ── Map raw Object[] rows to InventoryCheckResult DTOs ────────────────
+        // Column order must match the SELECT list above exactly.
+        @SuppressWarnings("unchecked")
+        List<Object[]> rows = query.getResultList();
+        List<InventoryCheckResult> results = new ArrayList<>();
+
+        for (Object[] row : rows) {
+            results.add(new InventoryCheckResult(
+                    (String) row[0],               // customer_id
+                    (String) row[1],               // item_id
+                    (String) row[2],               // warehouse_id
+                    (String) row[3],               // item_uom
+                    ((Number) row[4]).intValue(),   // quantity (on-hand)
+                    ((Number) row[5]).intValue(),   // allocated_quantity
+                    ((Number) row[6]).intValue(),   // available_quantity
+                    ((Number) row[7]).intValue(),   // requested_qty
+                    (String) row[8],               // stock_status
+                    (String) row[9]                // item_customer_uom_warehouse_id
+            ));
+        }
+
+        log.info("getInventoryForShipmentLines() → returned {} result(s) for customerId={}", results.size(), customerId);
+        return results;
+    }
 }

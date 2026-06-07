@@ -367,65 +367,12 @@ td {
 <body>
 
 	<div th:replace="~{fragments/navbar :: navbar}"></div>
-
-	<p th:if="${msg}" id="msgBox"
-		th:style="'background:' + ${bgColor} + '; color:' + ${textColor} + ';'">
-		<span th:utext="${msg}" style="white-space: pre-wrap;"></span> <span
-			onclick="this.parentElement.style.display='none'"
-			style="position: absolute; right: 14px; top: 50%; transform: translateY(-50%); cursor: pointer; font-weight: bold;">✕</span>
-	</p>
-
+ 
 	<div class="page-content">
-
-		<!-- ── TOP BAR ── -->
-		<div class="top-bar">
-			<h2>🗄️ Inventory</h2>
-			<a href="/inventory/addOrUpdateInventoryPage" class="btn-add">＋
-				Add / Update Inventory</a>
-		</div>
-		<p style="font-size: 12.5px">💡 While filtering, Changing the
-			Customer will reload the Warehouses options.</p>
-		<!-- ── FILTER BAR ── -->
-		<div class="filter-bar">
-			<form id="warehouseFilterForm"
-				th:action="@{/inventory/showInventoryByFilters}" method="get">
-				<label for="itemId">Item</label> <input type="text" name="itemId"
-					id="itemId" placeholder="e.g. ITM-001"
-					th:value="${selectedItemId != null} ? ${selectedItemId} : ''"
-					oninput="this.value = this.value.toUpperCase()" /> <label
-					for="itemUom">UOM</label><select name="itemUom" id="itemUom"
-					required>
-					<option value="ALL">— ALL —</option>
-					<option th:each="opt : ${itemUomsList}" th:value="${opt}"
-						th:selected="${opt == selectedItemUom}" th:text="${opt}"></option>
-				</select> <label for="customerId">Customer</label> <select name="customerId"
-					id="customerId" onchange="loadWarehouses(this.value)" required>
-					<option value="ALL">— ALL —</option>
-					<option th:each="c : ${customers}" th:value="${c.customerId}"
-						th:selected="${c.customerId == selectedCustomer}"
-						th:text="|${c.customerId} = ${c.customerName}|"></option>
-				</select> <label for="warehouseSelect">Warehouse</label> <select
-					name="warehouseSelect" id="warehouseSelect" required>
-					<option value="ALL">— ALL —</option>
-					<option th:each="w : ${warehouses}" th:value="${w.warehouseId}"
-						th:selected="${w.warehouseId == selectedWarehouse}"
-						th:text="|${w.warehouseId} = ${w.warehouseName}|"></option>
-				</select>
-				<div class="tooltip-wrapper show-tip" id="submitBtnWrapper">
-					<button type="submit" class="btn-filter" id="applyFiltersBtn"
-						disabled>Apply Filters</button>
-					<span class="tip">Change Customer or Warehouse or Item ID or
-						Item UOM to enable filter submission</span>
-				</div>
-				<div>
-					<a href="/inventory/"
-						style="background-color: #ee5a5a; text-decoration: none"
-						id="clearFiltersLink" class="btn-filter"> Clear Filters </a>
-				</div>
-			</form>
-		</div>
-
 		<!-- ── TABLE ── -->
+		
+		<div style="background: #ec5858; color: white; padding: 10px 10px; font-weight: bold;">⚠️ Do not refresh this page else the data will be lost</div>
+		<br />
 		<div class="table-wrapper" th:if="${not #lists.isEmpty(inventory)}">
 			<table id="inventoryTable">
 				<thead>
@@ -442,14 +389,16 @@ td {
 							class="sort-arrow">⇅</span></th>
 						<th class="sortable" data-col="6">Available Qty<span
 							class="sort-arrow">⇅</span></th>
-						<th>Actions</th>
+						<th class="sortable" data-col="7">Requested Qty<span
+							class="sort-arrow">⇅</span></th>
+						<th class="sortable" data-col="8">Comments<span
+							class="sort-arrow">⇅</span></th>
 					</tr>
 				</thead>
 				<tbody>
-					<tr th:each="inv : ${inventory}"
+					<tr th:each="inv : ${inventory}" 
 						th:data-href="@{'/inventory/showInventoryDetails/' + ${inv.itemCustomerUomWarehouseId}}"
 						onclick="rowClick(event, this)">
-
 
 						<!-- Col 1: Item ID -->
 						<td><span class="cell-link"> <a
@@ -477,19 +426,22 @@ td {
 
 						<!-- Col 5: Qty -->
 						<td><span class="badge badge-qty" th:text="${inv.quantity}"></span></td>
-						
-						<!-- Col 6: Qty -->
-						<td><span class="badge badge-qty" th:text="${inv.allocatedQuantity}"></span></td>
-						
-						<!-- Col 7: Qty -->
-						<td><span class="badge badge-qty" th:text="${inv.availableQuantity}"></span></td>
 
-						<!-- Col 8: View Details button -->
-						<td><a
-							th:href="@{'/inventory/showInventoryDetails/' + ${inv.itemCustomerUomWarehouseId}}"
-							class="btn-view" onclick="event.stopPropagation()"> ✏️ View /
-								Edit <span class="cell-tip">View / Edit inventory details</span>
-						</a></td>
+						<!-- Col 6: Allocated Qty -->
+						<td><span class="badge badge-qty"
+							th:text="${inv.allocatedQuantity}"></span></td>
+
+						<!-- Col 7: Available Qty -->
+						<td><span class="badge badge-qty"
+							th:text="${inv.availableQuantity}"></span></td>
+
+						<!-- Col 8: Requested Qty -->
+						<td><span class="badge badge-qty"
+							th:text="${inv.requestedQuantity}"></span></td>
+
+						<!-- Col 9: Stock Status -->
+						<td><span class="badge badge-qty"
+							th:text="${inv.stockStatus}"></span></td>
 
 					</tr>
 				</tbody>
@@ -500,18 +452,8 @@ td {
 		<div th:if="${#lists.isEmpty(inventory) && !filterApplied}"
 			class="empty-state">
 			<p>No inventory records to display.</p>
-			<br /> <a href="/inventory/addOrUpdateInventoryPage"
-				style="background: #4CAF50; color: white; padding: 9px 20px; border-radius: 8px; text-decoration: none; font-weight: bold;">
-				＋ Create New Item</a>
-		</div>
-
-		<div th:if="${#lists.isEmpty(inventory) && filterApplied}"
-			class="empty-state">
-			<p>No inventory records found for the provided inputs.</p>
-			<br /> <a href="/inventory/"
-				style="background-color: #ee5a5a; color: #fff; padding: 9px 20px; border-radius: 8px; text-decoration: none; font-weight: bold;">
-				✕ Clear Filters </a>
-		</div>
+			<br />  
+		</div> 
 
 	</div>
 
@@ -542,7 +484,7 @@ td {
 		// Row click — navigate to view details unless click was on a link
 		function rowClick(event, row) {
 			const href = row.getAttribute('data-href');
-			if (href) window.location.href = href;
+		    if (href) window.open(href, '_blank');
 		}
 
 		// Enable filter button on any change

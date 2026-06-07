@@ -252,6 +252,56 @@ input[type=number].input-error {
 	margin: 0;
 	font-size: 0.85rem;
 }
+
+.cell-link {
+	position: relative;
+	display: inline-block;
+}
+
+.cell-link a {
+	color: #4a6fa5;
+	font-weight: 700;
+	text-decoration: none;
+	border-bottom: 1px dashed #4a6fa5;
+}
+
+.cell-link a:hover {
+	color: #2c4a7c;
+}
+
+.cell-link .cell-tip {
+	visibility: hidden;
+	opacity: 0;
+	background: #1e293b;
+	color: #fff;
+	font-size: 0.7rem;
+	padding: 4px 9px;
+	border-radius: 5px;
+	white-space: nowrap;
+	position: absolute;
+	bottom: 130%;
+	left: 50%;
+	transform: translateX(-50%);
+	transition: opacity 0.18s;
+	pointer-events: none;
+	z-index: 10;
+}
+
+.cell-link .cell-tip::after {
+	content: '';
+	position: absolute;
+	top: 100%;
+	left: 50%;
+	transform: translateX(-50%);
+	border-width: 4px;
+	border-style: solid;
+	border-color: #1e293b transparent transparent transparent;
+}
+
+.cell-link:hover .cell-tip {
+	visibility: visible;
+	opacity: 1;
+}
 </style>
 </head>
 
@@ -296,14 +346,35 @@ input[type=number].input-error {
 						<!-- Column 1: Item ID, Customer, Warehouse, Quantity -->
 						<div>
 							<label>Item ID</label>
-							<div class="readonly-value" th:text="${inventory.itemId}">ITM-001</div>
-
+							<div class="readonly-value">
+								<span class="cell-link"> <a target="_blank"
+									th:href="@{'/customers/showItemDetails/' + ${inventory.itemId}}"
+									th:text="${inventory.itemId}"></a> <span class="cell-tip">View
+										item details</span>
+								</span>
+							</div>
+							<!-- <div class="readonly-value" th:text="${inventory.itemId}">ITM-001</div>-->
 							<label>Customer</label>
-							<div class="readonly-value" th:text="${inventory.customerId}">CUST-042</div>
 
+							<div class="readonly-value">
+								<span class="cell-link"> <a target="_blank"
+									th:href="@{'/customers/showCustomerDetails/' + ${inventory.customerId}}"
+									th:text="${inventory.customerId}"></a> <span class="cell-tip">View
+										customer details</span>
+								</span>
+							</div>
+
+							<!-- <div class="readonly-value" th:text="${inventory.customerId}">CUST-042</div> -->
 							<label>Warehouse</label>
-							<div class="readonly-value" th:text="${inventory.warehouseId}">MUMWH</div>
 
+							<div class="readonly-value">
+								<span class="cell-link"> <a target="_blank"
+									th:href="@{'/customers/showWarehouseDetails/' + ${inventory.warehouseId}}"
+									th:text="${inventory.warehouseId}"></a> <span class="cell-tip">View
+										warehouse details</span>
+								</span>
+							</div>
+							<!-- <div class="readonly-value" th:text="${inventory.warehouseId}">MUMWH</div> -->
 							<label></label>
 							<div class="readonly-value" style="border-bottom: none;"></div>
 							<label>Current Quantity</label>

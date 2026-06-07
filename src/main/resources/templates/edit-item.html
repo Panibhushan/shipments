@@ -217,6 +217,56 @@ input:focus, select:focus {
 	margin: 0;
 	font-size: 0.85rem;
 }
+
+.cell-link {
+	position: relative;
+	display: inline-block;
+}
+
+.cell-link a {
+	color: #4a6fa5;
+	font-weight: 700;
+	text-decoration: none;
+	border-bottom: 1px dashed #4a6fa5;
+}
+
+.cell-link a:hover {
+	color: #2c4a7c;
+}
+
+.cell-link .cell-tip {
+	visibility: hidden;
+	opacity: 0;
+	background: #1e293b;
+	color: #fff;
+	font-size: 0.7rem;
+	padding: 4px 9px;
+	border-radius: 5px;
+	white-space: nowrap;
+	position: absolute;
+	bottom: 130%;
+	left: 50%;
+	transform: translateX(-50%);
+	transition: opacity 0.18s;
+	pointer-events: none;
+	z-index: 10;
+}
+
+.cell-link .cell-tip::after {
+	content: '';
+	position: absolute;
+	top: 100%;
+	left: 50%;
+	transform: translateX(-50%);
+	border-width: 4px;
+	border-style: solid;
+	border-color: #1e293b transparent transparent transparent;
+}
+
+.cell-link:hover .cell-tip {
+	visibility: visible;
+	opacity: 1;
+}
 </style>
 </head>
 <body>
@@ -245,7 +295,16 @@ input:focus, select:focus {
 							<label>Item ID</label>
 							<div class="readonly-value" th:text="${item.itemId}">ITM-001</div>
 							<label>Customer</label>
-							<div class="readonly-value" th:text="${item.customerId}">CUST-042</div>
+<!-- 							<div class="readonly-value" th:text="${item.customerId}">CUST-042</div>
+ -->							<div class="readonly-value">
+								<span class="cell-link"> <a target="_blank"
+									th:href="@{'/customers/showCustomerDetails/' + ${item.customerId}}"
+									th:text="${item.customerId}"></a> <span class="cell-tip">View
+										customer details</span>
+								</span>
+							</div>
+
+
 							<label>Item UOM</label>
 							<div class="readonly-value" th:text="${item.itemUom}">EACH</div>
 						</div>
@@ -277,9 +336,9 @@ input:focus, select:focus {
 						<button type="button" class="btn-update"
 							onclick="submitIfChanged(event)">✔ Update Item</button>
 						<a class="btn-view-inventory"
-							th:href="@{'/inventory/viewInventory/' + ${item.itemCustomerUomId}}">
+							th:href="@{'/inventory/viewInventoryForItem/' + ${item.itemCustomerUomId}}">
 							👁️ View Inventory</a> <a class="btn-add-inventory"
-							th:href="@{'/inventory/addInventory/' + ${item.itemCustomerUomId}}">
+							th:href="@{'/inventory/addInventoryForItem/' + ${item.itemCustomerUomId}}">
 							＋ Add Inventory</a>
 						<button type="button" class="btn-delete" onclick="confirmDelete()">🗑
 							Delete Item</button>

@@ -596,10 +596,10 @@ keyframes spin {to { transform:rotate(360deg);
 						<button type="button" class="btn-update"
 							onclick="submitIfChanged(event)">✔ Update</button>
 						<a
-							th:href="@{'/inventory/allInventory?warehouseId=' + ${warehouse.warehouseId}}"
+							th:href="@{'/inventory/viewInventoryForWarehouse/' + ${warehouse.warehouseId}}"
 							class="action-link view-inv-btn"> 📦 View Inventory </a> <a
-							th:href="@{'/inventory/addInventory?warehouseId=' + ${warehouse.warehouseId}}"
-							class="action-link add-inv-btn"> ➕ Add Inventory </a>
+							th:href="@{'/inventory/addInventoryForWarehouse/' + ${warehouse.warehouseId}}"
+							class="action-link add-inv-btn"> ＋ Add Inventory </a>
 						<button type="button" class="btn-delete" onclick="confirmDelete()">🗑
 							Delete</button>
 

@@ -1,0 +1,523 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+<link rel="stylesheet" th:href="@{/css/navbar.css}" />
+<style>
+*, *::before, *::after {
+	box-sizing: border-box;
+}
+
+body {
+	font-family: Arial, sans-serif;
+	background: #f4f6f9;
+	margin: 0;
+	min-height: 100vh;
+}
+
+/* ── MSG BOX ── */
+#msgBox {
+	margin: 8px 24px 0;
+	padding: 8px 40px 8px 14px;
+	border-radius: 8px;
+	font-weight: bold;
+	position: relative;
+}
+
+/* ── PAGE CONTENT ── */
+.page-content {
+	padding: 14px 24px;
+}
+
+/* ── TOP BAR ── */
+.top-bar {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-bottom: 12px;
+}
+
+.top-bar h2 {
+	margin: 0;
+	font-size: 1rem;
+	font-weight: 700;
+	color: #1e293b;
+}
+
+.btn-add {
+	display: inline-block;
+	background-color: #4CAF50;
+	color: #ffffff;
+	font-weight: 700;
+	font-size: 0.88rem;
+	padding: 9px 20px;
+	text-decoration: none;
+	border-radius: 8px;
+	transition: background-color 0.2s, transform 0.15s;
+}
+
+.btn-add:hover {
+	background-color: #3d9140;
+	transform: translateY(-1px);
+}
+
+/* ── FILTER BAR ── */
+.filter-bar {
+	display: flex;
+	align-items: center;
+	margin-bottom: 14px;
+}
+
+.filter-bar form {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	background: #f0f4ff;
+	border: 1px solid #c5cff5;
+	border-radius: 10px;
+	padding: 10px 18px;
+	flex-wrap: wrap;
+}
+
+.filter-bar label {
+	font-size: 0.75rem;
+	font-weight: 700;
+	color: #4a4e8a;
+	text-transform: uppercase;
+	letter-spacing: 0.06em;
+	white-space: nowrap;
+}
+
+.filter-bar select, .filter-bar input[type=text] {
+	padding: 7px 12px;
+	border: 1.5px solid #b0baf5;
+	border-radius: 7px;
+	font-size: 0.88rem;
+	font-family: Arial, sans-serif;
+	color: #2c2f6b;
+	background: #ffffff;
+	cursor: pointer;
+	min-width: 180px;
+	outline: none;
+	transition: border-color 0.2s;
+}
+
+.filter-bar select:focus, .filter-bar input[type=text]:focus {
+	border-color: #6a73b2;
+}
+
+/* ── FILTER BUTTON + TOOLTIP ── */
+.tooltip-wrapper {
+	position: relative;
+	display: inline-block;
+}
+
+.tooltip-wrapper .tip {
+	visibility: hidden;
+	opacity: 0;
+	width: 280px;
+	background: #334155;
+	color: #fff;
+	text-align: center;
+	border-radius: 7px;
+	padding: 7px 12px;
+	font-size: 0.76rem;
+	position: absolute;
+	bottom: 120%;
+	left: 50%;
+	transform: translateX(-50%);
+	transition: opacity 0.2s;
+	pointer-events: none;
+	z-index: 20;
+	line-height: 1.4;
+	white-space: normal;
+}
+
+.tooltip-wrapper .tip::after {
+	content: '';
+	position: absolute;
+	top: 100%;
+	left: 50%;
+	transform: translateX(-50%);
+	border-width: 5px;
+	border-style: solid;
+	border-color: #334155 transparent transparent transparent;
+}
+
+.tooltip-wrapper.show-tip:hover .tip {
+	visibility: visible;
+	opacity: 1;
+}
+
+.filter-bar .btn-filter {
+	padding: 7px 12px;
+	background-color: #6a73b2;
+	color: #ffffff;
+	font-weight: 700;
+	font-size: 0.86rem;
+	font-family: Arial, sans-serif;
+	border: none;
+	border-radius: 7px;
+	cursor: pointer;
+	letter-spacing: 0.03em;
+	transition: background-color 0.2s, transform 0.15s;
+	margin: 0;
+}
+
+.filter-bar .btn-filter:hover:not(:disabled) {
+	background-color: #555fa0;
+	transform: translateY(-1px);
+}
+
+.filter-bar .btn-filter:disabled {
+	background-color: #b0b5d8;
+	cursor: not-allowed;
+}
+
+/* ── TABLE WRAPPER ── */
+.table-wrapper {
+	background: #ffffff;
+	border-radius: 12px;
+	box-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
+	overflow: hidden;
+}
+
+table {
+	width: 100%;
+	border-collapse: collapse;
+	font-family: Arial, sans-serif;
+	font-size: 0.88rem;
+}
+
+thead th {
+	text-align: center;
+	padding: 11px 14px;
+	color: #374151;
+	background: #f1f5f9;
+	font-size: 0.72rem;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.07em;
+	border-bottom: 2px solid #e2e8f0;
+	cursor: pointer;
+	user-select: none;
+}
+
+thead th.sort-asc .sort-arrow,
+thead th.sort-desc .sort-arrow {
+	color: #6a73b2;
+	font-weight: 900;
+}
+
+tbody tr {
+	border-bottom: 1px solid #f1f5f9;
+	cursor: pointer;
+	transition: background 0.15s, transform 0.15s;
+}
+
+tbody tr:last-child {
+	border-bottom: none;
+}
+
+tbody tr:hover {
+	background: #eef2ff;
+	transform: scale(1.005);
+}
+
+td {
+	padding: 10px 14px;
+	text-align: center;
+	color: #374151;
+}
+
+/* ── LINK CELLS with tooltip ── */
+.cell-link {
+	position: relative;
+	display: inline-block;
+}
+
+.cell-link a {
+	color: #4a6fa5;
+	font-weight: 700;
+	text-decoration: none;
+	border-bottom: 1px dashed #4a6fa5;
+}
+
+.cell-link a:hover {
+	color: #2c4a7c;
+}
+
+.cell-link .cell-tip {
+	visibility: hidden;
+	opacity: 0;
+	background: #1e293b;
+	color: #fff;
+	font-size: 0.72rem;
+	padding: 5px 10px;
+	border-radius: 5px;
+	white-space: nowrap;
+	position: absolute;
+	bottom: 130%;
+	left: 50%;
+	transform: translateX(-50%);
+	transition: opacity 0.18s;
+	pointer-events: none;
+	z-index: 10;
+}
+
+.cell-link .cell-tip::after {
+	content: '';
+	position: absolute;
+	top: 100%;
+	left: 50%;
+	transform: translateX(-50%);
+	border-width: 4px;
+	border-style: solid;
+	border-color: #1e293b transparent transparent transparent;
+}
+
+.cell-link:hover .cell-tip {
+	visibility: visible;
+	opacity: 1;
+}
+
+/* ── VIEW DETAILS BUTTON ── */
+.btn-view {
+	display: inline-block;
+	background-color: #6a73b2;
+	color: #ffffff;
+	font-weight: 700;
+	font-size: 0.78rem;
+	padding: 7px 14px;
+	text-decoration: none;
+	border-radius: 6px;
+	white-space: nowrap;
+	transition: background-color 0.2s;
+	position: relative;
+}
+
+.btn-view:hover {
+	background-color: #555fa0;
+}
+
+.btn-view .cell-tip {
+	visibility: hidden;
+	opacity: 0;
+	background: #1e293b;
+	color: #fff;
+	font-size: 0.72rem;
+	padding: 5px 10px;
+	border-radius: 5px;
+	white-space: nowrap;
+	position: absolute;
+	bottom: 130%;
+	left: 50%;
+	transform: translateX(-50%);
+	transition: opacity 0.18s;
+	pointer-events: none;
+	z-index: 10;
+}
+
+.btn-view .cell-tip::after {
+	content: '';
+	position: absolute;
+	top: 100%;
+	left: 50%;
+	transform: translateX(-50%);
+	border-width: 4px;
+	border-style: solid;
+	border-color: #1e293b transparent transparent transparent;
+}
+
+.btn-view:hover .cell-tip {
+	visibility: visible;
+	opacity: 1;
+}
+
+/* ── BADGE for UOM / QTY / STATUS ── */
+.badge {
+	display: inline-block;
+	padding: 3px 10px;
+	border-radius: 12px;
+	font-size: 0.78rem;
+	font-weight: 700;
+}
+
+.badge-uom {
+	background: #e0e7ff;
+	color: #3730a3;
+}
+
+.badge-qty {
+	background: #d1fae5;
+	color: #065f46;
+}
+
+/* ── RED badge for non-OK stock status ── */
+.badge-error {
+	background: #fee2e2;
+	color: #991b1b;
+}
+
+/* ── EMPTY STATE ── */
+.empty-state {
+	text-align: center;
+	padding: 40px 20px;
+	color: #94a3b8;
+}
+
+.empty-state p {
+	font-size: 1rem;
+	margin-bottom: 14px;
+}
+
+.disabled-link {
+	pointer-events: none;
+	opacity: 0.5;
+}
+</style>
+</head>
+
+<body>
+
+	<div th:replace="~{fragments/navbar :: navbar}"></div>
+ 
+	<div class="page-content">
+		<!-- ── TABLE ── -->
+		
+		<div style="background: #ec5858; color: white; padding: 10px 10px; font-weight: bold;">⚠️ Do not refresh this page else the data will be lost</div>
+		<br />
+		<div class="table-wrapper" th:if="${not #lists.isEmpty(inventory)}">
+			<table id="inventoryTable">
+				<thead>
+					<tr>
+						<th class="sortable" data-col="0">Item ID<span class="sort-arrow">⇅</span></th>
+						<th class="sortable" data-col="1">Customer<span class="sort-arrow">⇅</span></th>
+						<th class="sortable" data-col="2">Warehouse<span class="sort-arrow">⇅</span></th>
+						<th class="sortable" data-col="3">UOM<span class="sort-arrow">⇅</span></th>
+						<th class="sortable" data-col="4">Qty<span class="sort-arrow">⇅</span></th>
+						<th class="sortable" data-col="5">Allocated Qty<span class="sort-arrow">⇅</span></th>
+						<th class="sortable" data-col="6">Available Qty<span class="sort-arrow">⇅</span></th>
+						<th class="sortable" data-col="7">Requested Qty<span class="sort-arrow">⇅</span></th>
+						<th class="sortable" data-col="8">Comments<span class="sort-arrow">⇅</span></th>
+					</tr>
+				</thead>
+				<tbody>
+					<tr th:each="inv : ${inventory}" 
+						th:data-href="@{'/inventory/showInventoryDetails/' + ${inv.itemCustomerUomWarehouseId}}"
+						onclick="rowClick(event, this)">
+
+						<!-- Col 1: Item ID -->
+						<td><span class="cell-link"> <a
+								th:href="@{'/items/showItemDetails/' + ${inv.itemId} + '_' + ${inv.customerId} + '_' + ${inv.itemUom}}"
+								th:text="${inv.itemId}" onclick="event.stopPropagation()"></a> <span
+								class="cell-tip">View item details</span>
+						</span></td>
+
+						<!-- Col 2: Customer -->
+						<td><span class="cell-link"> <a target="_blank"
+								th:href="@{'/customers/showCustomerDetails/' + ${inv.customerId}}"
+								th:text="${inv.customerId}" onclick="event.stopPropagation()"></a>
+								<span class="cell-tip">View customer details</span>
+						</span></td>
+
+						<!-- Col 3: Warehouse -->
+						<td><span class="cell-link"> <a target="_blank"
+								th:href="@{'/warehouses/showWarehouseDetails/' + ${inv.warehouseId}}"
+								th:text="${inv.warehouseId}" onclick="event.stopPropagation()"></a>
+								<span class="cell-tip">View warehouse details</span>
+						</span></td>
+
+						<!-- Col 4: UOM -->
+						<td><span class="badge badge-uom" th:text="${inv.itemUom}"></span></td>
+
+						<!-- Col 5: Qty -->
+						<td><span class="badge badge-qty" th:text="${inv.quantity}"></span></td>
+
+						<!-- Col 6: Allocated Qty -->
+						<td><span class="cell-link"> <a target="_blank" class="badge badge-qty"
+								th:href="@{'/shipments/showShipmentsAllocatedForItem/' + ${inv.itemCustomerUomWarehouseId}}"
+								th:text="${inv.allocatedQuantity}" onclick="event.stopPropagation()"></a>
+								<span class="cell-tip">View shipments allocated with this item</span>
+						</span></td>
+
+						<!-- Col 7: Available Qty -->
+						<td><span class="badge badge-qty" th:text="${inv.availableQuantity}"></span></td>
+
+						<!-- Col 8: Requested Qty -->
+						<td><span class="badge badge-qty" th:text="${inv.requestedQuantity}"></span></td>
+
+						<!-- Col 9: Stock Status — red capsule if not OK -->
+						<td>
+							<span class="badge"
+								th:classappend="${inv.stockStatus == 'OK'} ? 'badge-qty' : 'badge-error'"
+								th:text="${inv.stockStatus}">
+							</span>
+						</td>
+
+					</tr>
+				</tbody>
+			</table>
+		</div>
+
+		<!-- ── EMPTY STATE ── -->
+		<div th:if="${#lists.isEmpty(inventory) && !filterApplied}"
+			class="empty-state">
+			<p>No inventory records to display.</p>
+			<br />  
+		</div> 
+
+	</div>
+
+	<script>
+		/* ── Row click — opens in new tab ── */
+		function rowClick(event, row) {
+			const href = row.getAttribute('data-href');
+			if (href) window.open(href, '_blank');
+		}
+
+		/* ══ TABLE SORT ══ */
+		(function () {
+			let sortState = { col: -1, asc: true };
+
+			document.querySelectorAll('thead th.sortable').forEach(th => {
+				th.addEventListener('click', function () {
+					const col = parseInt(this.dataset.col, 10);
+					sortState.col === col
+						? (sortState.asc = !sortState.asc)
+						: (sortState.col = col, sortState.asc = true);
+
+					document.querySelectorAll('thead th.sortable').forEach(h => {
+						h.classList.remove('sort-asc', 'sort-desc');
+						h.querySelector('.sort-arrow').textContent = '⇅';
+					});
+					this.classList.add(sortState.asc ? 'sort-asc' : 'sort-desc');
+					this.querySelector('.sort-arrow').textContent = sortState.asc ? '↑' : '↓';
+
+					const tbody = document.querySelector('#inventoryTable tbody');
+					const rows = Array.from(tbody.querySelectorAll('tr'));
+
+					rows.sort((a, b) => {
+						const cellA = getCellText(a, col);
+						const cellB = getCellText(b, col);
+						return sortState.asc
+							? cellA.localeCompare(cellB, undefined, { numeric: true, sensitivity: 'base' })
+							: cellB.localeCompare(cellA, undefined, { numeric: true, sensitivity: 'base' });
+					});
+
+					rows.forEach(r => tbody.appendChild(r));
+				});
+			});
+
+			function getCellText(row, col) {
+				const cell = row.querySelectorAll('td')[col];
+				if (!cell) return '';
+				const link = cell.querySelector('a');
+				return (link ? link.textContent : cell.textContent).trim();
+			}
+		})();
+	</script>
+
+</body>
+
+</html>
