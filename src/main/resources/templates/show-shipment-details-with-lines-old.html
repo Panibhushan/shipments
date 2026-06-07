@@ -37,7 +37,7 @@ body > header:first-child {
 
 .page-content {
 	padding: 18px 28px 32px;
-	max-width: 1600px;
+	max-width: 1200px;
 	margin: 0 auto;
 }
 
@@ -82,47 +82,7 @@ body > header:first-child {
 	gap: 0 32px;
 }
 
-/* ── NEW 3-COLUMN LAYOUT FOR SHIPMENT INFO ── */
-.info-cards-container {
-	display: grid;
-	grid-template-columns: repeat(3, 1fr);
-	gap: 18px;
-	margin-bottom: 18px;
-}
-
-.info-card {
-	background: #fff;
-	border-radius: 12px;
-	padding: 18px;
-	border: 1px solid #e2e8f0;
-	box-shadow: 0 1px 3px rgba(0,0,0,0.04);
-}
-
-.info-card .section-title {
-	margin: 0 0 12px;
-	font-size: 0.65rem;
-	font-weight: 800;
-	text-transform: uppercase;
-	letter-spacing: 0.12em;
-	color: #94a3b8;
-	border-bottom: 1px solid #e2e8f0;
-	padding-bottom: 8px;
-}
-
-.info-card .info-field {
-	margin-bottom: 12px;
-}
-
-.info-card .info-field:last-child {
-	margin-bottom: 0;
-}
-
-@media (max-width: 1200px) {
-	.info-cards-container { grid-template-columns: repeat(2, 1fr); }
-}
-
-@media (max-width: 768px) {
-	.info-cards-container { grid-template-columns: 1fr; }
+@media (max-width: 900px) {
 	.info-grid { grid-template-columns: repeat(2, 1fr); }
 }
 
@@ -724,72 +684,62 @@ table.lines-table input, table.lines-table select {
 
 		<!-- ── INFO CARD ── -->
 		<div class="details-card">
-			<div class="info-cards-container">
-				<!-- COLUMN 1: Basic Shipment Info -->
-				<div class="info-card">
-					<div class="section-title">📦 Shipment Details</div>
-					
-					<div class="info-field">
-						<div class="field-label">Shipment ID</div>
-						<div class="field-value" th:text="${shipment.shipmentId}">SHP-001</div>
-					</div>
+			<div class="section-title">Shipment Information</div>
+			<div class="info-grid">
 
-					<div class="info-field">
-						<div class="field-label">Customer</div>
-						<div class="field-value cell-link">
-							<a target="_blank"
-								th:href="@{'/customers/showCustomerDetails/' + ${shipment.customerId}}"
-								th:text="${shipment.customerId}"></a>
-						</div>
-					</div>
+				<div class="info-field">
+					<div class="field-label">Shipment ID</div>
+					<div class="field-value" th:text="${shipment.shipmentId}">SHP-001</div>
+				</div>
 
-					<div class="info-field">
-						<div class="field-label">Warehouse</div>
-						<div class="field-value cell-link">
-							<a target="_blank"
-								th:href="@{'/warehouses/showWarehouseDetails/' + ${shipment.warehouseId}}"
-								th:text="${shipment.warehouseId}"></a>
-						</div>
-					</div>
-
-					<div class="info-field">
-						<div class="field-label">Status</div>
-						<div class="field-value">
-							<span th:switch="${shipment.shipStatus}"> 
-								<span th:case="1100" class="badge s-1100">1100 — Created</span> 
-								<span th:case="1200" class="badge s-1200">1200 — Picked</span> 
-								<span th:case="1300" class="badge s-1300">1300 — Packed</span> 
-								<span th:case="1400" class="badge s-1400">1400 — Shipped</span> 
-								<span th:case="9000" class="badge s-9000">9000 — Cancelled</span> 
-								<span th:case="*" class="badge s-1100" th:text="|${shipment.shipStatus} — Unknown|"></span>
-							</span>
-						</div>
+				<div class="info-field">
+					<div class="field-label">Customer</div>
+					<div class="field-value cell-link">
+						<a target="_blank"
+							th:href="@{'/customers/showCustomerDetails/' + ${shipment.customerId}}"
+							th:text="${shipment.customerId}"></a>
 					</div>
 				</div>
 
-				<!-- COLUMN 2: Timestamps -->
-				<div class="info-card">
-					<div class="section-title">⏱️ Timeline</div>
-					
-					<div class="info-field">
-						<div class="field-label">Created At</div>
-						<div class="field-value" th:text="${shipment.createdAt}"></div>
-					</div>
-
-					<div class="info-field">
-						<div class="field-label">Modified At</div>
-						<div class="field-value" th:text="${shipment.modifiedAt}"></div>
+				<div class="info-field">
+					<div class="field-label">Warehouse</div>
+					<div class="field-value cell-link">
+						<a target="_blank"
+							th:href="@{'/warehouses/showWarehouseDetails/' + ${shipment.warehouseId}}"
+							th:text="${shipment.warehouseId}"></a>
 					</div>
 				</div>
 
-				<!-- COLUMN 3: Delivery Address -->
-				<div class="info-card">
-					<div class="section-title">📍 Delivery Address</div>
-					
-					<div class="info-field">
-						<div class="field-value" th:utext="${address}"></div>
+				<div class="info-field">
+					<div class="field-label">Status</div>
+					<div class="field-value">
+						<span th:switch="${shipment.shipStatus}"> <span
+							th:case="1100" class="badge s-1100">1100 — Created</span> <span
+							th:case="1200" class="badge s-1200">1200 — Picked</span> <span
+							th:case="1300" class="badge s-1300">1300 — Packed</span> <span
+							th:case="1400" class="badge s-1400">1400 — Shipped</span> <span
+							th:case="9000" class="badge s-9000">9000 — Cancelled</span> <span
+							th:case="*" class="badge s-1100"
+							th:text="|${shipment.shipStatus} — Unknown|"></span>
+						</span>
 					</div>
 				</div>
+
+				<div class="info-field">
+					<div class="field-label">Created At</div>
+					<div class="field-value" th:text="${shipment.createdAt}"></div>
+				</div>
+
+				<div class="info-field">
+					<div class="field-label">Modified At</div>
+					<div class="field-value" th:text="${shipment.modifiedAt}"></div>
+				</div>
+				
+				<div class="info-field">
+					<div class="field-label">Delivery Address</div>
+					<div class="field-value" th:utext="${address}"></div>
+				</div>
+
 			</div>
 		</div>
 

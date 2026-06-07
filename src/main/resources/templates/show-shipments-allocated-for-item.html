@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<link rel="stylesheet" th:href="@{/css/navbar.css}" />
+<style>
+*, *::before, *::after {
+	box-sizing: border-box;
+}
+
+body {
+	font-family: Arial, sans-serif;
+	background: #f4f6f9;
+	margin: 0;
+	height: 100vh;
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
+}
+
+/* ── PAGE SHELL ── */
+.page-content {
+	padding: 10px 16px 0;
+	display: flex;
+	flex-direction: column;
+	flex: 1;
+	min-height: 0;
+}
+
+.top-bar {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	margin-bottom: 10px;
+	flex-shrink: 0;
+}
+
+.top-bar h2 {
+	margin: 0;
+	font-size: 1rem;
+	font-weight: 700;
+	color: #1e293b;
+}
+
+/* ── TABLE SECTION — scrollable ── */
+.table-section {
+	flex: 1;
+	min-width: 0;
+	overflow-y: auto;
+	scrollbar-width: thin;
+	scrollbar-color: #c7d2fe transparent;
+	padding-bottom: 12px;
+}
+
+.table-section::-webkit-scrollbar {
+	width: 5px;
+}
+
+.table-section::-webkit-scrollbar-thumb {
+	background: #c7d2fe;
+	border-radius: 4px;
+}
+
+.table-wrapper {
+	background: #fff;
+	border-radius: 12px;
+	box-shadow: 0 2px 12px rgba(0, 0, 0, 0.07);
+	overflow-x: auto;
+}
+
+table {
+	width: 100%;
+	border-collapse: collapse;
+	font-family: Arial, sans-serif;
+	font-size: 0.84rem;
+	table-layout: auto;
+}
+
+thead th {
+	text-align: center;
+	padding: 10px 10px;
+	color: #374151;
+	background: #d9e2ed;
+	font-size: 0.7rem;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.06em;
+	border-bottom: 2px solid #e2e8f0;
+	white-space: nowrap;
+	position: sticky;
+	top: 0;
+	z-index: 2;
+}
+
+thead th.sortable {
+	cursor: pointer;
+	user-select: none;
+	transition: background 0.15s, color 0.15s;
+}
+
+thead th.sortable:hover {
+	background: #c8d1e0;
+	color: #1e293b;
+}
+
+thead th.sort-asc, thead th.sort-desc {
+	background: #c8d1f1;
+	color: #1b0db1;
+}
+
+thead th.sortable .sort-arrow {
+	display: inline-block;
+	margin-left: 4px;
+	font-size: 0.6rem;
+	opacity: 0.35;
+	vertical-align: middle;
+	transition: opacity 0.15s;
+}
+
+thead th.sortable:hover .sort-arrow {
+	opacity: 0.7;
+}
+
+thead th.sort-asc .sort-arrow, thead th.sort-desc .sort-arrow {
+	opacity: 1;
+	color: #4f46e5;
+}
+
+tbody tr {
+	border-bottom: 1px solid #f1f5f9;
+	cursor: pointer;
+	transition: background 0.15s;
+}
+
+tbody tr:last-child {
+	border-bottom: none;
+}
+
+tbody tr:hover {
+	background: #eef2ff;
+}
+
+td {
+	padding: 9px 10px;
+	text-align: center;
+	color: #374151;
+}
+
+/* ── CELL LINK ── */
+.cell-link {
+	position: relative;
+	display: inline-block;
+}
+
+.cell-link a {
+	color: #4a6fa5;
+	font-weight: 700;
+	text-decoration: none;
+	border-bottom: 1px dashed #4a6fa5;
+}
+
+.cell-link a:hover {
+	color: #2c4a7c;
+}
+
+.cell-link .cell-tip, .btn-view .cell-tip {
+	visibility: hidden;
+	opacity: 0;
+	background: #1e293b;
+	color: #fff;
+	font-size: 0.7rem;
+	padding: 4px 9px;
+	border-radius: 5px;
+	white-space: nowrap;
+	position: absolute;
+	bottom: 130%;
+	left: 50%;
+	transform: translateX(-50%);
+	transition: opacity 0.18s;
+	pointer-events: none;
+	z-index: 10;
+}
+
+.cell-link .cell-tip::after, .btn-view .cell-tip::after {
+	content: '';
+	position: absolute;
+	top: 100%;
+	left: 50%;
+	transform: translateX(-50%);
+	border-width: 4px;
+	border-style: solid;
+	border-color: #1e293b transparent transparent transparent;
+}
+
+.cell-link:hover .cell-tip, .btn-view:hover .cell-tip {
+	visibility: visible;
+	opacity: 1;
+}
+
+/* ── VIEW BUTTON ── */
+.btn-view {
+	display: inline-block;
+	background-color: #6a73b2;
+	color: #fff;
+	font-weight: 700;
+	font-size: 0.75rem;
+	padding: 6px 12px;
+	text-decoration: none;
+	border-radius: 6px;
+	white-space: nowrap;
+	transition: background-color 0.2s;
+	position: relative;
+}
+
+.btn-view:hover {
+	background-color: #555fa0;
+}
+
+
+/* ── BADGE for UOM & STATUS ── */
+.badge {
+	display: inline-block;
+	padding: 3px 10px;
+	border-radius: 12px;
+	font-size: 0.78rem;
+	font-weight: 700;
+}
+.badge-uom  {
+	background: #e0e7ff;
+	color: #3730a3;
+}
+
+.s-1100 {
+	background: #e2e8f0;
+	color: #374151;
+} /* CREATED  — grey  */
+.s-1200 {
+	background: #dbeafe;
+	color: #1e40af;
+} /* PICKED   — blue  */
+.s-1300 {
+	background: #fef3c7;
+	color: #92400e;
+} /* PACKED   — amber */
+.s-1400 {
+	background: #d1fae5;
+	color: #065f46;
+} /* SHIPPED  — green */
+.s-9000 {
+	background: #fee2e2;
+	color: #991b1b;
+} /* CANCELLED— red   */
+.s-unknown {
+	background: #f3f4f6;
+	color: #6b7280;
+}
+
+/* ── EMPTY STATE ── */
+.empty-state {
+	text-align: center;
+	padding: 40px 20px;
+	color: #94a3b8;
+}
+
+.empty-state p {
+	font-size: 1rem;
+	margin-bottom: 14px;
+}
+
+/* ── WARNING BANNER ── */
+.warn-banner {
+	background: #ec5858;
+	color: white;
+	padding: 10px;
+	font-weight: bold;
+	border-radius: 6px;
+	margin-bottom: 12px;
+	flex-shrink: 0;
+}
+
+.info-banner {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	flex-wrap: wrap;
+	background: var(--color-background-secondary);
+	border: 0.5px solid var(--color-border-tertiary);
+	border-left: 3px solid #378ADD;
+	border-radius: var(--border-radius-lg);
+	padding: 14px 18px;
+	margin-bottom: 20px;
+}
+
+.info-banner .lbl {
+	font-size: 11px;
+	text-transform: uppercase;
+	letter-spacing: 0.07em;
+	color: var(--color-text-secondary);
+	font-weight: 500;
+}
+
+.info-banner .val {
+	font-size: 14px;
+	font-weight: 500;
+	color: var(--color-text-primary);
+	margin-top: 2px;
+}
+
+.info-banner .divider {
+	width: 0.5px;
+	height: 36px;
+	background: var(--color-border-tertiary);
+}
+
+.info-banner .suffix {
+	font-size: 13px;
+	color: var(--color-text-secondary);
+	align-self: center;
+	margin-left: auto;
+}
+
+.readonly-value {
+	font-size: 0.9rem;
+	font-weight: 700;
+	color: #1e293b;
+	padding: 6px 0 8px;
+/* 	border-bottom: 2px solid #e2e8f0;
+ */	margin-bottom: 4px;
+}
+
+
+
+</style>
+</head>
+<body>
+
+	<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+	<div class="page-content">
+
+		<div class="info-banner">
+			<div>
+				<div class="lbl">Item</div>
+				<div class="val" th:text="${CustomerItemItemUom[1]}"></div>
+			</div>
+			<div class="divider"></div>
+			<div>
+				<div class="lbl">UOM</div>
+				<div class="val" th:text="${CustomerItemItemUom[2]}"></div>
+			</div>
+			<div class="divider"></div>
+			<div>
+				<div class="lbl">Customer</div>
+				<div class="val" th:text="${CustomerItemItemUom[0]}"></div>
+			</div>
+			<br />
+			<div>is allocated to below shipments</div>
+		</div>
+		<!-- ── TABLE ── -->
+		<div class="table-section">
+			<div class="table-wrapper" th:if="${not #lists.isEmpty(shipments)}">
+				<table id="shipmentsTable">
+					<thead>
+						<tr>
+							<th class="sortable" data-col="0">Shipment ID <span
+								class="sort-arrow">⇅</span></th>
+							<th class="sortable" data-col="1">Customer <span
+								class="sort-arrow">⇅</span></th>
+							<th class="sortable" data-col="2">Item ID <span
+								class="sort-arrow">⇅</span></th>
+							<th class="sortable" data-col="3">Item UOM <span
+								class="sort-arrow">⇅</span></th>
+							<th class="sortable" data-col="4">Quantity <span
+								class="sort-arrow">⇅</span></th>
+							<th class="sortable" data-col="5">Shipment Status <span
+								class="sort-arrow">⇅</span></th>
+							<th class="sortable" data-col="5">Warehouse<span
+								class="sort-arrow">⇅</span></th>
+							<th>Details</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr th:each="ship : ${shipments}"
+							th:data-href="@{'/shipments/showShipmentDetails/' + ${ship['shipment_id']}}"
+							onclick="rowClick(event, this)">
+
+							<!-- Shipment ID -->
+							<td><span class="cell-link"> <a
+									th:href="@{'/shipments/showShipmentDetails/' + ${ship['shipment_id']}}"
+									th:text="${ship['shipment_id']}"
+									onclick="event.stopPropagation()"></a> <span class="cell-tip">View
+										shipment details</span>
+							</span></td>
+
+							<!-- Customer -->
+							<td><span class="cell-link"> <a target="_blank"
+									th:href="@{'/customers/showCustomerDetails/' + ${ship['customer_id']}}"
+									th:text="${ship['customer_id']}"
+									onclick="event.stopPropagation()"></a> <span class="cell-tip">View
+										customer details</span>
+							</span></td>
+
+							<!-- Item ID -->
+							<td><span class="cell-link"> <a target="_blank"
+									th:href="@{'/items/showItemDetails/' + ${ship['item_id']}}"
+									th:text="${ship['item_id']}"
+									onclick="event.stopPropagation()"></a> <span class="cell-tip">View
+										item details</span>
+							</span></td>
+							
+							<!-- Item UOM -->
+							<td ><span class="badge badge-uom" th:text="${ship['item_uom']}"></span></td>
+
+							<!-- Quantity -->
+							<td class="readonly-value" th:text="${ship['quantity']}"></td>
+
+							<!-- Status badge — coloured by status code -->
+							<td><span th:switch="${ship['ship_status']}"> <span
+									th:case="1100" class="badge s-1100">1100 — Created</span> <span
+									th:case="1200" class="badge s-1200">1200 — Picked</span> <span
+									th:case="1300" class="badge s-1300">1300 — Packed</span> <span
+									th:case="1400" class="badge s-1400">1400 — Shipped</span> <span
+									th:case="9000" class="badge s-9000">9000 — Cancelled</span> <span
+									th:case="*" class="badge s-1100"
+									th:text="|${ship['ship_status']} — Unknown|"></span>
+							</span></td>
+							<!-- Warehouse -->
+							<td><span class="cell-link"> <a target="_blank"
+									th:href="@{'/warehouses/showWarehouseDetails/' + ${ship['warehouse_id']}}"
+									th:text="${ship['warehouse_id']}"
+									onclick="event.stopPropagation()"></a> <span class="cell-tip">View
+										warehouse details</span>
+							</span></td>
+							
+							<!-- View Details button -->
+							<td><a target="_blank"
+								th:href="@{'/shipments/showShipmentDetails/' + ${ship['shipment_id']}}"
+								class="btn-view" onclick="event.stopPropagation()"> 👁️ View
+									Details <span class="cell-tip">View shipment details</span>
+							</a></td>
+
+						</tr>
+					</tbody>
+				</table>
+			</div>
+
+			<!-- Empty state -->
+			<div th:if="${#lists.isEmpty(shipments)}" class="empty-state">
+				<p>No shipment records found for this item.</p>
+			</div>
+		</div>
+
+	</div>
+
+	<script>
+		/* ── Row click — open in new tab ── */
+		function rowClick(event, row) {
+			const href = row.getAttribute('data-href');
+			if (href) window.open(href, '_blank');
+		}
+
+		/* ══ TABLE SORT ══ */
+		(function () {
+			const statusOrder = { '1100': 1, '1200': 2, '1300': 3, '1400': 4, '9000': 5 };
+			let sortState = { col: -1, asc: true };
+
+			document.querySelectorAll('thead th.sortable').forEach(th => {
+				th.addEventListener('click', function () {
+					const col = parseInt(this.dataset.col, 10);
+					sortState.col === col
+						? (sortState.asc = !sortState.asc)
+						: (sortState.col = col, sortState.asc = true);
+
+					document.querySelectorAll('thead th.sortable').forEach(h => {
+						h.classList.remove('sort-asc', 'sort-desc');
+						h.querySelector('.sort-arrow').textContent = '⇅';
+					});
+					this.classList.add(sortState.asc ? 'sort-asc' : 'sort-desc');
+					this.querySelector('.sort-arrow').textContent = sortState.asc ? '↑' : '↓';
+
+					const tbody = document.querySelector('#shipmentsTable tbody');
+					const rows = Array.from(tbody.querySelectorAll('tr'));
+
+					rows.sort((a, b) => {
+						const cellA = getCellText(a, col);
+						const cellB = getCellText(b, col);
+						let cmp;
+						if (col === 5) {
+							// Sort by status code order
+							const codeA = cellA.split(' ')[0];
+							const codeB = cellB.split(' ')[0];
+							cmp = (statusOrder[codeA] ?? 99) - (statusOrder[codeB] ?? 99);
+						} else {
+							cmp = cellA.localeCompare(cellB, undefined, { numeric: true, sensitivity: 'base' });
+						}
+						return sortState.asc ? cmp : -cmp;
+					});
+
+					rows.forEach(r => tbody.appendChild(r));
+				});
+			});
+
+			function getCellText(row, col) {
+				const cell = row.querySelectorAll('td')[col];
+				if (!cell) return '';
+				const link = cell.querySelector('a');
+				return (link ? link.textContent : cell.textContent).trim();
+			}
+		})();
+	</script>
+
+</body>
+</html>

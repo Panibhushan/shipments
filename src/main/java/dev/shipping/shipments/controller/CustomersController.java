@@ -3,6 +3,8 @@ package dev.shipping.shipments.controller;
 import java.util.Arrays;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -13,225 +15,324 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import dev.shipping.shipments.model.Customers;
-import dev.shipping.shipments.model.Shipments;
 import dev.shipping.shipments.service.CustomersService;
 
+/**
+ * Handles all HTTP requests related to customers.
+ *
+ * Responsibilities:
+ *  - Parse and validate incoming HTTP parameters
+ *  - Delegate all business logic to CustomersService
+ *  - Populate the view model or set flash attributes for redirects
+ *
+ * This controller intentionally contains NO business logic.
+ * Validation, persistence, and domain rules all live in CustomersService.
+ */
 @Controller
 public class CustomersController {
 
-	private final CustomersService customersService;
+    private static final Logger log = LoggerFactory.getLogger(CustomersController.class);
 
-	public CustomersController(CustomersService customersService) {
-		this.customersService = customersService;
-	}
+    /**
+     * Status options shown in the customer status dropdown.
+     * Defined once here to avoid repeating the literal list in every handler.
+     */
+    private static final List<String> STATUS_OPTIONS = Arrays.asList("Active", "Disabled");
 
-	@GetMapping("/customers/")
-	public String showAllCustomers(Model model) {
-		model.addAttribute("customers", customersService.getAllCustomers()); // for filter dropdown
-		model.addAttribute("customersList", customersService.getAllCustomers()); // for data to display dropdown
-		model.addAttribute("activePage", "allCustomers"); // ← this is show which dropdown is active in the navbar
-		model.addAttribute("statusOptions", Arrays.asList("Active", "Disabled"));
-		model.addAttribute("expiringCriteriaOptions", Arrays.asList("DAY", "WEEK", "MONTH", "QUARTER", "YEAR"));
-		model.addAttribute("filterApplied", false);
-		return "show-all-customers";
-	}
+    /**
+     * Time-unit options shown in the "expiring within" filter dropdown.
+     */
+    private static final List<String> EXPIRY_UNIT_OPTIONS =
+            Arrays.asList("DAY", "WEEK", "MONTH", "QUARTER", "YEAR");
 
-	// Adding this addittional method, just incase I missed to update the URL from
-	// goToCreateCustomerPage to createCustomerPage in any pages, this will route
-	// correctly instead of giving error
-	@GetMapping("/customers/goToCreateCustomerPage")
-	public String goToCreateCustomerPage(Model model) {
-		return "redirect:/customers/createCustomerPage";
-	}
+    private final CustomersService customersService;
 
-	@GetMapping("/customers/createCustomerPage")
-	public String addCustomersPage(Model model) {
-		model.addAttribute("customer", new Customers());
-		model.addAttribute("activePage", "createCustomer"); // ← this is show which dropdown is active in the navbar
-		model.addAttribute("warehouses", customersService.getActiveWarehouses());
-		return "create-customer";
-	}
+    public CustomersController(CustomersService customersService) {
+        this.customersService = customersService;
+    }
 
-	@GetMapping("/customers/showCustomersByFilter")
-	public String showCustomersByFilter(@RequestParam(required = false) String customerId,
-			@RequestParam(required = false) String customerStatus,
-			@RequestParam(value = "expireNumber", required = false, defaultValue = "0") Integer expireNumber,
-			@RequestParam(required = false) String expiringInSelect, Model model) {
+    // ─────────────────────────────────────────────
+    // LIST / FILTER
+    // ─────────────────────────────────────────────
 
-		System.out.println(
-				"/customers/showCustomersByFilter::Get()/{customerId}/{customerStatus}/{expireNumber}/{expiringInSelect}: "
-						+ customerId + " / " + customerStatus + " / " + expireNumber + " / " + expiringInSelect);
+    /**
+     * Renders the customer list page with no filter applied.
+     * Loads all customers for both the filter dropdown and the data table.
+     */
+    @GetMapping("/customers/")
+    public String showAllCustomers(Model model) {
+        log.info("GET /customers/ → loading all customers (no filter)");
+        List<Customers> allCustomers = customersService.getAllCustomers();
+        model.addAttribute("customers", allCustomers);       // for the filter dropdown
+        model.addAttribute("customersList", allCustomers);   // for the data table
+        model.addAttribute("activePage", "allCustomers");
+        model.addAttribute("statusOptions", STATUS_OPTIONS);
+        model.addAttribute("expiringCriteriaOptions", EXPIRY_UNIT_OPTIONS);
+        model.addAttribute("filterApplied", false);
+        return "show-all-customers";
+    }
 
-		/*
-		 * if (Integer.toString(expireNumber).trim() == "") { expireNumber = 0; }
-		 */
+    /**
+     * Filters the customer list using the submitted form values.
+     *
+     * All parameters are optional; "ALL" is the sentinel meaning "no filter on this field".
+     * expireNumber=0 means the expiry-window filter is not active.
+     *
+     * The expiry-window filter (expireNumber + expiringInSelect) finds customers
+     * whose contract expires within the next N time units, e.g. within 3 months.
+     */
+    @GetMapping("/customers/showCustomersByFilter")
+    public String showCustomersByFilter(
+            @RequestParam(required = false, defaultValue = "ALL") String customerId,
+            @RequestParam(required = false, defaultValue = "ALL") String customerStatus,
+            @RequestParam(value = "expireNumber", required = false, defaultValue = "0") Integer expireNumber,
+            @RequestParam(required = false, defaultValue = "ALL") String expiringInSelect,
+            Model model) {
 
-		List<Customers> customersList = customersService.getCustomersList(customerId, customerStatus, expireNumber,
-				expiringInSelect);
+        log.info("GET /customers/showCustomersByFilter → customerId={}, customerStatus={}, expireNumber={}, expiringInSelect={}",
+                customerId, customerStatus, expireNumber, expiringInSelect);
 
-		model.addAttribute("customers", customersService.getAllCustomers());
-		model.addAttribute("customersList", customersList);
-		model.addAttribute("selectedCustomer", customerId);		
-		model.addAttribute("selectedCustomerStatus", customerStatus);
-		
-		if(expireNumber!=0 ) {
-		model.addAttribute("selectedExpiringCriteria", expiringInSelect);
-		model.addAttribute("enteredExpireNumber", expireNumber);
-		}else {
-			model.addAttribute("enteredExpireNumber", "");
-			model.addAttribute("selectedExpiringCriteria", "");
-		}
-		
-		model.addAttribute("filterApplied", true);
-		model.addAttribute("statusOptions", Arrays.asList("Active", "Disabled"));
-		model.addAttribute("expiringCriteriaOptions", Arrays.asList("DAY", "WEEK", "MONTH", "QUARTER", "YEAR"));
+        List<Customers> customersList = customersService.getCustomersList(
+                customerId, customerStatus, expireNumber, expiringInSelect);
 
-		return "show-all-customers";
-	}
+        log.info("Customer filter returned {} customer(s)", customersList.size());
 
-	@GetMapping("/customers/showCustomerDetails/{customerId}")
-	public String showCustomerDetails(@PathVariable String customerId) {
-		return "redirect:/customers/viewOrEditCustomer/" + customerId;
-	}
-	
-	// Adding this method just incase if I missed to change the url from editCustomer to viewOrEditCustomer in any pages, this will reroute correctly
-	@GetMapping("/customers/editCustomer/{customerId}")
-	public String viewOrEditCustomerPage(@PathVariable String customerId) {
-		return "redirect:/customers/viewOrEditCustomer/" + customerId;
-	}
+        model.addAttribute("customers", customersService.getAllCustomers()); // filter dropdown always shows all
+        model.addAttribute("customersList", customersList);
+        model.addAttribute("selectedCustomer", customerId);
+        model.addAttribute("selectedCustomerStatus", customerStatus);
+        model.addAttribute("filterApplied", true);
+        model.addAttribute("statusOptions", STATUS_OPTIONS);
+        model.addAttribute("expiringCriteriaOptions", EXPIRY_UNIT_OPTIONS);
 
-	@GetMapping("/customers/viewOrEditCustomer/{customerId}")
-	public String viewOrEditCustomers(@PathVariable String customerId, Model model,
-			RedirectAttributes redirectAttributes) {
+        // Only re-populate the expiry fields if a real expiry filter was actually applied
+        if (expireNumber != 0) {
+            model.addAttribute("enteredExpireNumber", expireNumber);
+            model.addAttribute("selectedExpiringCriteria", expiringInSelect);
+        } else {
+            // Clear the expiry fields so the form resets cleanly
+            model.addAttribute("enteredExpireNumber", "");
+            model.addAttribute("selectedExpiringCriteria", "");
+        }
 
-		model.addAttribute("customer", new Customers());
+        return "show-all-customers";
+    }
 
-		if (!customersService.customerExists(customerId)) {
-			redirectAttributes.addFlashAttribute("msg", "Customer " + customerId + " doesn't exists !!!");
-			redirectAttributes.addFlashAttribute("bgColor", "#d95f6c");
-			redirectAttributes.addFlashAttribute("textColor", "#ffffff");
-			return "redirect:/customers/";
-		}
+    // ─────────────────────────────────────────────
+    // CREATE CUSTOMER
+    // ─────────────────────────────────────────────
 
-		customersService.populateEditCustomerModel(customerId, model);
-		return "edit-customer";
-	}
+    /**
+     * Backward-compatibility redirect for any page still using the old URL.
+     */
+    @GetMapping("/customers/goToCreateCustomerPage")
+    public String goToCreateCustomerPage() {
+        log.info("GET /customers/goToCreateCustomerPage → redirecting to /customers/createCustomerPage");
+        return "redirect:/customers/createCustomerPage";
+    }
 
-	@PostMapping("/customers/updateCustomer")
-	public String updateCustomers(@RequestParam String customerId, @RequestParam String customerName,
-			@RequestParam String customerStatus, @RequestParam String validUpto,
-			@RequestParam(value = "selectedWarehouses", required = false, defaultValue = "") List<String> selectedWarehouses,
-			RedirectAttributes redirectAttributes) {
+    /** Renders the create-customer form, pre-loading the list of active warehouses. */
+    @GetMapping("/customers/createCustomerPage")
+    public String addCustomersPage(Model model) {
+        log.info("GET /customers/createCustomerPage → rendering create customer form");
+        model.addAttribute("customer", new Customers());
+        model.addAttribute("activePage", "createCustomer");
+        model.addAttribute("warehouses", customersService.getActiveWarehouses());
+        return "create-customer";
+    }
 
-		System.out.println("CustomerController:: updateCustomer:: " + customerId + " -- " + customerName + " -- "
-				+ customerStatus + " -- " + validUpto + " -- " + selectedWarehouses.toString());
+    /**
+     * Handles the create-customer form POST.
+     *
+     * Flow:
+     *  1. Reject immediately if the customer ID already exists.
+     *  2. Run field-level validation via the service.
+     *  3. On errors → redirect back to the form with error flash attributes.
+     *  4. On success → create the customer and redirect with a success message.
+     */
+    @PostMapping("/customers/createCustomer")
+    public String saveCustomer(
+            @ModelAttribute Customers customer,
+            @RequestParam(value = "selectedWarehouses", required = false, defaultValue = "") List<String> selectedWarehouses,
+            RedirectAttributes redirectAttributes) {
 
-		if (!customersService.customerExists(customerId)) {
-			redirectAttributes.addFlashAttribute("msg", "Customer " + customerId + " doesn't exists !!!");
-			redirectAttributes.addFlashAttribute("bgColor", "#d95f6c");
-			redirectAttributes.addFlashAttribute("textColor", "#ffffff");
-			return "redirect:/customers/viewOrEditCustomer/" + customerId;
-		}
+        String customerId = customer.getCustomerId();
+        log.info("POST /customers/createCustomer → customerId={}, warehouseCount={}", customerId, selectedWarehouses.size());
 
-		List<String> errors = null;
+        // ── 1. Duplicate check ────────────────────────────────────────────────
+        if (customersService.customerExists(customerId)) {
+            log.warn("saveCustomer() → customer already exists: customerId={}", customerId);
+            redirectAttributes.addFlashAttribute("msg", "Customer " + customerId + " already exists!");
+            redirectAttributes.addFlashAttribute("bgColor", "#d95f6c");
+            redirectAttributes.addFlashAttribute("textColor", "#ffffff");
+            return "redirect:/customers/createCustomerPage";
+        }
 
-		try {
-			System.out.println("Hitting Try in Controller");
-			errors = customersService.validateCustomerUpdate(customerName, validUpto);
+        // ── 2. Validation ─────────────────────────────────────────────────────
+        List<String> errors = customersService.validateNewCustomer(customer);
 
-			System.out.println("Hitting Try in Controller:: errors:  " + errors.toString());
+        if (!errors.isEmpty()) {
+            log.warn("saveCustomer() → validation failed for customerId={}: {}", customerId, errors);
+            redirectAttributes.addFlashAttribute("msg", String.join("\n", errors));
+            // Re-populate the form fields so the user doesn't have to retype them
+            redirectAttributes.addFlashAttribute("customerIdFromController", customerId);
+            redirectAttributes.addFlashAttribute("customerNameFromController", customer.getCustomerName());
+            redirectAttributes.addFlashAttribute("bgColor", "#f03a5b");
+            redirectAttributes.addFlashAttribute("textColor", "#f5f0f1");
+        } else {
+            // ── 3. Persist ────────────────────────────────────────────────────
+            customersService.createCustomer(customer, selectedWarehouses);
+            log.info("saveCustomer() → customer created: customerId={}", customerId);
+            redirectAttributes.addFlashAttribute("msg",
+                    "Created Customer: " + customerId + "!"
+                    + "&nbsp;&nbsp;&nbsp;&nbsp;<a href='/customers/showCustomerDetails/" + customerId
+                    + "'>View " + customerId + "</a>");
+            redirectAttributes.addFlashAttribute("bgColor", "#d1fae5");
+            redirectAttributes.addFlashAttribute("textColor", "#45484d");
+        }
 
-			if (!errors.isEmpty()) {
-				redirectAttributes.addFlashAttribute("msg", String.join("\n", errors));
-				/*
-				 * redirectAttributes.addFlashAttribute("customerIdFromController", customerId);
-				 * redirectAttributes.addFlashAttribute("customerNameFromController",
-				 * customerName);
-				 * redirectAttributes.addFlashAttribute("validUptoFromController", validUpto);
-				 */
-				redirectAttributes.addFlashAttribute("bgColor", "#f03a5b");
-				redirectAttributes.addFlashAttribute("textColor", "#f5f0f1");
-			} else {
+        return "redirect:/customers/createCustomerPage";
+    }
 
-				System.out.println("CustomerController:: updateCustomer:: inside Else::  " + customerId + " -- "
-						+ customerName + " -- " + customerStatus + " -- " + validUpto + " -- "
-						+ selectedWarehouses.toString());
+    // ─────────────────────────────────────────────
+    // VIEW / EDIT CUSTOMER
+    // ─────────────────────────────────────────────
 
-				customersService.updateCustomer(customerId, customerName, customerStatus, validUpto,
-						selectedWarehouses);
-				redirectAttributes.addFlashAttribute("msg", "Updated Customer: " + customerId + " !!!");
-				redirectAttributes.addFlashAttribute("bgColor", "#d1fae5;");
-				redirectAttributes.addFlashAttribute("textColor", "#45484d");
-			}
-		} catch (Exception e) {
-			System.out.println("CustomerController:: updateCustomer:: Hitting Exception in Controller:: " + customerId
-					+ " -- " + customerName + " -- " + customerStatus + " -- " + validUpto + " -- "
-					+ selectedWarehouses.toString());
-			System.out.println("Exception " + e.toString());
-			redirectAttributes.addFlashAttribute("msg",
-					"You have selected an Invalid date!! Please select/enter a valid date.");
-			/*
-			 * redirectAttributes.addFlashAttribute("customerIdFromController", customerId);
-			 * redirectAttributes.addFlashAttribute("customerNameFromController",
-			 * customerName);
-			 * redirectAttributes.addFlashAttribute("validUptoFromController", validUpto);
-			 */
-			redirectAttributes.addFlashAttribute("bgColor", "#f03a5b");
-			redirectAttributes.addFlashAttribute("textColor", "#f5f0f1");
-		}
-		return "redirect:/customers/viewOrEditCustomer/" + customerId;
-	}
+    /**
+     * Redirects /showCustomerDetails/{id} to the canonical view/edit URL.
+     * Keeps old links working without duplicating handler logic.
+     */
+    @GetMapping("/customers/showCustomerDetails/{customerId}")
+    public String showCustomerDetails(@PathVariable String customerId) {
+        log.info("GET /customers/showCustomerDetails/{} → redirecting to viewOrEditCustomer", customerId);
+        return "redirect:/customers/viewOrEditCustomer/" + customerId;
+    }
 
-	@PostMapping("/customers/createCustomer")
-	public String saveCustomers(@ModelAttribute Customers customer,
-			@RequestParam(value = "selectedWarehouses", required = false, defaultValue = "") List<String> selectedWarehouses,
-			RedirectAttributes redirectAttributes) {
+    /**
+     * Backward-compatibility redirect: any page still using /editCustomer/{id}
+     * is transparently forwarded to the canonical /viewOrEditCustomer/{id} URL.
+     */
+    @GetMapping("/customers/editCustomer/{customerId}")
+    public String editCustomerRedirect(@PathVariable String customerId) {
+        log.info("GET /customers/editCustomer/{} → redirecting to viewOrEditCustomer", customerId);
+        return "redirect:/customers/viewOrEditCustomer/" + customerId;
+    }
 
-		String customerId = customer.getCustomerId();
+    /**
+     * Renders the view/edit page for a specific customer.
+     * Redirects to the customer list with an error message if the ID does not exist.
+     */
+    @GetMapping("/customers/viewOrEditCustomer/{customerId}")
+    public String viewOrEditCustomer(@PathVariable String customerId, Model model,
+            RedirectAttributes redirectAttributes) {
 
-		if (customersService.customerExists(customerId)) {
-			redirectAttributes.addFlashAttribute("msg", "Customer " + customerId + " already exists !!!");
-			redirectAttributes.addFlashAttribute("bgColor", "#d95f6c");
-			redirectAttributes.addFlashAttribute("textColor", "#ffffff");
-			return "redirect:/customers/createCustomerPage";
-		}
+        log.info("GET /customers/viewOrEditCustomer/{}", customerId);
 
-		List<String> errors = customersService.validateNewCustomer(customer);
+        if (!customersService.customerExists(customerId)) {
+            log.warn("viewOrEditCustomer() → customer not found: customerId={}", customerId);
+            redirectAttributes.addFlashAttribute("msg", "Customer " + customerId + " doesn't exist!");
+            redirectAttributes.addFlashAttribute("bgColor", "#d95f6c");
+            redirectAttributes.addFlashAttribute("textColor", "#ffffff");
+            return "redirect:/customers/";
+        }
 
-		if (!errors.isEmpty()) {
-			redirectAttributes.addFlashAttribute("msg", String.join("\n", errors));
-			redirectAttributes.addFlashAttribute("customerIdFromController", customerId);
-			redirectAttributes.addFlashAttribute("customerNameFromController", customer.getCustomerName());
-			redirectAttributes.addFlashAttribute("bgColor", "#f03a5b");
-			redirectAttributes.addFlashAttribute("textColor", "#f5f0f1");
-		} else {
-			customersService.createCustomer(customer, selectedWarehouses);
-			redirectAttributes.addFlashAttribute("msg",
-					"Created Customer: " + customerId + " !!!"
-							+ "&nbsp;&nbsp;&nbsp;&nbsp;<a href='/customers/showCustomerDetails/" + customerId
-							+ "'>View " + customerId + "</a>");
-			redirectAttributes.addFlashAttribute("bgColor", "#d1fae5;");
-			redirectAttributes.addFlashAttribute("textColor", "#45484d");
-		}
+        // Bind an empty Customers object so Thymeleaf form bindings don't NPE
+        model.addAttribute("customer", new Customers());
+        customersService.populateEditCustomerModel(customerId, model);
+        return "edit-customer";
+    }
 
-		return "redirect:/customers/createCustomerPage";
-	}
+    // ─────────────────────────────────────────────
+    // UPDATE CUSTOMER
+    // ─────────────────────────────────────────────
 
-	@PostMapping("/customers/deleteCustomer/{customerId}")
-	public String deleteCustomer(@PathVariable String customerId, RedirectAttributes redirectAttributes) {
+    /**
+     * Handles the update-customer form POST.
+     *
+     * Flow:
+     *  1. Reject immediately if the customer ID no longer exists (defensive check).
+     *  2. Run field-level validation via the service.
+     *  3. On errors → redirect back to the edit page with error flash attributes.
+     *  4. On success → update the customer and redirect with a success message.
+     *  5. Catch any unexpected exception and surface it as a user-friendly error.
+     */
+    @PostMapping("/customers/updateCustomer")
+    public String updateCustomer(
+            @RequestParam String customerId,
+            @RequestParam String customerName,
+            @RequestParam String customerStatus,
+            @RequestParam String validUpto,
+            @RequestParam(value = "selectedWarehouses", required = false, defaultValue = "") List<String> selectedWarehouses,
+            RedirectAttributes redirectAttributes) {
 
-		if (!customersService.customerExists(customerId)) {
-			redirectAttributes.addFlashAttribute("msg", "Customer " + customerId + " doesnt exists !!!");
-			redirectAttributes.addFlashAttribute("bgColor", "#d95f6c");
-			redirectAttributes.addFlashAttribute("textColor", "#ffffff");
-		} else {
-			customersService.deleteCustomer(customerId);
-			redirectAttributes.addFlashAttribute("msg", "Customer " + customerId + " is Deleted!!!");
-			redirectAttributes.addFlashAttribute("bgColor", "#d1fae5;");
-			redirectAttributes.addFlashAttribute("textColor", "#45484d");
-		}
+        log.info("POST /customers/updateCustomer → customerId={}, customerName={}, status={}, validUpto={}, warehouseCount={}",
+                customerId, customerName, customerStatus, validUpto, selectedWarehouses.size());
 
-		return "redirect:/customers/";
-	}
+        // ── 1. Existence check ────────────────────────────────────────────────
+        if (!customersService.customerExists(customerId)) {
+            log.warn("updateCustomer() → customer not found: customerId={}", customerId);
+            redirectAttributes.addFlashAttribute("msg", "Customer " + customerId + " doesn't exist!");
+            redirectAttributes.addFlashAttribute("bgColor", "#d95f6c");
+            redirectAttributes.addFlashAttribute("textColor", "#ffffff");
+            return "redirect:/customers/viewOrEditCustomer/" + customerId;
+        }
 
+        try {
+            // ── 2. Validation ─────────────────────────────────────────────────
+            List<String> errors = customersService.validateCustomerUpdate(customerName, validUpto);
+
+            if (!errors.isEmpty()) {
+                log.warn("updateCustomer() → validation failed for customerId={}: {}", customerId, errors);
+                redirectAttributes.addFlashAttribute("msg", String.join("\n", errors));
+                redirectAttributes.addFlashAttribute("bgColor", "#f03a5b");
+                redirectAttributes.addFlashAttribute("textColor", "#f5f0f1");
+            } else {
+                // ── 3. Persist ────────────────────────────────────────────────
+                customersService.updateCustomer(customerId, customerName, customerStatus, validUpto, selectedWarehouses);
+                log.info("updateCustomer() → customer updated: customerId={}", customerId);
+                redirectAttributes.addFlashAttribute("msg", "Updated Customer: " + customerId + "!");
+                redirectAttributes.addFlashAttribute("bgColor", "#d1fae5");
+                redirectAttributes.addFlashAttribute("textColor", "#45484d");
+            }
+
+        } catch (Exception e) {
+            // Surface unexpected errors (e.g. DB constraint violations) as a user-friendly message
+            log.error("updateCustomer() → unexpected error for customerId={}: {}", customerId, e.getMessage(), e);
+            redirectAttributes.addFlashAttribute("msg",
+                    "An unexpected error occurred while updating the customer. Please try again.");
+            redirectAttributes.addFlashAttribute("bgColor", "#f03a5b");
+            redirectAttributes.addFlashAttribute("textColor", "#f5f0f1");
+        }
+
+        return "redirect:/customers/viewOrEditCustomer/" + customerId;
+    }
+
+    // ─────────────────────────────────────────────
+    // DELETE CUSTOMER
+    // ─────────────────────────────────────────────
+
+    /**
+     * Deletes a customer and all their warehouse assignments.
+     * Redirects to the customer list with a success or error message.
+     */
+    @PostMapping("/customers/deleteCustomer/{customerId}")
+    public String deleteCustomer(@PathVariable String customerId, RedirectAttributes redirectAttributes) {
+
+        log.info("POST /customers/deleteCustomer/{}", customerId);
+
+        if (!customersService.customerExists(customerId)) {
+            log.warn("deleteCustomer() → customer not found: customerId={}", customerId);
+            redirectAttributes.addFlashAttribute("msg", "Customer " + customerId + " doesn't exist!");
+            redirectAttributes.addFlashAttribute("bgColor", "#d95f6c");
+            redirectAttributes.addFlashAttribute("textColor", "#ffffff");
+        } else {
+            customersService.deleteCustomer(customerId);
+            log.info("deleteCustomer() → customer deleted: customerId={}", customerId);
+            redirectAttributes.addFlashAttribute("msg", "Customer " + customerId + " has been deleted.");
+            redirectAttributes.addFlashAttribute("bgColor", "#d1fae5");
+            redirectAttributes.addFlashAttribute("textColor", "#45484d");
+        }
+
+        return "redirect:/customers/";
+    }
 }

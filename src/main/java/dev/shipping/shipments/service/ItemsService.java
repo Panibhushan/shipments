@@ -3,223 +3,304 @@ package dev.shipping.shipments.service;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
-import org.jspecify.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 
 import dev.shipping.shipments.model.Customers;
-import dev.shipping.shipments.model.Inventory;
 import dev.shipping.shipments.model.Items;
-import dev.shipping.shipments.model.Warehouses;
 import dev.shipping.shipments.repo.CustomersRepository;
 import dev.shipping.shipments.repo.ItemsRepository;
-import dev.shipping.shipments.repo.WarehousesRepository;
-import dev.shipping.shipments.utils.MyResourceUtils;
-import jakarta.persistence.EntityManager;
+
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
 
+/**
+ * Core business logic for item operations.
+ *
+ * Responsibilities:
+ *  - CRUD operations for Items
+ *  - Input validation for both new item creation and updates
+ *  - Dynamic JPQL query building for the item filter/list view
+ *  - Populating the edit-item view model
+ *
+ * The composite PK for every item is: itemId_customerId_itemUom
+ * (e.g. "SKU001_CUST01_EACH"). This is referred to throughout as
+ * itemCustomerUomId.
+ *
+ * All public mutating methods are @Transactional so that a failure
+ * mid-operation rolls back every DB write made in that call.
+ */
 @Service
 public class ItemsService {
 
-	@Autowired
-	private EntityManager entityManager;
+    private static final Logger log = LoggerFactory.getLogger(ItemsService.class);
 
-	private final ItemsRepository itemsRepo;
-	private final CustomersRepository customersRepo;
+    /** Valid status values for an item. Used in update validation. */
+    private static final List<String> VALID_ITEM_STATUSES = List.of("Active", "Disabled");
 
-	// List<String> itemUomsList = Arrays.asList("EACH", "MTR", "CMTR", "PAIR");
+    @Autowired
+    private EntityManager entityManager;
 
-	public ItemsService(ItemsRepository itemsRepo, CustomersRepository customersRepo) {
-		this.itemsRepo = itemsRepo;
-		this.customersRepo = customersRepo;
-	}
+    private final ItemsRepository itemsRepo;
+    private final CustomersRepository customersRepo;
 
-	// ─────────────────────────────────────────────
-	// READ
-	// ─────────────────────────────────────────────
+    public ItemsService(ItemsRepository itemsRepo, CustomersRepository customersRepo) {
+        this.itemsRepo = itemsRepo;
+        this.customersRepo = customersRepo;
+    }
 
-	public boolean itemExists(String itemCustomerUomId) {
-		System.out.println("ItemsService::itemExists(): itemCustomerUomId: " + itemCustomerUomId);
-		return itemsRepo.findById(itemCustomerUomId).isPresent();
-	}
-	
-	public Optional<Items> getItemById(String itemCustomerUomId) {
-		System.out.println("ItemsService::getItemById(): itemCustomerUomId: " + itemCustomerUomId);
-		return itemsRepo.findById(itemCustomerUomId);
-	}
+    // ─────────────────────────────────────────────
+    // READ
+    // ─────────────────────────────────────────────
 
-	public List<Items> getAllItems() {
-		return itemsRepo.findAll();
-	}
+    /**
+     * Returns true if an item record exists for the given composite PK.
+     * Used as a pre-check before create (duplicate guard) and before update/delete.
+     */
+    public boolean itemExists(String itemCustomerUomId) {
+        log.debug("itemExists() → itemCustomerUomId={}", itemCustomerUomId);
+        return itemsRepo.findById(itemCustomerUomId).isPresent();
+    }
 
-	@Transactional
-	public void createItem(Items item) {
-		itemsRepo.save(item);
-	}
+    /**
+     * Looks up a single item by its composite PK (itemId_customerId_itemUom).
+     * Returns empty Optional if no record exists.
+     */
+    public Optional<Items> getItemById(String itemCustomerUomId) {
+        log.debug("getItemById() → itemCustomerUomId={}", itemCustomerUomId);
+        return itemsRepo.findById(itemCustomerUomId);
+    }
 
-	public List<Customers> getActiveAndValidCustomers() {
-		LocalDateTime startOfToday = LocalDate.now().atStartOfDay();
-		return customersRepo.findByCustomerStatusAndValidUpto("Active", startOfToday);
-	}
+    /** Returns all item records with no ordering or filter applied. */
+    public List<Items> getAllItems() {
+        return itemsRepo.findAll();
+    }
 
-	
-	/**
-	 * Populates all model attributes needed for the edit-item page.
-	 * Called only after confirming the item exists.
-	 */
-	public void populateEditItemModel(String itemId, Model model) {
-		
-		Items item = itemsRepo.findById(itemId).orElseThrow(() -> new RuntimeException("Item not found: " + itemId));
-				
-		model.addAttribute("item", item);
-		/*
-		 * model.addAttribute("formattedCreatedAt",
-		 * MyResourceUtils.getFormattedDateTime(item.getCreatedAt()));
-		 * model.addAttribute("formattedModifiedAt",
-		 * MyResourceUtils.getFormattedDateTime(item.getModifiedAt()));
-		 */
-		model.addAttribute("options", List.of("Active", "Disabled"));
-		model.addAttribute("selectedItemStatus", item.getItemStatus());
-		model.addAttribute("selectedUom", item.getItemUom());
-	}
+    /** Returns all items belonging to a specific customer. */
+    public List<Items> getItemsByCustomer(String customerId) {
+        return itemsRepo.findItemsByCustomer(customerId);
+    }
 
-	// VALIDATION //
-	/*
-	 * Validates fields when creating a new item. Returns a list of error
-	 * messages; empty list means no errors.
-	 */
+    /**
+     * Returns only customers whose status is "Active" AND whose contract
+     * expiry is after the start of today.
+     * Used to populate the customer dropdown on the create-item form.
+     */
+    public List<Customers> getActiveAndValidCustomers() {
+        LocalDateTime startOfToday = LocalDate.now().atStartOfDay();
+        return customersRepo.findByCustomerStatusAndValidUpto("Active", startOfToday);
+    }
 
-	public List<String> validateNewItem(Items item, List<String> itemUomsList) {
-		List<String> errors = new ArrayList<>();
-		String itemId = item.getItemId();
-		String itemUom = item.getItemUom();
-		String itemDescription = item.getItemDescription();
+    /**
+     * Populates all model attributes required by the edit-item page.
+     *
+     * Attributes set:
+     *  - item              – the item entity
+     *  - options           – status dropdown values (Active / Disabled)
+     *  - selectedItemStatus– pre-selects the item's current status
+     *  - selectedUom       – pre-selects the item's current UOM
+     *
+     * Throws RuntimeException if the itemCustomerUomId does not exist
+     * (caller must verify existence first).
+     */
+    public void populateEditItemModel(String itemCustomerUomId, Model model) {
+        log.info("populateEditItemModel() → itemCustomerUomId={}", itemCustomerUomId);
 
-		// Item ID checks
-		if (!itemId.matches("^[a-zA-Z0-9-]+$")) {
-			errors.add("Item ID can contain only alphabets, numbers and hyphens (other symbols, spaces, tabs, next-line characters are not allowed)!!");
-		} else {
-			if (itemId.length() < 5) {
-				errors.add("Cannot use Item ID as  \"" + itemId + "\nItem ID must be atleast 5 characters long !!");
-			} else if (itemId.length() > 15) {
-				errors.add("Cannot use Item ID as \"" + itemId + "\nItem ID must be maximum 15 characters only !!");
-			}
-		}
+        Items item = itemsRepo.findById(itemCustomerUomId)
+                .orElseThrow(() -> new RuntimeException("Item not found: " + itemCustomerUomId));
 
-		// Item UOM checks
+        model.addAttribute("item", item);
+        model.addAttribute("options", VALID_ITEM_STATUSES);
+        model.addAttribute("selectedItemStatus", item.getItemStatus());
+        model.addAttribute("selectedUom", item.getItemUom());
+    }
 
-		boolean uomExists = itemUomsList.contains(itemUom); // returns true
-		if (!uomExists) {
-			errors.add("Invalid Item UOM: " + itemUom + "\nPlease select cirrect UOM from the dropdown !!");
-		}
+    /**
+     * Builds and executes a dynamic JPQL query for the item filter/list view.
+     * Any field passed as "ALL" is excluded from the WHERE clause entirely,
+     * so the query only filters on fields the user actually specified.
+     *
+     * @param customerId customer filter, or "ALL" for no filter
+     * @param itemId     item ID filter, or "ALL" for no filter
+     * @param itemUom    UOM filter, or "ALL" for no filter
+     */
+    @Transactional
+    public List<Items> getItemsList(String customerId, String itemId, String itemUom) {
 
-		// Item Description checks
-		if (itemDescription.trim().length() < 10) {
-			errors.add("Cannot update Item Description to \"" + itemDescription
-					+ "\nItem Description must be atleast 10 characters long !!");
-		} else if (itemDescription.trim().length() > 50) {
-			errors.add("Cannot update Item Description to \"" + itemDescription
-					+ "\nItem Description must be maximum 50 characters only !!");
-		}
+        log.info("getItemsList() → customerId={}, itemId={}, itemUom={}", customerId, itemId, itemUom);
 
-		return errors;
-	}
+        StringBuilder query = new StringBuilder("SELECT i FROM Items i");
+        List<String> conditions = new ArrayList<>();
 
-	@Transactional
-	public void deleteItem(String itemCustomerUomId) {
-		itemsRepo.deleteById(itemCustomerUomId);
-	}
+        // Only include a condition for fields the user actually filtered on
+        if (!customerId.equals("ALL")) conditions.add("i.customerId = :customerId");
+        if (!itemId.equals("ALL"))     conditions.add("i.itemId = :itemId");
+        if (!itemUom.equals("ALL"))    conditions.add("i.itemUom = :itemUom");
 
-	public List<String> validateItemUpdate(String itemDescription, String itemStatus) {
-		List<String> errors = new ArrayList<>();
+        if (!conditions.isEmpty()) {
+            query.append(" WHERE ").append(String.join(" AND ", conditions));
+        }
 
-		// Item Description checks
-		if (itemDescription.trim().length() < 10) {
-			errors.add("Cannot update Item Description to \"" + itemDescription
-					+ "\"\nItem Description must be atleast 10 characters long !!");
-		} else if (itemDescription.trim().length() > 50) {
-			errors.add("Cannot update Item Description to \"" + itemDescription
-					+ "\"\nItem Description must be maximum 50 characters only !!");
-		}
+        log.debug("getItemsList() → JPQL: {}", query);
 
-		// Item UOM checks
+        TypedQuery<Items> typedQuery = entityManager.createQuery(query.toString(), Items.class);
 
-		boolean itemStatusExists = List.of("Active", "Disabled").contains(itemStatus); // returns true
-		if (!itemStatusExists) {
-			errors.add("Invalid Item Status: " + itemStatus + " \nPlease select correct Status from the dropdown !!");
-		}
+        if (!customerId.equals("ALL")) typedQuery.setParameter("customerId", customerId);
+        if (!itemId.equals("ALL"))     typedQuery.setParameter("itemId", itemId);
+        if (!itemUom.equals("ALL"))    typedQuery.setParameter("itemUom", itemUom);
 
-		return errors;
-	}
+        List<Items> resultList = typedQuery.getResultList();
+        log.info("getItemsList() → returned {} item(s)", resultList.size());
+        return resultList;
+    }
 
-	/**
-	 * Validates fields when updating an existing warehouse. Returns a list of error
-	 * messages; empty list means no errors.
-	 */
+    // ─────────────────────────────────────────────
+    // VALIDATION
+    // ─────────────────────────────────────────────
 
-	// ───────────────────────────────────────────── // WRITE //
+    /**
+     * Validates all fields for a brand-new item.
+     *
+     * Rules enforced:
+     *  - Item ID: alphanumeric + hyphens only, 5–15 characters
+     *  - Item UOM: must be in the provided allow-list
+     *  - Item Description: 10–50 characters (trimmed)
+     *
+     * @param item         the item entity submitted from the form
+     * @param itemUomsList the list of valid UOM values (passed in from the controller constant)
+     * @return list of human-readable error messages; empty list means all fields are valid.
+     */
+    public List<String> validateNewItem(Items item, List<String> itemUomsList) {
 
-	@Transactional
-	public void updateItem(String itemCustomerUomId, String itemDescription, String itemStatus, String itemUom) {
-		Items item = itemsRepo.findById(itemCustomerUomId)
-				.orElseThrow(() -> new RuntimeException("itemCustomerUomId not found: " + itemCustomerUomId));
+        List<String> errors = new ArrayList<>();
+        String itemId          = item.getItemId();
+        String itemUom         = item.getItemUom();
+        String itemDescription = item.getItemDescription();
 
-		item.setItemDescription(itemDescription);
-		item.setItemUom(itemUom);
-		item.setItemStatus(itemStatus);
+        log.debug("validateNewItem() → itemId={}, itemUom={}", itemId, itemUom);
 
-		itemsRepo.save(item);
-	}
+        // ── Item ID checks ────────────────────────────────────────────────────
+        if (!itemId.matches("^[a-zA-Z0-9-]+$")) {
+            errors.add("Item ID can contain only alphabets, numbers, and hyphens "
+                    + "(spaces, symbols, and special characters are not allowed).");
+        } else {
+            if (itemId.length() < 5) {
+                errors.add("Item ID \"" + itemId + "\" must be at least 5 characters long.");
+            } else if (itemId.length() > 15) {
+                errors.add("Item ID \"" + itemId + "\" must be a maximum of 15 characters.");
+            }
+        }
 
-	public List<Items> getItemsByCustomer(String customerId) {
-		return itemsRepo.findItemsByCustomer(customerId);
-	}
+        // ── Item UOM check ────────────────────────────────────────────────────
+        // Validates against the allow-list passed in from the controller, keeping
+        // the valid values in one place (the controller constant)
+        if (!itemUomsList.contains(itemUom)) {
+            errors.add("Invalid Item UOM: \"" + itemUom + "\". Please select a valid UOM from the dropdown.");
+        }
 
-	// Dynamically setting the conditions and running a custom query in service
-	// instead of calling individual methods in Repo
-	@Transactional
-	public List<Items> getItemsList(String customerId, String itemId, String itemUom) {
+        // ── Item Description checks ───────────────────────────────────────────
+        int descLen = itemDescription.trim().length();
+        if (descLen < 10) {
+            errors.add("Item Description \"" + itemDescription + "\" must be at least 10 characters long.");
+        } else if (descLen > 50) {
+            errors.add("Item Description \"" + itemDescription + "\" must be a maximum of 50 characters.");
+        }
 
-		StringBuilder query = new StringBuilder("SELECT i FROM Items i");
+        if (!errors.isEmpty()) {
+            log.warn("validateNewItem() → {} validation error(s) for itemId={}: {}", errors.size(), itemId, errors);
+        }
 
-		// Dynamically build WHERE clause
-		List<String> conditions = new ArrayList<>();
+        return errors;
+    }
 
-		if (!customerId.equals("ALL"))
-			conditions.add("i.customerId = :customerId");
-		if (!itemId.equals("ALL"))
-			conditions.add("i.itemId = :itemId");
-		if (!itemUom.equals("ALL"))
-			conditions.add("i.itemUom = :itemUom");
+    /**
+     * Validates fields when updating an existing item.
+     * Item ID and UOM cannot be changed on update, so only description and status are checked.
+     *
+     * Rules enforced:
+     *  - Item Description: 10–50 characters (trimmed)
+     *  - Item Status: must be "Active" or "Disabled"
+     *
+     * @return list of human-readable error messages; empty list means all fields are valid.
+     */
+    public List<String> validateItemUpdate(String itemDescription, String itemStatus) {
 
-		// Append WHERE + AND automatically
-		if (!conditions.isEmpty()) {
-			query.append(" WHERE ").append(String.join(" AND ", conditions));
-		}
+        List<String> errors = new ArrayList<>();
 
-		// Create query
-		TypedQuery<Items> typedQuery = entityManager.createQuery(query.toString(), Items.class);
+        log.debug("validateItemUpdate() → itemStatus={}", itemStatus);
 
-		// Bind only non-null parameters
-		if (!customerId.equals("ALL"))
-			typedQuery.setParameter("customerId", customerId);
-		if (!itemId.equals("ALL"))
-			typedQuery.setParameter("itemId", itemId);
-		if (!itemUom.equals("ALL"))
-			typedQuery.setParameter("itemUom", itemUom);
+        // ── Item Description checks ───────────────────────────────────────────
+        int descLen = itemDescription.trim().length();
+        if (descLen < 10) {
+            errors.add("Item Description \"" + itemDescription + "\" must be at least 10 characters long.");
+        } else if (descLen > 50) {
+            errors.add("Item Description \"" + itemDescription + "\" must be a maximum of 50 characters.");
+        }
 
-		List<Items> resultList = typedQuery.getResultList();
+        // ── Item Status check ─────────────────────────────────────────────────
+        if (!VALID_ITEM_STATUSES.contains(itemStatus)) {
+            errors.add("Invalid Item Status: \"" + itemStatus + "\". Please select a valid status from the dropdown.");
+        }
 
-		System.out.println("final Query: " + query.toString() + "\nresultList: " + resultList.toString());
+        if (!errors.isEmpty()) {
+            log.warn("validateItemUpdate() → {} validation error(s): {}", errors.size(), errors);
+        }
 
-		return resultList;
-	}
+        return errors;
+    }
 
+    // ─────────────────────────────────────────────
+    // WRITE
+    // ─────────────────────────────────────────────
+
+    /**
+     * Persists a new item record.
+     * The composite PK (itemId_customerId_itemUom) must be set on the entity
+     * before calling this method; duplicate checking is the caller's responsibility.
+     */
+    @Transactional
+    public void createItem(Items item) {
+        log.info("createItem() → itemCustomerUomId={}", item.getItemCustomerUomId());
+        itemsRepo.save(item);
+        log.info("createItem() completed → itemCustomerUomId={}", item.getItemCustomerUomId());
+    }
+
+    /**
+     * Updates the editable fields of an existing item (description, UOM, status).
+     * Item ID and customer cannot be changed after creation.
+     * Throws RuntimeException if the itemCustomerUomId does not exist.
+     */
+    @Transactional
+    public void updateItem(String itemCustomerUomId, String itemDescription, String itemStatus, String itemUom) {
+        log.info("updateItem() → itemCustomerUomId={}, itemStatus={}, itemUom={}", itemCustomerUomId, itemStatus, itemUom);
+
+        Items item = itemsRepo.findById(itemCustomerUomId)
+                .orElseThrow(() -> new RuntimeException("Item not found: " + itemCustomerUomId));
+
+        item.setItemDescription(itemDescription);
+        item.setItemUom(itemUom);
+        item.setItemStatus(itemStatus);
+
+        itemsRepo.save(item);
+        log.info("updateItem() completed → itemCustomerUomId={}", itemCustomerUomId);
+    }
+
+    /**
+     * Deletes an item record by its composite PK.
+     * Caller is responsible for verifying existence first to surface
+     * a meaningful error message rather than a silent no-op.
+     */
+    @Transactional
+    public void deleteItem(String itemCustomerUomId) {
+        log.info("deleteItem() → itemCustomerUomId={}", itemCustomerUomId);
+        itemsRepo.deleteById(itemCustomerUomId);
+        log.info("deleteItem() completed → itemCustomerUomId={}", itemCustomerUomId);
+    }
 }

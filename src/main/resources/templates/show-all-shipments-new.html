@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
 <link rel="stylesheet" th:href="@{/css/navbar.css}" />
@@ -346,7 +345,7 @@ thead th {
 	text-align: center;
 	padding: 10px 10px;
 	color: #374151;
-	background: #f1f5f9;
+	background: #d9e2ed;
 	font-size: 0.7rem;
 	font-weight: 700;
 	text-transform: uppercase;
@@ -526,8 +525,8 @@ thead th.sortable:hover {
 }
 
 thead th.sort-asc, thead th.sort-desc {
-	background: #e0e7ff;
-	color: #3730a3;
+	background: #c8d1f1;
+	color: #1b0db1;
 }
 
 thead th.sortable .sort-arrow {
@@ -592,8 +591,7 @@ thead th.sort-asc .sort-arrow, thead th.sort-desc .sort-arrow {
 				<p class="filter-hint">💡 Changing Customer reloads Warehouses.</p>
 
 				<form id="shipmentAndCustomerAndWarehouseAndStatusForm"
-					th:action="@{/shipments/showShipmentsByFilters}"
-					method="get"
+					th:action="@{/shipments/showShipmentsByFilters}" method="get"
 					style="display: flex; flex-direction: column; flex: 1; min-height: 0;">
 
 					<!-- scrollable field area -->
@@ -618,8 +616,8 @@ thead th.sort-asc .sort-arrow, thead th.sort-desc .sort-arrow {
 						</div>
 
 						<div class="filter-group">
-							<label for="warehouseSelect">Warehouse</label> <select
-								name="warehouseSelect" id="warehouseSelect" required>
+							<label for="warehouseId">Warehouse</label> <select
+								name="warehouseId" id="warehouseId" required>
 								<option value="ALL">— ALL —</option>
 								<option th:each="w : ${warehouses}" th:value="${w.warehouseId}"
 									th:selected="${w.warehouseId == selectedWarehouse}"
@@ -628,8 +626,8 @@ thead th.sort-asc .sort-arrow, thead th.sort-desc .sort-arrow {
 						</div>
 
 						<div class="filter-group">
-							<label for="statusSelect">Status</label> <select
-								name="statusSelect" id="statusSelect" required>
+							<label for="shipmentStatus">Status</label> <select
+								name="shipmentStatus" id="shipmentStatus" required>
 								<option value="ALL" th:selected="${selectedStatus == 'ALL'}">—
 									ALL —</option>
 								<option value="1100" th:selected="${selectedStatus == '1100'}">1100
@@ -668,7 +666,7 @@ thead th.sort-asc .sort-arrow, thead th.sort-desc .sort-arrow {
 			<!-- ══ RIGHT: TABLE (scrollable) ══ -->
 			<div class="table-section">
 
-				<div class="table-wrapper" th:if="${not #lists.isEmpty(shipments)}">
+				<div class="table-wrapper">
 					<table id="shipmentsTable">
 						<thead>
 							<tr>
@@ -685,7 +683,7 @@ thead th.sort-asc .sort-arrow, thead th.sort-desc .sort-arrow {
 								<th>Details</th>
 							</tr>
 						</thead>
-						<tbody>
+						<tbody th:if="${not #lists.isEmpty(shipments)}">
 							<tr th:each="s : ${shipments}"
 								th:data-href="@{'/shipments/showShipmentDetails/' + ${s.shipmentId}}"
 								th:data-shipment-id="${s.shipmentId}"
@@ -733,12 +731,22 @@ thead th.sort-asc .sort-arrow, thead th.sort-desc .sort-arrow {
 					</table>
 				</div>
 
-				<div th:if="${#lists.isEmpty(shipments)}" class="empty-state">
+				<div th:if="${#lists.isEmpty(shipments) && !filterApplied}"
+					class="empty-state">
 					<p>No shipment records to display.</p>
 					<a href="/shipments/createShipmentPage"
-						style="background: #4CAF50; color: white; padding: 9px 20px; border-radius: 8px; text-decoration: none; font-weight: bold;">
-						＋ Create New Shipment </a>
+						style="background: #4CAF50; color: white; padding: 9px 20px; border-radius: 8px; text-decoration: none; font-weight: bold;">＋
+						Create New Shipment</a>
 				</div>
+
+				<div th:if="${#lists.isEmpty(shipments) && filterApplied}"
+					class="empty-state">
+					<p>No shipment records found for the provided inputs.</p>
+					<a href="/shipments/"
+						style="background-color: #ee5a5a; color: #fff; padding: 9px 20px; border-radius: 8px; text-decoration: none; font-weight: bold;">
+						✕ Clear Filters </a>
+				</div>
+
 
 			</div>
 			<!-- /table-section -->
@@ -761,8 +769,8 @@ thead th.sort-asc .sort-arrow, thead th.sort-desc .sort-arrow {
     function evaluateClearLink() {
       const s  = document.getElementById('shipmentId').value;
       const c  = document.getElementById('customerId').value;
-      const w  = document.getElementById('warehouseSelect').value;
-      const st = document.getElementById('statusSelect').value;
+      const w  = document.getElementById('warehouseId').value;
+      const st = document.getElementById('shipmentStatus').value;
       const lnk = document.getElementById('clearFiltersLink');
       (s === '' && c === 'ALL' && w === 'ALL' && st === 'ALL')
         ? lnk.classList.add('disabled-link')
@@ -777,8 +785,8 @@ thead th.sort-asc .sort-arrow, thead th.sort-desc .sort-arrow {
     }
 
     document.getElementById('customerId').addEventListener('change', function () { enableFilter(); loadWarehouses(this.value); });
-    document.getElementById('warehouseSelect').addEventListener('change', enableFilter);
-    document.getElementById('statusSelect').addEventListener('change', enableFilter);
+    document.getElementById('warehouseId').addEventListener('change', enableFilter);
+    document.getElementById('shipmentStatus').addEventListener('change', enableFilter);
     document.getElementById('shipmentId').addEventListener('input', enableFilter);
 
     document.getElementById('shipmentAndCustomerAndWarehouseAndStatusForm').addEventListener('submit', function (e) {
@@ -790,7 +798,7 @@ thead th.sort-asc .sort-arrow, thead th.sort-desc .sort-arrow {
     });
 
     function loadWarehouses(customerId) {
-      const ws = document.getElementById('warehouseSelect');
+      const ws = document.getElementById('warehouseId');
       ws.innerHTML = '<option value="ALL">— ALL —</option>';
       if (!customerId || customerId === 'ALL') return;
       fetch(`/shipments/getWarehousesByCustomer?customerId=${customerId}`, {

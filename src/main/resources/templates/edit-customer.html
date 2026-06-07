@@ -351,7 +351,7 @@ input:focus, select:focus {
 								th:text="${aw.warehouseId}"></span>
 								<div class="wh-tooltip">
 									<b>Name:</b> <span th:text="${aw.warehouseName}"></span><br />
-									<b>Address:</b> <span th:text="${aw.warehouseAddress}"></span><br />
+									<b>Address:</b> <span th:text="${aw.warehouseShortAddress}"></span><br />
 									<b>Status:</b> <span th:text="${aw.warehouseStatus}"></span> <a
 										th:href="@{'/warehouses/showWarehouseDetails/' + ${aw.warehouseId}}"
 										target="_blank">View Details →</a>
@@ -377,7 +377,7 @@ input:focus, select:focus {
 							class="wh-trigger"> <span th:text="${uw.warehouseId}"></span>
 								<div class="wh-tooltip">
 									<b>Name:</b> <span th:text="${uw.warehouseName}"></span><br />
-									<b>Address:</b> <span th:text="${uw.warehouseAddress}"></span><br />
+									<b>Address:</b> <span th:text="${uw.warehouseShortAddress}"></span><br />
 									<b>Status:</b> <span th:text="${uw.warehouseStatus}"></span> <a
 										th:href="@{'/warehouses/showWarehouseDetails/' + ${uw.warehouseId}}"
 										target="_blank">View Details →</a>

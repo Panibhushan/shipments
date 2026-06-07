@@ -335,7 +335,7 @@ td {
 	font-weight: 700;
 }
 
-.badge-uom {
+.badge-uom, .badge-allocated-qty {
 	background: #e0e7ff;
 	color: #3730a3;
 }
@@ -343,7 +343,7 @@ td {
 .badge-qty {
 	background: #d1fae5;
 	color: #065f46;
-}
+} 
 
 /* ── EMPTY STATE ── */
 .empty-state {
@@ -477,12 +477,25 @@ td {
 
 						<!-- Col 5: Qty -->
 						<td><span class="badge badge-qty" th:text="${inv.quantity}"></span></td>
-						
+
 						<!-- Col 6: Qty -->
-						<td><span class="badge badge-qty" th:text="${inv.allocatedQuantity}"></span></td>
-						
+						<td><span class="cell-link" th:if="${inv.allocatedQuantity > 0}" > <a
+								target="_blank"
+								class="badge badge-allocated-qty" style="color: #3730a3;"
+								th:href="@{'/shipments/showShipmentsAllocatedForItem/' + ${inv.itemCustomerUomWarehouseId}}"
+								th:text="${inv.allocatedQuantity}"
+								onclick="event.stopPropagation()"></a>
+								<span
+								class="cell-tip">View shipments allocated with this item</span>
+								</span>
+								 <span
+								th:if="${inv.allocatedQuantity <= 0}" class="badge badge-qty"
+								th:text="${inv.allocatedQuantity}"></span> 
+						</span></td>
+
 						<!-- Col 7: Qty -->
-						<td><span class="badge badge-qty" th:text="${inv.availableQuantity}"></span></td>
+						<td><span class="badge badge-qty"
+							th:text="${inv.availableQuantity}"></span></td>
 
 						<!-- Col 8: View Details button -->
 						<td><a

@@ -1,6 +1,7 @@
 package dev.shipping.shipments.repo;
 
 import dev.shipping.shipments.model.Customers;
+import dev.shipping.shipments.model.Inventory;
 import dev.shipping.shipments.model.Shipments;
 import dev.shipping.shipments.model.Warehouses;
 
@@ -20,5 +21,12 @@ public interface WarehousesRepository extends JpaRepository<Warehouses, String> 
 	  @Query("SELECT w FROM Warehouses w WHERE w.warehouseStatus = :status")
 	  List<Warehouses> findByWarehousesByStatusActive(@Param("status") String
 	  status);
+
+	 @Query("SELECT inv FROM Inventory inv WHERE inv.warehouseId = :warehouseId")
+	  List<Inventory> getInventoryByWarehouseId(@Param("warehouseId") String
+			  warehouseId);
+	 
+	 @Query("SELECT c FROM Customers c WHERE c.customerId IN ( SELECT cw.customerId FROM CustomerWarehouses cw WHERE cw.warehouseId = :warehouseId)")
+	 List<Customers> getCustomersByWarehouseId(@Param("warehouseId") String getCustomersByWarehouseId);
 	 
 }

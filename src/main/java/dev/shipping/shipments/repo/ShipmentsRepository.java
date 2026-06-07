@@ -20,5 +20,4 @@ public interface ShipmentsRepository extends JpaRepository<Shipments, String> {
 	@Query("SELECT s FROM Shipments s ORDER BY s.createdAt DESC")	
 	List<Shipments> getAllShipmentsByCreatedTimeDesc();
 
-	
 }

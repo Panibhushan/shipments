@@ -25,8 +25,8 @@ public class Warehouses {
 	@Column(name = "warehouse_name")
 	private String warehouseName;
 
-	@Column(name = "warehouse_address")
-	private String warehouseAddress;
+	@Column(name = "warehouse_short_address")
+	private String warehouseShortAddress;
 
 	// Store as LocalDateTime in DB (no timezone conversion by Hibernate)
 	@Column(name = "created_at", updatable = false, columnDefinition = "DATETIME(6)")
@@ -38,6 +38,9 @@ public class Warehouses {
 
 	@Column(name = "warehouse_status")
 	private String warehouseStatus;
+	
+	@Column(name = "address_id")
+	private String addressId;
 
 	@PrePersist
 	public void generateFields() {
@@ -96,19 +99,28 @@ public class Warehouses {
 		this.warehouseStatus = warehouseStatus;
 	}
 
-	public String getWarehouseAddress() {
-		return warehouseAddress;
+	public String getWarehouseShortAddress() {
+		return warehouseShortAddress;
 	}
 
-	public void setWarehouseAddress(String warehouseAddress) {
-		this.warehouseAddress = warehouseAddress;
+	public void setWarehouseShortAddress(String warehouseShortAddress) {
+		this.warehouseShortAddress = warehouseShortAddress;
+	}
+
+	public String getAddressId() {
+		return addressId;
+	}
+
+	public void setAddressId(String addressId) {
+		this.addressId = addressId;
 	}
 
 	@Override
 	public String toString() {
-		return "Warehouses [warehouseId=" + warehouseId + ", warehouseName=" + warehouseName + ", warehouseAddress="
-				+ warehouseAddress + ", createdAt=" + createdAt + ", modifiedAt=" + modifiedAt + ", warehouseStatus="
-				+ warehouseStatus + "]";
+		return "Warehouses [warehouseId=" + warehouseId + ", warehouseName=" + warehouseName + ", warehouseShortAddress="
+				+ warehouseShortAddress + ", createdAt=" + createdAt + ", modifiedAt=" + modifiedAt + ", warehouseStatus="
+				+ warehouseStatus + ", addressId=" + addressId + "]";
 	}
+ 
 
 }

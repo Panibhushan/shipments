@@ -24,6 +24,12 @@ public class Shipments {
 
 	@Column(name = "ship_status")
 	private int shipStatus = 1100;
+	
+	@Column(name = "address_id")
+	private String addressId;
+	
+	@Column(name = "ship_to")
+	private String shipTo; // just state and two lettered country code
 
 	// Store as LocalDateTime in DB (no timezone conversion by Hibernate)
 	@Column(name = "created_at", updatable = false, columnDefinition = "DATETIME(6)")
@@ -44,9 +50,9 @@ public class Shipments {
 		String profile = AppProperties.activeProfile; // "devLocal", "devCloud", "dev", "prod" etc.
 
 		if (profile.equals("devLocal")) {
-			this.shipmentId = customerId+ "_"+ warehouseId + "_LOCAL_SHIPMENT_" + LocalDateTime.now().format(idFormat);
+			this.shipmentId = customerId+ "_"+ warehouseId + "_LLS_" + LocalDateTime.now().format(idFormat);
 		} else {
-			this.shipmentId = customerId+ "_"+ warehouseId  + "_CLOUD_SHIPMENT_" + LocalDateTime.now().format(idFormat);
+			this.shipmentId = customerId+ "_"+ warehouseId  + "_CDS_" + LocalDateTime.now().format(idFormat);
 		}
 
 		// Get current IST time as LocalDateTime (no timezone stored, but value is IST)
@@ -107,10 +113,27 @@ public class Shipments {
 		this.warehouseId = warehouseId;
 	}
 
+	public String getAddressId() {
+		return addressId;
+	}
+
+	public void setAddressId(String addressId) {
+		this.addressId = addressId;
+	}
+
+	public String getShipTo() {
+		return shipTo;
+	}
+
+	public void setShipTo(String shipTo) {
+		this.shipTo = shipTo;
+	}
+
 	@Override
 	public String toString() {
 		return "Shipments [shipmentId=" + shipmentId + ", customerId=" + customerId + ", warehouseId=" + warehouseId
-				+ ", shipStatus=" + shipStatus + ", createdAt=" + createdAt + ", modifiedAt=" + modifiedAt + "]";
+				+ ", shipStatus=" + shipStatus + ", addressId=" + addressId + ", shipTo=" + shipTo + ", createdAt="
+				+ createdAt + ", modifiedAt=" + modifiedAt + "]";
 	}
-
+	 
 }

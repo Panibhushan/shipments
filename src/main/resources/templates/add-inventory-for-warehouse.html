@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+  <link rel="stylesheet" th:href="@{/css/navbar.css}" />
+  <style>
+
+    *, *::before, *::after { box-sizing: border-box; }
+
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6f9;
+      margin: 0;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* ── MSG BOX ── */
+    #msgBox {
+      margin: 8px 24px 0;
+      padding: 8px 40px 8px 14px;
+      border-radius: 8px;
+      font-weight: bold;
+      position: relative;
+      flex-shrink: 0;
+    }
+
+    /* ── PAGE WRAPPER ── */
+    .page-wrapper {
+      display: flex;
+      gap: 20px;
+      padding: 14px 24px;
+      flex: 1;
+      min-height: 0;
+      align-items: flex-start;
+    }
+
+    /* ── FORM SECTION (62%) ── */
+    .form-section {
+      width: 62%;
+      display: flex;
+      flex-direction: column;
+      min-height: 0;
+    }
+
+    .form-section h2 {
+      font-size: 1rem;
+      color: #1e293b;
+      margin: 0 0 10px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    /* ── FORM CARD ── */
+    .form-card {
+      background: #ffffff;
+      border-radius: 12px;
+      padding: 18px 22px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+    }
+
+    /* ── SECTION DIVIDER ── */
+    .section-title {
+      font-size: 0.68rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: #94a3b8;
+      margin: 14px 0 8px;
+      padding-bottom: 5px;
+      border-bottom: 1px solid #e2e8f0;
+    }
+
+    .section-title:first-child { margin-top: 0; }
+
+    /* ── TWO-COLUMN GRID ── */
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0 28px;
+    }
+
+    /* ── LABELS ── */
+    label {
+      display: block;
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-top: 10px;
+      margin-bottom: 3px;
+    }
+
+    /* ── INPUTS & SELECTS ── */
+    input[type=text],
+    input[type=number],
+    select {
+      width: 100%;
+      padding: 9px 12px;
+      margin: 0 0 2px;
+      border: 1.5px solid #cbd5e1;
+      border-radius: 8px;
+      font-size: 0.92rem;
+      font-family: Arial, sans-serif;
+      background: #f8fafc;
+      color: #1e293b;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    input[type=text]:focus,
+    input[type=number]:focus,
+    select:focus {
+      border-color: #6a73b2;
+      box-shadow: 0 0 0 3px rgba(106,115,178,0.15);
+      background: #fff;
+    }
+
+    /* ── WAREHOUSE WARNING ── */
+    #warehouseMessage {
+      display: none;
+      margin-top: 5px;
+      font-size: 0.82rem;
+      color: #c0392b;
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      border-radius: 6px;
+      padding: 7px 12px;
+    }
+
+    #warehouseMessage a {
+      color: #2980b9;
+      font-weight: 700;
+      text-decoration: none;
+    }
+
+    #warehouseMessage a:hover { text-decoration: underline; }
+
+    /* ── HELPER LINK ── */
+    .helper-link {
+      font-size: 0.78rem;
+      color: #6a73b2;
+      text-decoration: none;
+      margin-top: 4px;
+      display: inline-block;
+    }
+
+    .helper-link:hover { text-decoration: underline; }
+
+    /* ── BUTTON ROW ── */
+    .button-row {
+      display: flex;
+      gap: 12px;
+      margin-top: 18px;
+      padding-top: 14px;
+      border-top: 1px solid #e2e8f0;
+      align-items: center;
+    }
+
+    .btn-submit {
+      background-color: #4CAF50;
+      color: #ffffff;
+      font-weight: 700;
+      font-size: 0.9rem;
+      padding: 10px 26px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: background-color 0.2s, transform 0.15s;
+      letter-spacing: 0.03em;
+    }
+
+    .btn-submit:hover { background-color: #3d9140; transform: translateY(-1px); }
+
+    /* ── CONDITIONS SECTION (38%) ── */
+    .conditions-section {
+      width: 38%;
+      background: #f0f7f2;
+      border: 1px solid #c8e0d0;
+      border-radius: 12px;
+      padding: 18px 22px;
+      align-self: flex-start;
+      margin-top: 30px;
+    }
+
+    .conditions-section h4 {
+      margin: 0 0 10px;
+      font-size: 0.92rem;
+      color: #2d5a3d;
+    }
+
+    .conditions-section ol {
+      padding-left: 18px;
+      color: #374151;
+      line-height: 2;
+      margin: 0;
+      font-size: 0.85rem;
+    }
+
+.readonly-value {
+	font-size: 1rem;
+	font-weight: 700;
+	color: #1e293b;
+	padding: 6px 0 8px;
+	border-bottom: 2px solid #e2e8f0;
+	margin-bottom: 4px;
+}
+
+  </style>
+</head>
+
+<body>
+
+  <div th:replace="~{fragments/navbar :: navbar}"></div>
+
+  <p th:if="${msg}" id="msgBox"
+     th:style="'background:' + ${bgColor} + '; color:' + ${textColor} + ';'">
+    <span th:utext="${msg}" style="white-space: pre-wrap;"></span>
+    <span onclick="this.parentElement.style.display='none'"
+          style="position:absolute; right:14px; top:50%; transform:translateY(-50%); cursor:pointer; font-weight:bold;">✕</span>
+  </p>
+
+  <div class="page-wrapper">
+
+    <!-- ══ FORM SECTION ══ -->
+    <div class="form-section">
+      <h2>🗄️ Add Inventory</h2>
+
+      <div class="form-card">
+        <form action="/inventory/addOrUpdateInventory" method="post" id="addInventoryForm">
+        
+        <!--This is to tell from which screen you are adding the inventory: create-or-update-inventory.html or add-inventory.html
+				if its done via add-inventory.html is when you try to add the inventory from the viewOrEditWarehouse page then the input box value will be "CREATE_INVENTORY_FROM_ADD_INVENTORY_PAGE" and based on this, the router will route to viewOrEditInventory page
+				if its done via create-or-update-inventory.html the value will be as below and the controller will route to addOrUpdateInventoryPage -->
+        <input type="hidden" value="CREATE_INVENTORY_FROM_EDIT_WAREHOUSE_PAGE" id="inventoryCreationPageType" name="inventoryCreationPageType"/>
+
+          <!-- ── CUSTOMER & WAREHOUSE ── -->
+          <div class="section-title">Customer & Warehouse</div>
+
+          <div class="form-grid">
+
+            <div>
+              <label for="warehouseId">Warehouse</label>
+              <input type="hidden" id="warehouseId" name="warehouseId" th:value="${warehouseId}" />
+              <span class="readonly-value" th:text="${warehouseId}"> </span> 
+            </div>
+            <div>
+              <label for="customerId">Customer</label>
+              <select name="customerId" id="customerId"required>
+                <option value="">— Select Customer —</option>
+                <option th:each="c : ${customers}"
+                        th:value="${c.customerId}"
+                        th:text="|${c.customerId} = ${c.customerName}|"></option>
+              </select>
+              <a href="/customers/createCustomerPage" class="helper-link">
+                ＋ Customer doesn't exist? Create one
+              </a>
+            </div>
+          </div>
+
+          <!-- ── ITEM ── -->
+          <div class="section-title">Item</div>
+
+          <div class="form-grid">
+
+            <div>
+              <label for="itemId">Item ID</label>
+              <input type="text" name="itemId" id="itemId"
+                     placeholder="e.g. ITM-001"
+                     th:value="${itemIdFromController != null} ? ${itemIdFromController} : ''"
+                     oninput="this.value = this.value.toUpperCase()"
+                     required />
+            </div>
+
+            <div>
+              <label for="itemUom">Item UOM</label>
+              <select name="itemUom" id="itemUom" required>
+                <option value="">— Select UOM —</option>
+                <option th:each="opt : ${itemUomsList}"
+                        th:value="${opt}"
+                        th:text="${opt}"></option>
+              </select>
+            </div>
+
+          </div>
+
+          <!-- ── ADJUSTMENT ── -->
+          <div class="section-title">Adjustment</div>
+
+          <div class="form-grid">
+
+            <div>
+              <label for="adjustmentType">Adjustment Type</label>
+              <select name="adjustmentType" id="adjustmentType" required>
+                <option value="increaseBy">Increase By</option>
+                <option value="decreaseBy">Decrease By</option>
+              </select>
+            </div>
+
+            <div>
+              <label for="quantity">Quantity</label>
+              <input type="number" name="quantity" id="quantity"
+                     placeholder="Enter quantity" min="1"
+                     th:value="${quantityFromController != null} ? ${quantityFromController} : ''"
+                     required />
+            </div>
+
+          </div>
+
+          <!-- ── BUTTONS ── -->
+          <div class="button-row">
+            <button type="submit" class="btn-submit">✔ Add Inventory</button>
+          </div>
+
+        </form>
+      </div>
+    </div>
+
+    <!-- ══ CONDITIONS SECTION ══ -->
+    <div class="conditions-section">
+      <h4>📌 Conditions for adding inventory</h4>
+      <ol>
+        <li>Select a <strong>Customer</strong> first — warehouses load dynamically.</li>
+        <li>Enter a valid <strong>Item ID</strong> that already exists in the system.</li>
+        <li>Select the correct <strong>Item UOM</strong> for the item.</li>
+        <li><strong>Increase By</strong> — adds quantity to existing stock.</li>
+        <li><strong>Decrease By</strong> — subtracts quantity from existing stock.</li>
+        <li>Quantity must be a positive whole number (≥ 1).</li>
+        <li>Stock cannot go below zero.</li>
+      </ol>
+    </div>
+
+  </div>
+
+  <script>
+    window.addEventListener("load", function () {
+      var msg = document.getElementById("msgBox");
+      if (msg) {
+        setTimeout(function () { msg.style.display = "none"; }, 10000);
+      }
+    }); 
+  </script>
+
+</body>
+</html>

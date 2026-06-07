@@ -12,7 +12,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import org.hibernate.internal.build.AllowSysOut;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,372 +21,418 @@ import org.springframework.ui.Model;
 
 import dev.shipping.shipments.model.CustomerWarehouses;
 import dev.shipping.shipments.model.Customers;
-import dev.shipping.shipments.model.Shipments;
 import dev.shipping.shipments.model.Warehouses;
 import dev.shipping.shipments.repo.CustomerWarehousesRepository;
 import dev.shipping.shipments.repo.CustomersRepository;
 import dev.shipping.shipments.repo.WarehousesRepository;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.TypedQuery;
-import jakarta.persistence.Query;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.Query;
+import jakarta.persistence.TypedQuery;
+
+/**
+ * Core business logic for customer operations.
+ *
+ * Responsibilities:
+ *  - CRUD operations for Customers and their warehouse assignments
+ *  - Input validation for both new customer creation and updates
+ *  - Dynamic query building for the customer filter/list view
+ *  - Populating the edit-customer view model
+ *
+ * All public mutating methods are @Transactional so that a failure
+ * mid-operation rolls back every DB write made in that call.
+ */
 @Service
 public class CustomersService {
 
-	@Autowired
-	private EntityManager entityManager;
-
-	private final CustomersRepository customersRepo;
-	private final WarehousesRepository warehousesRepo;
-	private final CustomerWarehousesRepository customerWarehousesRepo;
-
-	public CustomersService(CustomersRepository customersRepo, WarehousesRepository warehousesRepo,
-			CustomerWarehousesRepository customerWarehousesRepo) {
-		this.customersRepo = customersRepo;
-		this.warehousesRepo = warehousesRepo;
-		this.customerWarehousesRepo = customerWarehousesRepo;
-	}
-
-	// ─────────────────────────────────────────────
-	// READ
-	// ─────────────────────────────────────────────
-
-	public List<Customers> getAllCustomers() {
-		return customersRepo.findAll();
-	}
-
-	public boolean customerExists(String customerId) {
-		return customersRepo.findById(customerId).isPresent();
-	}
-
-	public List<Warehouses> getActiveWarehouses() {
-		return warehousesRepo.findByWarehousesByStatusActive("Active");
-	}
-
-	/**
-	 * Populates all model attributes needed for the edit-customer page. Called only
-	 * after confirming the customer exists.
-	 */
-	public void populateEditCustomerModel(String customerId, Model model) {
-		Customers customer = customersRepo.findById(customerId)
-				.orElseThrow(() -> new RuntimeException("Customer not found: " + customerId));
-
-		model.addAttribute("customer", customer);
-		model.addAttribute("options", List.of("Active", "Disabled"));
-		model.addAttribute("selectedStatus", customer.getCustomerStatus());
-		model.addAttribute("assignedWarehouses",
-				customerWarehousesRepo.findAllocatedWarehousesByCustomerId(customerId));
-		model.addAttribute("unassignedWarehouses",
-				customerWarehousesRepo.findWarehousesNotAllocatedToCustomer(customerId));
-
-		// Convert stored datetime string → plain date string for the calendar input
-		LocalDateTime dateTime = LocalDateTime.parse(customer.getValidUpto(),
-				DateTimeFormatter.ofPattern("dd-MMM-yyyy HH:mm:ss"));
-
-		boolean isExpired = dateTime.toLocalDate().isBefore(LocalDate.now());
-		String validUptoJustDate = dateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-		model.addAttribute("validUptoJustDate", validUptoJustDate);
-		if (isExpired) {
-			model.addAttribute("bgColorForValidUpto", "red");
-			model.addAttribute("textColorForValidUpto", "yellow");
-			model.addAttribute("isExpired", isExpired);
-		}
-	}
-
-	// ─────────────────────────────────────────────
-	// VALIDATION
-	// ─────────────────────────────────────────────
-
-	/**
-	 * Validates fields when creating a brand-new customer. Returns a list of error
-	 * messages; empty list means no errors.
-	 */
-	public List<String> validateNewCustomer(Customers customer) {
-		List<String> errors = new ArrayList<>();
-		String customerId = customer.getCustomerId();
-		String customerName = customer.getCustomerName();
-		String validUpto = customer.getValidUpto();
-
-		// Customer ID checks
-		if (!customerId.matches("^[a-zA-Z0-9-]+$")) {
-			errors.add("Customer ID can contain only alphabets, numbers and hyphens (other symbols, spaces, tabs, next-line characters are not allowed)!!");
- 		} else {
-			if (customerId.length() < 3) {
-				errors.add("Cannot useCustomer ID \"" + customerName
-						+ "\"\nCustomer ID must be atleast 3 characters long !!");
-			} else if (customerId.length() > 5) {
-				errors.add("Cannot useCustomer ID \"" + customerName
-						+ "\"\nCustomer ID must be maximum 5 characters only !!");
-			}
-		}
-
-		// Customer Name checks
-		if (customerName.trim().length() < 5) {
-			errors.add("Cannot update Customer Name to \"" + customerName
-					+ "\"\nCustomer Name must be atleast 5 characters long !!");
-		} else if (customerName.trim().length() > 30) {
-			errors.add("Cannot update Customer Name to \"" + customerName
-					+ "\"\nCustomer Name must be maximum 30 characters only !!");
-		}
-
-		/*
-		 * // Valid Upto date check — must be at least tomorrow LocalDate tomorrow =
-		 * LocalDate.now().plusDays(1); LocalDate selectedDate =
-		 * LocalDate.parse(validUpto, DateTimeFormatter.ofPattern("yyyy-MM-dd")); if
-		 * (selectedDate.isBefore(tomorrow)) {
-		 * errors.add("Valid Upto date cannot be older than tomorrow!"); }
-		 */
-
-		System.out.println("validateNewCustomer: " + validUpto);
-		if (validUpto != null && !validUpto.isEmpty()) {
-			try {
-				// Parse — throws exception if date is invalid (e.g. April 31)
-				LocalDate selectedDate = LocalDate.parse(validUpto,
-						DateTimeFormatter.ofPattern("dd-MMM-yyyy HH:mm:ss"));
-
-				// Valid Upto date check — must be at least tomorrow
-				LocalDate tomorrow = LocalDate.now().plusDays(1);
-
-				if (selectedDate.isBefore(tomorrow)) {
-					errors.add("Valid Upto date must be at least tomorrow!");
-				}
-
-			} catch (DateTimeParseException e) {
-				// Catches invalid dates like April 31, February 30 etc.
-				errors.add("Invalid date! Please enter a valid date.");
-				System.out.println("DateTimeParseException: " + e.getMessage());
-			}
-		}
-
-		return errors;
-	}
-
-	/**
-	 * Validates fields when updating an existing customer. Returns a list of error
-	 * messages; empty list means no errors.
-	 */
-	public List<String> validateCustomerUpdate(String customerName, String validUpto) {
-		List<String> errors = new ArrayList<>();
-
-		System.out.println("CustomerService:: validateCustomerUpdate(): " + customerName + " -- " + validUpto);
-
-		// Customer Name checks
-		if (customerName.trim().length() < 5) {
-			errors.add("Cannot update Customer Name to \"" + customerName
-					+ "\"\nCustomer Name must be atleast 5 characters long !!");
-		} else if (customerName.trim().length() > 30) {
-			errors.add("Cannot update Customer Name to \"" + customerName
-					+ "\"\nCustomer Name must be maximum 30 characters only !!");
-		}
-
-		// Check if the selected date is valid & if that date is of future (must be at
-		// least tomorrow)
-		if (validUpto != null && !validUpto.isEmpty()) {
-			try {
-				System.out.println(" Try inside SERVICE validUpto :: " + validUpto);
-				// Parse — throws exception if date is invalid (e.g. April 31)
-				LocalDate selectedDate = LocalDate.parse(validUpto, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-
-				// Valid Upto date check — must be at least tomorrow
-				LocalDate tomorrow = LocalDate.now().plusDays(1);
-
-				if (selectedDate.isBefore(tomorrow)) {
-					errors.add("Valid Upto date must be at least tomorrow!");
-				}
-
-			} catch (DateTimeParseException e) {
-				System.out.println("Hitting Exception in SERVICE");
-				System.out.println("Exception " + e.toString());
-				// Catches invalid dates like April 31, February 30 etc.
-				errors.add("You have selected an Invalid date!! Please select/enter a valid date.");
-			}
-		} else {
-			errors.add("You have selected an Invalid date!! Please select/enter a valid date.");
-		}
-
-		return errors;
-	}
-
-	// ─────────────────────────────────────────────
-	// WRITE
-	// ─────────────────────────────────────────────
-
-	/**
-	 * Creates a new customer and saves warehouse assignments.
-	 */
-	@Transactional
-	public void createCustomer(Customers customer, List<String> selectedWarehouses) {
-		customersRepo.save(customer);
-
-		if (!selectedWarehouses.isEmpty()) {
-			for (String warehouseId : selectedWarehouses) {
-				CustomerWarehouses cw = new CustomerWarehouses();
-				cw.setCustomerId(customer.getCustomerId());
-				cw.setWarehouseId(warehouseId);
-				customerWarehousesRepo.save(cw);
-			}
-		}
-	}
-
-	/**
-	 * Updates an existing customer's fields and syncs warehouse assignments: -
-	 * Inserts only newly added warehouses - Deletes only removed warehouses
-	 */
-	@Transactional
-	public void updateCustomer(String customerId, String customerName, String customerStatus, String validUpto,
-			List<String> selectedWarehouses) {
-
-		// Update customer fields
-		Customers customer = customersRepo.findById(customerId)
-				.orElseThrow(() -> new RuntimeException("Customer not found: " + customerId));
-
-		System.out.println("CustomerService:: updateCustomer:: " + customerId + " -- " + customerName + " -- "
-				+ customerStatus + " -- " + validUpto + " -- " + selectedWarehouses.toString());
-
-		customer.setCustomerName(customerName);
-		customer.setValidUpto(validUpto);
-		customer.setCustomerStatus(customerStatus);
-		customersRepo.save(customer);
-
-		// warehouses that are currently in DB for this customer
-		List<String> currentIds = customerWarehousesRepo.findAllWarehousesByCustomerId(customerId);
-
-		// filter out the warehouses to insert only NEW warehouses based on checkbox
-		// selections
-		List<String> toInsert = selectedWarehouses.stream().filter(id -> !currentIds.contains(id))
-				.collect(Collectors.toList());
-
-		// filter out the warehouses to delete only the checkbox unchecked/REMOVED ones
-		List<String> toDelete = currentIds.stream().filter(id -> !selectedWarehouses.contains(id))
-				.collect(Collectors.toList());
-
-		// Insert the new warehouses to customer_warehouses table
-		toInsert.forEach(wId -> {
-			CustomerWarehouses cw = new CustomerWarehouses();
-			cw.setCustomerId(customerId);
-			cw.setWarehouseId(wId);
-			customerWarehousesRepo.save(cw);
-		});
-
-		// Delete the unchecked warehouses from customer_warehouses table
-		if (!toDelete.isEmpty()) {
-			customerWarehousesRepo.deleteByCustomerIdAndWarehouseIdIn(customerId, toDelete);
-		}
-
-	}
-
-	/**
-	 * Deletes a customer and all their warehouse assignments.
-	 */
-	@Transactional
-	public void deleteCustomer(String customerId) {
-		customersRepo.deleteById(customerId);
-		customerWarehousesRepo.deleteAllWarehousesByCustomerId(customerId);
-	}
-
-	// Dynamically setting the conditions and running a custom query in service
-	// instead of calling individual methods in Repo
-	@Transactional
-	public List<Customers> getCustomersListOld(String customerId, String customerStatus, int expireNumber,
-			String expiringInSelect) {
-		StringBuilder query = new StringBuilder("SELECT * FROM Customers c");
-
-		// Dynamically build WHERE clause
-		List<String> conditions = new ArrayList<>();
-
-		if (!customerId.equals("ALL"))
-			conditions.add("c.customerId = :customerId");
-		if (!customerStatus.equals("ALL"))
-			conditions.add("c.customerStatus = :customerStatus");
-		if (!(expireNumber == 0) && !expiringInSelect.equals("ALL"))
-			conditions.add("c.validUpto >= CURDATE() AND c.validUpto <= (CURDATE() + INTERVAL " + expireNumber + " "
-					+ expiringInSelect + ")");
-
-		// Append WHERE + AND automatically
-		if (!conditions.isEmpty()) {
-			query.append(" WHERE ").append(String.join(" AND ", conditions));
-		}
-
-		// Create query
-		TypedQuery<Customers> typedQuery = (TypedQuery<Customers>) entityManager.createNativeQuery(query.toString(),
-				Customers.class);
-
-		// Bind only non-null parameters
-		if (!customerId.equals("ALL"))
-			typedQuery.setParameter("customerId", customerId);
-		if (!customerStatus.equals("ALL"))
-			typedQuery.setParameter("customerStatus", customerStatus);
-
-		/*
-		 * if (!(expireNumber == 0) && !expiringInSelect.equals("ALL")) {
-		 * typedQuery.setParameter("expireNumber", expireNumber);
-		 * typedQuery.setParameter("expiringInSelect", expiringInSelect); }
-		 */
-		List<Customers> resultList = typedQuery.getResultList();
-
-		System.out.println("final Query: " + query.toString() + "\nresultList: " + resultList.toString());
-
-		return resultList;
-	}
-
-	@Transactional
-	public List<Customers> getCustomersList(String customerId, String customerStatus, int expireNumber,
-			String expiringInSelect) {
-		// 1. Base native SQL query (Targeting the physical database table)
-		StringBuilder query = new StringBuilder("SELECT * FROM customers");
-
-		List<String> conditions = new ArrayList<>();
-		// Use Map interface with HashMap implementation
-		Map<String, Object> parameters = new HashMap<>();
-
-		// 2. Build conditions safely using parameterized binding (.put() for Map)
-		if (customerId != null && !customerId.equalsIgnoreCase("ALL")) {
-			conditions.add("customer_id = :customerId");
-			parameters.put("customerId", customerId);
-		}
-
-		if (customerStatus != null && !customerStatus.equalsIgnoreCase("ALL")) {
-			conditions.add("customer_status = :customerStatus");
-			parameters.put("customerStatus", customerStatus);
-		}
-
-		if (expireNumber > 0 && expiringInSelect != null && !expiringInSelect.equalsIgnoreCase("ALL")) {
-			String timeUnit = expiringInSelect.toUpperCase().trim();
-			List<String> validUnits = Arrays.asList("DAY", "WEEK", "MONTH", "QUARTER", "YEAR");
-
-			if (validUnits.contains(timeUnit)) {
-				// 1. The string closes properly right here with a double quote and semicolon
-				conditions.add("valid_upto >= NOW(6) AND valid_upto <= NOW(6) + INTERVAL :expireNumber " + timeUnit);
-
-				// 2. Put the numeric value into your parameters map
-				parameters.put("expireNumber", expireNumber);
-			} // <--- The IF statement ends cleanly right here!
-
-		}
-
-		// Append WHERE + AND automatically
-		if (!conditions.isEmpty()) {
-			query.append(" WHERE ").append(String.join(" AND ", conditions));
-		}
-
-		Query nativeQuery = entityManager.createNativeQuery(query.toString(), Customers.class);
-
-		if (!customerId.equals("ALL"))
-			nativeQuery.setParameter("customerId", customerId);
-		if (!customerStatus.equals("ALL"))
-			nativeQuery.setParameter("customerStatus", customerStatus);
-
-		if (!(expireNumber == 0) && !expiringInSelect.equals("ALL")) {
-			nativeQuery.setParameter("expireNumber", expireNumber);
-		//	nativeQuery.setParameter("expiringInSelect", expiringInSelect);
-		}
-
-		@SuppressWarnings("unchecked")
-		List<Customers> resultList = nativeQuery.getResultList();
-
-		System.out.println("Final Query: " + query.toString() + "\nResult List Size: " + resultList.size());
-
-		return resultList;
-	}
-
+    private static final Logger log = LoggerFactory.getLogger(CustomersService.class);
+
+    /** Format used when storing/reading customer contract expiry as a string. */
+    private static final DateTimeFormatter STORED_DATE_FMT =
+            DateTimeFormatter.ofPattern("dd-MMM-yyyy HH:mm:ss");
+
+    /** Format used by the HTML date-input element (yyyy-MM-dd). */
+    private static final DateTimeFormatter HTML_DATE_FMT =
+            DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+    /** Time units accepted for the "expiring within N <unit>" filter. */
+    private static final List<String> VALID_EXPIRY_UNITS =
+            Arrays.asList("DAY", "WEEK", "MONTH", "QUARTER", "YEAR");
+
+    @Autowired
+    private EntityManager entityManager;
+
+    private final CustomersRepository customersRepo;
+    private final WarehousesRepository warehousesRepo;
+    private final CustomerWarehousesRepository customerWarehousesRepo;
+
+    public CustomersService(CustomersRepository customersRepo, WarehousesRepository warehousesRepo,
+            CustomerWarehousesRepository customerWarehousesRepo) {
+        this.customersRepo = customersRepo;
+        this.warehousesRepo = warehousesRepo;
+        this.customerWarehousesRepo = customerWarehousesRepo;
+    }
+
+    // ─────────────────────────────────────────────
+    // READ
+    // ─────────────────────────────────────────────
+
+    /** Returns all customers with no ordering guarantee. */
+    public List<Customers> getAllCustomers() {
+        return customersRepo.findAll();
+    }
+
+    /** Returns true if a customer record exists for the given ID. */
+    public boolean customerExists(String customerId) {
+        return customersRepo.findById(customerId).isPresent();
+    }
+
+    /** Returns all warehouses whose status is "Active". */
+    public List<Warehouses> getActiveWarehouses() {
+        return warehousesRepo.findByWarehousesByStatusActive("Active");
+    }
+
+    /**
+     * Populates all model attributes required by the edit-customer page.
+     *
+     * Attributes set:
+     *  - customer            – the customer entity
+     *  - options             – status dropdown values (Active / Disabled)
+     *  - selectedStatus      – pre-selects the customer's current status
+     *  - assignedWarehouses  – warehouses already linked to this customer
+     *  - unassignedWarehouses– warehouses not yet linked (available to add)
+     *  - validUptoJustDate   – contract expiry reformatted as yyyy-MM-dd for the HTML date input
+     *  - bgColorForValidUpto / textColorForValidUpto / isExpired – set only when contract is expired
+     *
+     * Throws RuntimeException if the customer ID does not exist (caller must verify first).
+     */
+    public void populateEditCustomerModel(String customerId, Model model) {
+
+        log.info("populateEditCustomerModel() → customerId={}", customerId);
+
+        Customers customer = customersRepo.findById(customerId)
+                .orElseThrow(() -> new RuntimeException("Customer not found: " + customerId));
+
+        model.addAttribute("customer", customer);
+        model.addAttribute("options", List.of("Active", "Disabled"));
+        model.addAttribute("selectedStatus", customer.getCustomerStatus());
+        model.addAttribute("assignedWarehouses",
+                customerWarehousesRepo.findAllocatedWarehousesByCustomerId(customerId));
+        model.addAttribute("unassignedWarehouses",
+                customerWarehousesRepo.findWarehousesNotAllocatedToCustomer(customerId));
+
+        // Convert the stored datetime string (e.g. "01-Jun-2026 00:00:00") to a plain
+        // date string (e.g. "2026-06-01") for the HTML <input type="date"> element
+        LocalDateTime dateTime = LocalDateTime.parse(customer.getValidUpto(), STORED_DATE_FMT);
+        String validUptoJustDate = dateTime.format(HTML_DATE_FMT);
+        model.addAttribute("validUptoJustDate", validUptoJustDate);
+
+        // Highlight the expiry date field in red if the contract has already expired
+        boolean isExpired = dateTime.toLocalDate().isBefore(LocalDate.now());
+        if (isExpired) {
+            log.warn("populateEditCustomerModel() → contract is expired for customerId={}, validUpto={}",
+                    customerId, customer.getValidUpto());
+            model.addAttribute("bgColorForValidUpto", "red");
+            model.addAttribute("textColorForValidUpto", "yellow");
+            model.addAttribute("isExpired", true);
+        }
+    }
+
+    // ─────────────────────────────────────────────
+    // VALIDATION
+    // ─────────────────────────────────────────────
+
+    /**
+     * Validates all fields for a brand-new customer.
+     *
+     * Rules enforced:
+     *  - Customer ID: alphanumeric + hyphens only, 3–5 characters
+     *  - Customer Name: 5–30 characters (trimmed)
+     *  - Valid Upto: must be a parseable date AND at least tomorrow
+     *
+     * @return list of human-readable error messages; empty list means all fields are valid.
+     */
+    public List<String> validateNewCustomer(Customers customer) {
+
+        List<String> errors = new ArrayList<>();
+        String customerId   = customer.getCustomerId();
+        String customerName = customer.getCustomerName();
+        String validUpto    = customer.getValidUpto();
+
+        log.debug("validateNewCustomer() → customerId={}, customerName={}, validUpto={}",
+                customerId, customerName, validUpto);
+
+        // ── Customer ID checks ────────────────────────────────────────────────
+        if (!customerId.matches("^[a-zA-Z0-9-]+$")) {
+            errors.add("Customer ID can contain only alphabets, numbers, and hyphens "
+                    + "(spaces, symbols, and special characters are not allowed).");
+        } else {
+            if (customerId.length() < 3) {
+                errors.add("Customer ID must be at least 3 characters long.");
+            } else if (customerId.length() > 5) {
+                errors.add("Customer ID must be a maximum of 5 characters.");
+            }
+        }
+
+        // ── Customer Name checks ──────────────────────────────────────────────
+        int nameLen = customerName.trim().length();
+        if (nameLen < 5) {
+            errors.add("Customer Name \"" + customerName + "\" must be at least 5 characters long.");
+        } else if (nameLen > 30) {
+            errors.add("Customer Name \"" + customerName + "\" must be a maximum of 30 characters.");
+        }
+
+        // ── Valid Upto date check ─────────────────────────────────────────────
+        if (validUpto != null && !validUpto.isEmpty()) {
+            try {
+                // Parsing with the stored format validates calendar correctness
+                // (e.g. April 31 or February 30 will throw DateTimeParseException)
+                LocalDate selectedDate = LocalDate.parse(validUpto, STORED_DATE_FMT);
+                LocalDate tomorrow = LocalDate.now().plusDays(1);
+
+                if (selectedDate.isBefore(tomorrow)) {
+                    errors.add("Valid Upto date must be at least tomorrow.");
+                }
+            } catch (DateTimeParseException e) {
+                log.warn("validateNewCustomer() → invalid date string: '{}' → {}", validUpto, e.getMessage());
+                errors.add("Invalid date. Please enter a valid date.");
+            }
+        }
+
+        if (!errors.isEmpty()) {
+            log.warn("validateNewCustomer() → {} validation error(s) for customerId={}: {}",
+                    errors.size(), customerId, errors);
+        }
+
+        return errors;
+    }
+
+    /**
+     * Validates fields when updating an existing customer.
+     * Customer ID is not re-validated here since it cannot be changed on update.
+     *
+     * Rules enforced:
+     *  - Customer Name: 5–30 characters (trimmed)
+     *  - Valid Upto: must be present, a parseable yyyy-MM-dd date, and at least tomorrow
+     *
+     * @return list of human-readable error messages; empty list means all fields are valid.
+     */
+    public List<String> validateCustomerUpdate(String customerName, String validUpto) {
+
+        List<String> errors = new ArrayList<>();
+
+        log.debug("validateCustomerUpdate() → customerName={}, validUpto={}", customerName, validUpto);
+
+        // ── Customer Name checks ──────────────────────────────────────────────
+        int nameLen = customerName.trim().length();
+        if (nameLen < 5) {
+            errors.add("Cannot update Customer Name to \"" + customerName
+                    + "\". Name must be at least 5 characters long.");
+        } else if (nameLen > 30) {
+            errors.add("Cannot update Customer Name to \"" + customerName
+                    + "\". Name must be a maximum of 30 characters.");
+        }
+
+        // ── Valid Upto date check ─────────────────────────────────────────────
+        // The update form sends the date in yyyy-MM-dd format (HTML date input)
+        if (validUpto != null && !validUpto.isEmpty()) {
+            try {
+                LocalDate selectedDate = LocalDate.parse(validUpto, HTML_DATE_FMT);
+                LocalDate tomorrow = LocalDate.now().plusDays(1);
+
+                if (selectedDate.isBefore(tomorrow)) {
+                    errors.add("Valid Upto date must be at least tomorrow.");
+                }
+            } catch (DateTimeParseException e) {
+                log.warn("validateCustomerUpdate() → invalid date string: '{}' → {}", validUpto, e.getMessage());
+                errors.add("Invalid date. Please select or enter a valid date.");
+            }
+        } else {
+            // A blank or null date is always invalid on an update
+            log.warn("validateCustomerUpdate() → validUpto is blank or null");
+            errors.add("Valid Upto date is required. Please select or enter a valid date.");
+        }
+
+        if (!errors.isEmpty()) {
+            log.warn("validateCustomerUpdate() → {} validation error(s): {}", errors.size(), errors);
+        }
+
+        return errors;
+    }
+
+    // ─────────────────────────────────────────────
+    // WRITE
+    // ─────────────────────────────────────────────
+
+    /**
+     * Persists a new customer and creates customer-warehouse link records for any
+     * warehouses selected during creation.
+     *
+     * Both the customer row and all warehouse links are written in a single
+     * transaction — if any insert fails, everything is rolled back.
+     */
+    @Transactional
+    public void createCustomer(Customers customer, List<String> selectedWarehouses) {
+
+        log.info("createCustomer() → customerId={}, warehouseCount={}",
+                customer.getCustomerId(), selectedWarehouses.size());
+
+        customersRepo.save(customer);
+
+        // Link the customer to each selected warehouse
+        for (String warehouseId : selectedWarehouses) {
+            CustomerWarehouses cw = new CustomerWarehouses();
+            cw.setCustomerId(customer.getCustomerId());
+            cw.setWarehouseId(warehouseId);
+            customerWarehousesRepo.save(cw);
+            log.debug("createCustomer() → linked warehouseId={} to customerId={}",
+                    warehouseId, customer.getCustomerId());
+        }
+
+        log.info("createCustomer() completed → customerId={}", customer.getCustomerId());
+    }
+
+    /**
+     * Updates an existing customer's editable fields (name, status, contract expiry)
+     * and syncs their warehouse assignments:
+     *  - Inserts link records only for newly added warehouses (not already in DB)
+     *  - Deletes link records only for warehouses that were unchecked (removed)
+     *  - Leaves unchanged assignments untouched (no redundant deletes/inserts)
+     *
+     * All changes are wrapped in a single transaction.
+     */
+    @Transactional
+    public void updateCustomer(String customerId, String customerName, String customerStatus,
+            String validUpto, List<String> selectedWarehouses) {
+
+        log.info("updateCustomer() → customerId={}, customerName={}, status={}, validUpto={}, warehouseCount={}",
+                customerId, customerName, customerStatus, validUpto, selectedWarehouses.size());
+
+        // ── Update customer fields ─────────────────────────────────────────────
+        Customers customer = customersRepo.findById(customerId)
+                .orElseThrow(() -> new RuntimeException("Customer not found: " + customerId));
+
+        customer.setCustomerName(customerName);
+        customer.setValidUpto(validUpto);
+        customer.setCustomerStatus(customerStatus);
+        customersRepo.save(customer);
+
+        // ── Sync warehouse assignments ─────────────────────────────────────────
+        // Fetch what is currently stored in the DB for this customer
+        List<String> currentIds = customerWarehousesRepo.findAllWarehousesByCustomerId(customerId);
+
+        // Warehouses in the new selection but NOT in the current DB state → insert
+        List<String> toInsert = selectedWarehouses.stream()
+                .filter(id -> !currentIds.contains(id))
+                .collect(Collectors.toList());
+
+        // Warehouses in the current DB state but NOT in the new selection → delete
+        List<String> toDelete = currentIds.stream()
+                .filter(id -> !selectedWarehouses.contains(id))
+                .collect(Collectors.toList());
+
+        log.debug("updateCustomer() warehouse sync → toInsert={}, toDelete={}", toInsert, toDelete);
+
+        toInsert.forEach(wId -> {
+            CustomerWarehouses cw = new CustomerWarehouses();
+            cw.setCustomerId(customerId);
+            cw.setWarehouseId(wId);
+            customerWarehousesRepo.save(cw);
+        });
+
+        if (!toDelete.isEmpty()) {
+            customerWarehousesRepo.deleteByCustomerIdAndWarehouseIdIn(customerId, toDelete);
+        }
+
+        log.info("updateCustomer() completed → customerId={}, inserted={}, deleted={}",
+                customerId, toInsert.size(), toDelete.size());
+    }
+
+    /**
+     * Deletes the customer record and all their warehouse assignment links.
+     * Both deletes happen in the same transaction.
+     */
+    @Transactional
+    public void deleteCustomer(String customerId) {
+        log.info("deleteCustomer() → customerId={}", customerId);
+        customersRepo.deleteById(customerId);
+        customerWarehousesRepo.deleteAllWarehousesByCustomerId(customerId);
+        log.info("deleteCustomer() completed → customerId={}", customerId);
+    }
+
+    // ─────────────────────────────────────────────
+    // FILTER QUERIES
+    // ─────────────────────────────────────────────
+
+    /**
+     * Builds and executes a dynamic native SQL query for the customer list/filter view.
+     *
+     * Filters applied when NOT "ALL" / zero:
+     *  - customerId      – exact match on customer_id column
+     *  - customerStatus  – exact match on customer_status column
+     *  - expireNumber + expiringInSelect – contracts expiring within the next N units
+     *    (e.g. expireNumber=3, expiringInSelect="MONTH" → expiring within 3 months)
+     *
+     * The time-unit is validated against a safe allow-list (DAY, WEEK, MONTH, QUARTER, YEAR)
+     * before being interpolated into the SQL string, preventing SQL injection.
+     *
+     * Note: a native query is used here (rather than JPQL) because the
+     * INTERVAL syntax for the expiry-window condition is MySQL-specific.
+     */
+    @Transactional
+    public List<Customers> getCustomersList(String customerId, String customerStatus,
+            int expireNumber, String expiringInSelect) {
+
+        log.info("getCustomersList() → customerId={}, customerStatus={}, expireNumber={}, expiringInSelect={}",
+                customerId, customerStatus, expireNumber, expiringInSelect);
+
+        StringBuilder query = new StringBuilder("SELECT * FROM customers");
+        List<String> conditions = new ArrayList<>();
+        Map<String, Object> parameters = new HashMap<>();
+
+        // ── Build conditions dynamically ──────────────────────────────────────
+
+        if (customerId != null && !customerId.equalsIgnoreCase("ALL")) {
+            conditions.add("customer_id = :customerId");
+            parameters.put("customerId", customerId);
+        }
+
+        if (customerStatus != null && !customerStatus.equalsIgnoreCase("ALL")) {
+            conditions.add("customer_status = :customerStatus");
+            parameters.put("customerStatus", customerStatus);
+        }
+
+        if (expireNumber > 0 && expiringInSelect != null && !expiringInSelect.equalsIgnoreCase("ALL")) {
+            String timeUnit = expiringInSelect.toUpperCase().trim();
+
+            // Validate the time unit against an allow-list before interpolating into SQL.
+            // This prevents SQL injection since INTERVAL does not support bind parameters
+            // for the unit keyword in MySQL.
+            if (VALID_EXPIRY_UNITS.contains(timeUnit)) {
+                conditions.add("valid_upto >= NOW(6) AND valid_upto <= NOW(6) + INTERVAL :expireNumber " + timeUnit);
+                parameters.put("expireNumber", expireNumber);
+                log.debug("getCustomersList() → expiry filter: within {} {}", expireNumber, timeUnit);
+            } else {
+                log.warn("getCustomersList() → invalid time unit '{}' ignored (not in allow-list)", timeUnit);
+            }
+        }
+
+        if (!conditions.isEmpty()) {
+            query.append(" WHERE ").append(String.join(" AND ", conditions));
+        }
+
+        log.debug("getCustomersList() → SQL: {}", query);
+
+        // ── Execute with bound parameters ─────────────────────────────────────
+        Query nativeQuery = entityManager.createNativeQuery(query.toString(), Customers.class);
+
+        // Bind only the parameters that were actually added to the query
+        parameters.forEach(nativeQuery::setParameter);
+
+        @SuppressWarnings("unchecked")
+        List<Customers> resultList = nativeQuery.getResultList();
+
+        log.info("getCustomersList() → returned {} customer(s)", resultList.size());
+        return resultList;
+    }
 }
