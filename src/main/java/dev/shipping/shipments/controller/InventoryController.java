@@ -1,5 +1,6 @@
 package dev.shipping.shipments.controller;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -434,13 +435,26 @@ public class InventoryController {
 	@PostMapping("/inventory/fetchForLines")
 	public String fetchInventoryForLines(@RequestParam String customerId, @RequestBody List<ShipmentLines> lines,
 			Model model) {
+		
+		List<InventoryCheckResult> inventoryList = new ArrayList<>();
+		
+		List<Object> itemsAndInventoryCheckResult = inventoryService.checkIfItemsAndInventoryExists(customerId, lines);
+		
+		log.info("InventoryController:: checkIfItemsAndInventoryExists() → returned {} itemsAndInventoryCheckResult[]:", itemsAndInventoryCheckResult.get(0)+" , "+itemsAndInventoryCheckResult.get(1));
 
 		log.info("POST /inventory/fetchForLines → customerId={}, lineCount={}", customerId, lines.size());
+				
+		log.info("InventoryController:: itemsAndInventoryCheckResult[0] & lines.size()  → "+itemsAndInventoryCheckResult.get(0)+" & "+lines.size());
+		
+		// If the result count returned from checkIfItemsAndInventoryExists() is same as lines.size() that means either all the items passed are invalid or they do not have inventory in any warehouse(s)
+		// Checking the shortage inventory only if result count is not equals to lines.size()
+		if( (int)itemsAndInventoryCheckResult.get(0)  != lines.size()) {
 
-		List<InventoryCheckResult> inventoryList = inventoryService.getInventoryForShipmentLines(customerId, lines);
+			inventoryList = inventoryService.getShortageInventoryForShipmentLines(customerId, lines);
 
-		log.info("fetchInventoryForLines() → returned {} result(s) for customerId={}", inventoryList.size(),
-				customerId);
+			log.info("fetchInventoryForLines() → returned {} result(s) for customerId={}", inventoryList.size(),
+					customerId);	
+		}
 
 		model.addAttribute("inventory", inventoryList);
 		model.addAttribute("selectedCustomer", "ALL");
@@ -450,6 +464,7 @@ public class InventoryController {
 		model.addAttribute("activePage", "allInventory");
 		model.addAttribute("itemUomsList", ITEM_UOMS_LIST);
 		model.addAttribute("filterApplied", false);
+		model.addAttribute("errorMessage", (String) itemsAndInventoryCheckResult.get(1));
 		return "show-shortage-inventory";
 	}
 

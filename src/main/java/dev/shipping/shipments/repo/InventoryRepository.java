@@ -37,4 +37,11 @@ public interface InventoryRepository extends JpaRepository<Inventory, String> {
 	List<Inventory> findByCustomerIdAndItemIdInAndItemUomIn(String customerId, List<String> itemIds,
 			List<String> itemUoms);
 
+		
+	@Query("SELECT inv.quantity from Inventory inv WHERE inv.customerId= :customerId AND inv.itemId= :itemId AND inv.itemUom= :itemUom AND inv.warehouseId= :warehouseId")
+	int getInventoryDetailsToVerifyAvailabilityBeforeUpdatingShipmentStatus(String customerId, String itemId,
+			String itemUom, String warehouseId);
+
+
+
 }

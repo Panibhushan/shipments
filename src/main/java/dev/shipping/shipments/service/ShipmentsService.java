@@ -648,55 +648,43 @@ public class ShipmentsService {
 	 * @return the updatedStatus string (e.g. "SHIPMENT_PICKED_SUCCESSFULLY")
 	 * @throws RuntimeException if the action string is not one of the known values
 	 */
-	private String applyStatusTransition(Shipments shipment, String shipmentId, String action,
-			String cancellationReason) {
-
-		log.info("applyStatusTransition() → shipmentId={}, action={}", shipmentId, action);
-
-		String statusAndDesc, updatedStatus, comment;
-
-		switch (action) {
-		case "PICK":
-			shipment.setShipStatus(1200);
-			statusAndDesc = "1200 - PICKED";
-			updatedStatus = comment = "SHIPMENT_PICKED_SUCCESSFULLY";
-			break;
-
-		case "PACK":
-			shipment.setShipStatus(1300);
-			statusAndDesc = "1300 - PACKED";
-			updatedStatus = comment = "SHIPMENT_PACKED_SUCCESSFULLY";
-			break;
-
-		case "SHIP":
-			shipment.setShipStatus(1400);
-			statusAndDesc = "1400 - SHIPPED";
-			updatedStatus = comment = "SHIPMENT_SHIPPED_SUCCESSFULLY";
-			// Decrement both allocated qty AND on-hand qty
-			releaseInventory(shipmentId, 1400);
-			break;
-
-		case "CANCEL":
-			shipment.setShipStatus(9000);
-			statusAndDesc = "9000 - CANCELLED";
-			updatedStatus = "SHIPMENT_CANCELLED";
-			comment = "SHIPMENT_CANCELLED with reason: " + cancellationReason;
-			// Only release allocated qty; on-hand qty stays the same (goods not shipped)
-			releaseInventory(shipmentId, 9000);
-			break;
-
-		default:
-			log.error("applyStatusTransition() received unknown action={} for shipmentId={}", action, shipmentId);
-			throw new RuntimeException("Invalid action: " + action);
-		}
-
-		sqsService.sendShipmentStatus(shipmentId, statusAndDesc, comment);
-		shipmentsRepo.save(shipment);
-
-		log.info("applyStatusTransition() completed → shipmentId={}, newStatus={}", shipmentId, statusAndDesc);
-		return updatedStatus;
-	}
-
+	/*
+	 * private String applyStatusTransition(Shipments shipment, String shipmentId,
+	 * String action, String cancellationReason) {
+	 * 
+	 * log.info("applyStatusTransition() → shipmentId={}, action={}", shipmentId,
+	 * action);
+	 * 
+	 * String statusAndDesc, updatedStatus, comment;
+	 * 
+	 * switch (action) { case "PICK": shipment.setShipStatus(1200); statusAndDesc =
+	 * "1200 - PICKED"; updatedStatus = comment = "SHIPMENT_PICKED_SUCCESSFULLY";
+	 * break;
+	 * 
+	 * case "PACK": shipment.setShipStatus(1300); statusAndDesc = "1300 - PACKED";
+	 * updatedStatus = comment = "SHIPMENT_PACKED_SUCCESSFULLY"; break;
+	 * 
+	 * case "SHIP": shipment.setShipStatus(1400); statusAndDesc = "1400 - SHIPPED";
+	 * updatedStatus = comment = "SHIPMENT_SHIPPED_SUCCESSFULLY"; // Decrement both
+	 * allocated qty AND on-hand qty releaseInventory(shipmentId, 1400); break;
+	 * 
+	 * case "CANCEL": shipment.setShipStatus(9000); statusAndDesc =
+	 * "9000 - CANCELLED"; updatedStatus = "SHIPMENT_CANCELLED"; comment =
+	 * "SHIPMENT_CANCELLED with reason: " + cancellationReason; // Only release
+	 * allocated qty; on-hand qty stays the same (goods not shipped)
+	 * releaseInventory(shipmentId, 9000); break;
+	 * 
+	 * default: log.
+	 * error("applyStatusTransition() received unknown action={} for shipmentId={}",
+	 * action, shipmentId); throw new RuntimeException("Invalid action: " + action);
+	 * }
+	 * 
+	 * sqsService.sendShipmentStatus(shipmentId, statusAndDesc, comment);
+	 * shipmentsRepo.save(shipment);
+	 * 
+	 * log.info("applyStatusTransition() completed → shipmentId={}, newStatus={}",
+	 * shipmentId, statusAndDesc); return updatedStatus; }
+	 */
 	/**
 	 * Releases inventory when a shipment is shipped (status 1400) or cancelled
 	 * (status 9000).
@@ -798,31 +786,144 @@ public class ShipmentsService {
 	@Transactional(readOnly = true)
 	public List<Map<String, Object>> getShipmentsAlloactedForItem(String customerId, String itemId, String itemUom) {
 
-	  String sql = """
-	            SELECT s.shipment_id, s.customer_id, sl.item_id, sl.item_uom, sl.quantity, s.warehouse_id, s.ship_status 
-	            FROM shipments s
-	            JOIN shipment_lines sl ON s.shipment_id = sl.shipment_id
-	            WHERE s.customer_id = :customerId
-	              AND sl.item_id    = :itemId
-	              AND sl.item_uom   = :itemUom
-	              AND s.ship_status < 1400
-	            """;
+		String sql = """
+				SELECT s.shipment_id, s.customer_id, sl.item_id, sl.item_uom, sl.quantity, s.warehouse_id, s.ship_status
+				FROM shipments s
+				JOIN shipment_lines sl ON s.shipment_id = sl.shipment_id
+				WHERE s.customer_id = :customerId
+				  AND sl.item_id    = :itemId
+				  AND sl.item_uom   = :itemUom
+				  AND s.ship_status < 1400
+				""";
 
-	    org.hibernate.query.NativeQuery<Map<String, Object>> nativeQuery = entityManager.createNativeQuery(sql)
-	            .setParameter("customerId", customerId)
-	            .setParameter("itemId", itemId)
-	            .setParameter("itemUom", itemUom)
-	            .unwrap(org.hibernate.query.NativeQuery.class);
+		org.hibernate.query.NativeQuery<Map<String, Object>> nativeQuery = entityManager.createNativeQuery(sql)
+				.setParameter("customerId", customerId).setParameter("itemId", itemId).setParameter("itemUom", itemUom)
+				.unwrap(org.hibernate.query.NativeQuery.class);
 
-	    return nativeQuery
-	            .setTupleTransformer((tuple, aliases) -> {
-	                Map<String, Object> row = new LinkedHashMap<>();
-	                for (int i = 0; i < aliases.length; i++) {
-	                    row.put(aliases[i], tuple[i]);
-	                }
-	                return row;
-	            })
-	            .getResultList();
+		return nativeQuery.setTupleTransformer((tuple, aliases) -> {
+			Map<String, Object> row = new LinkedHashMap<>();
+			for (int i = 0; i < aliases.length; i++) {
+				row.put(aliases[i], tuple[i]);
+			}
+			return row;
+		}).getResultList();
+	}
+
+	private String applyStatusTransition(Shipments shipment, String shipmentId, String action,
+			String cancellationReason) {
+
+		log.info("applyStatusTransition() → shipmentId={}, action={}", shipmentId, action);
+
+		String statusAndDesc = "", updatedStatus = "", comment = "";
+		boolean hasShortage = false;
+
+		switch (action) {
+		case "PICK":
+			if (!(checkForInventoryAvailabilityBeforeUpdatingShipmentStatus(shipmentId, "BLDRT", "MUMWH")
+					.equals("HAS_SHORTAGE"))) {
+				shipment.setShipStatus(1200);
+				statusAndDesc = "1200 - PICKED";
+				updatedStatus = comment = "SHIPMENT_PICKED_SUCCESSFULLY";
+			} else {
+				hasShortage = true;
+			}
+			break;
+
+		case "PACK":
+			if (!(checkForInventoryAvailabilityBeforeUpdatingShipmentStatus(shipmentId, "BLDRT", "MUMWH")
+					.equals("HAS_SHORTAGE"))) {
+				shipment.setShipStatus(1300);
+				statusAndDesc = "1300 - PACKED";
+				updatedStatus = comment = "SHIPMENT_PACKED_SUCCESSFULLY";
+			} else {
+				hasShortage = true;
+			}
+			break;
+
+		case "SHIP":
+			if (!(checkForInventoryAvailabilityBeforeUpdatingShipmentStatus(shipmentId, "BLDRT", "MUMWH")
+					.equals("HAS_SHORTAGE"))) {
+				shipment.setShipStatus(1400);
+				statusAndDesc = "1400 - SHIPPED";
+				updatedStatus = comment = "SHIPMENT_SHIPPED_SUCCESSFULLY";
+				// Decrement both allocated qty AND on-hand qty
+				releaseInventory(shipmentId, 1400);
+			} else {
+				hasShortage = true;
+			}
+			break;
+
+		case "CANCEL":
+			shipment.setShipStatus(9000);
+			statusAndDesc = "9000 - CANCELLED";
+			updatedStatus = "SHIPMENT_CANCELLED";
+			comment = "SHIPMENT_CANCELLED with reason: " + cancellationReason;
+			// Only release allocated qty; on-hand qty stays the same (goods not shipped)
+			releaseInventory(shipmentId, 9000);
+			break;
+
+		default:
+			log.error("applyStatusTransition() received unknown action={} for shipmentId={}", action, shipmentId);
+			throw new RuntimeException("Invalid action: " + action);
+		}
+
+		if (!hasShortage) {
+			sqsService.sendShipmentStatus(shipmentId, statusAndDesc, comment);
+			shipmentsRepo.save(shipment);
+
+			log.info("applyStatusTransition() completed → shipmentId={}, newStatus={}", shipmentId, statusAndDesc);
+			return updatedStatus;
+		} else {
+			log.info("applyStatusTransition() failed → shipmentId={} ", shipmentId, "because of shortage");
+		}
+
+		return "hasShortage";
+	}
+
+	private String checkForInventoryAvailabilityBeforeUpdatingShipmentStatus(String shipmentId, String customerId,
+			String warehouseId) {
+
+		List<ShipmentLines> shipmentLinesList = shipmentLinesRepo.getShipmentLinesByShipmentId(shipmentId);
+
+		String message = "UPDATED_SUCCESSFULLY", shipmentLineId, itemId, itemUom;
+		int quantity, inventoryQuantity, shipShortageQuantity;
+
+		for (ShipmentLines sl : shipmentLinesList) {
+			itemId = sl.getItemId();
+			itemUom = sl.getItemUom();
+			quantity = sl.getQuantity();
+			shipShortageQuantity = sl.getShortageQuantity();
+			shipmentLineId = sl.getShipmentLineId();
+
+			inventoryQuantity = inventoryRepo.getInventoryDetailsToVerifyAvailabilityBeforeUpdatingShipmentStatus(
+					customerId, itemId, itemUom, warehouseId);
+
+			if (quantity > inventoryQuantity) {
+				sl.setShortageQuantity(quantity - inventoryQuantity);
+				shipmentLinesRepo.save(sl);
+				message = "HAS_SHORTAGE";
+
+				log.info(
+						"(quantity > inventoryQuantity) for shipmentLineId, itemId, itemUom :: quantity & inventoryQuantity{} → "
+								+ shipmentLineId + ", " + itemId + ", " + itemUom + ", " + quantity + ", "
+								+ inventoryQuantity);
+			} else {
+				if (shipShortageQuantity > 0) {
+					sl.setShortageQuantity(0);
+					shipmentLinesRepo.save(sl);
+					
+					log.info(
+							"(shortage cleared for shipmentLineId, itemId, itemUom :: quantity & inventoryQuantity & shipShortageQuantity{} → "
+									+ shipmentLineId + ", " + itemId + ", " + itemUom + ", " + quantity + ", "
+									+ inventoryQuantity + ", "+shipShortageQuantity);
+				}
+			}
+
+		}
+
+		log.info("checkForInventoryAvailabilityBeforeUpdatingShipmentStatus() message → ", message);
+
+		return message;
 	}
 
 }
