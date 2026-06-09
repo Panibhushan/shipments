@@ -324,7 +324,7 @@ public class ShipmentsService {
 
 		if (isCustomerValid && isWarehouseActive && isCustomerWarehouseLinked) {
 			// All checks passed — apply the status transition
-			return applyStatusTransition(shipment, shipmentId, action, cancellationReason);
+			return applyStatusTransition(shipment, shipmentId, action, customerId, warehouseId, cancellationReason);
 		}
 
 		// At least one precondition failed — build a detailed error for the UI
@@ -463,11 +463,12 @@ public class ShipmentsService {
 	 * group, query inventory for warehouses that have enough available stock to
 	 * fulfil the total requested quantity. 3. Flatten the results into a list of
 	 * maps suitable for a JSON response.
+	 * @param zipCode 
 	 *
 	 * @return list of {lineNumber, itemId, itemUom, requestedQty, availableQty,
 	 *         warehouseId, warehouseName} for each line that has sufficient stock.
 	 */
-	public List<Map<String, String>> checkInventoryAvailability(String customerId, List<ShipmentLines> lines) {
+	public List<Map<String, String>> checkInventoryAvailability(String customerId, List<ShipmentLines> lines, String shippingZipCode) {
 
 		log.info("checkInventoryAvailability() → customerId={}, lineCount={}", customerId, lines.size());
 
@@ -514,9 +515,42 @@ public class ShipmentsService {
 				String requestedQty = String
 						.valueOf(groupedByLine.getOrDefault(lineNo + "::" + itemId + "::" + itemUom, 0));
 				String availableQty = String.valueOf(inv.getAvailableQuantity());
-				String warehouseName = warehousesRepo.findById(warehouseId).map(Warehouses::getWarehouseName)
-						.orElse("");
+				
+				Warehouses warehouse = warehousesRepo.findById(warehouseId).get();
+				
+				String warehouseName = warehouse.getWarehouseName();
+				
+				Optional<Address> address = addressRepo.findById(warehouse.getAddressId());
+				
+				String warehouseZipCode = "000000";
+				
+				if(address.isPresent()) {
+					warehouseZipCode = address.get().getZipCode();	
+				}
+				
+				
+				Double[] warehouseAddressCoordinates = new Double[2], shipingAddressCoordinates = new Double[2];
+				Double distance = 0.0;
+				
+				try {
+					 warehouseAddressCoordinates = MyCustomUtils.getCoordinates(warehouseZipCode);
+					 shipingAddressCoordinates = MyCustomUtils.getCoordinates(shippingZipCode);
+					
+					
+					distance = MyCustomUtils.calculateDistance(shipingAddressCoordinates[0], shipingAddressCoordinates[1], warehouseAddressCoordinates[0], warehouseAddressCoordinates[1]);
+					distance = Math.round(distance * 100.0) / 100.0; // rounding to 2 decimals
+					
+					log.error("Calculated distance between warehouse & delivery = "+distance+" KM, for :: coordinates = "+shipingAddressCoordinates[0]+", "+shipingAddressCoordinates[1]+", "+ warehouseAddressCoordinates[0]+", "+warehouseAddressCoordinates[1]);
 
+					
+				} catch (Exception e) {
+					log.error("Error getting the distance between warehouse zip & delivery zip :: coordinates = "+shipingAddressCoordinates[0]+", "+shipingAddressCoordinates[1]+", "+ warehouseAddressCoordinates[0]+", "+warehouseAddressCoordinates[1]);
+					e.printStackTrace();
+				}
+				
+				warehouseName = "<span class=\"wh-card-title\">( "+warehouseName+" )</span> ----------- Distance between Warehouse and Destination: "+distance+" KM ";
+
+				
 				result.add(Map.of("lineNumber", lineNo, "itemId", itemId, "itemUom", itemUom, "requestedQty",
 						requestedQty, "availableQty", availableQty, "warehouseId", warehouseId, "warehouseName",
 						warehouseName));
@@ -809,48 +843,55 @@ public class ShipmentsService {
 		}).getResultList();
 	}
 
-	private String applyStatusTransition(Shipments shipment, String shipmentId, String action,
-			String cancellationReason) {
+	private String applyStatusTransition(Shipments shipment, String shipmentId, String action, String customerId,
+			String warehouseId, String cancellationReason) {
 
-		log.info("applyStatusTransition() → shipmentId={}, action={}", shipmentId, action);
+		log.info(
+				"applyStatusTransition() → shipment={}, shipmentId={}, action={} , customerId={}, warehouseId={}, warehouseId={}",
+				shipment.toString(), shipmentId, action, customerId, warehouseId, cancellationReason);
 
 		String statusAndDesc = "", updatedStatus = "", comment = "";
 		boolean hasShortage = false;
 
+		hasShortage = hasShortageToUpdateShipmentStatus(shipmentId, customerId, warehouseId);
+
+		// If the action is not for cancellation and shortage if found for one/more lines then return the message stating
+		// shortage for shipment, else proceed with updating the shipment to respective status.
+		// if action is to cancel the shipment then proceed to cancel it.
+		if (hasShortage && !action.equals("CANCEL")) {
+			shipment.setHasShortage("Y");
+			shipmentsRepo.save(shipment);
+			log.info("applyStatusTransition() hasShortage → shipmentId={}, updating hasShortage flag to Y", shipmentId);
+			return "Shipment Cannot be processed due to shortage of inventory. Refer shipment lines for shortage item & quantity.";
+		}
+
+		// If the action is not for cancellation and IF no shortage was detected for any lines, we are changing hasShortage
+		// flag for shipment to N
+		if (shipment.getHasShortage().equals("Y")  && !action.equals("CANCEL")) {
+			shipment.setHasShortage("N");
+			shipmentsRepo.save(shipment);
+		}
+
 		switch (action) {
 		case "PICK":
-			if (!(checkForInventoryAvailabilityBeforeUpdatingShipmentStatus(shipmentId, "BLDRT", "MUMWH")
-					.equals("HAS_SHORTAGE"))) {
-				shipment.setShipStatus(1200);
-				statusAndDesc = "1200 - PICKED";
-				updatedStatus = comment = "SHIPMENT_PICKED_SUCCESSFULLY";
-			} else {
-				hasShortage = true;
-			}
+			shipment.setShipStatus(1200);
+			statusAndDesc = "1200 - PICKED";
+			updatedStatus = comment = "SHIPMENT_PICKED_SUCCESSFULLY";
 			break;
 
 		case "PACK":
-			if (!(checkForInventoryAvailabilityBeforeUpdatingShipmentStatus(shipmentId, "BLDRT", "MUMWH")
-					.equals("HAS_SHORTAGE"))) {
-				shipment.setShipStatus(1300);
-				statusAndDesc = "1300 - PACKED";
-				updatedStatus = comment = "SHIPMENT_PACKED_SUCCESSFULLY";
-			} else {
-				hasShortage = true;
-			}
+			shipment.setShipStatus(1300);
+			statusAndDesc = "1300 - PACKED";
+			updatedStatus = comment = "SHIPMENT_PACKED_SUCCESSFULLY";
 			break;
 
 		case "SHIP":
-			if (!(checkForInventoryAvailabilityBeforeUpdatingShipmentStatus(shipmentId, "BLDRT", "MUMWH")
-					.equals("HAS_SHORTAGE"))) {
-				shipment.setShipStatus(1400);
-				statusAndDesc = "1400 - SHIPPED";
-				updatedStatus = comment = "SHIPMENT_SHIPPED_SUCCESSFULLY";
-				// Decrement both allocated qty AND on-hand qty
-				releaseInventory(shipmentId, 1400);
-			} else {
-				hasShortage = true;
-			}
+			shipment.setShipStatus(1400);
+			statusAndDesc = "1400 - SHIPPED";
+			updatedStatus = comment = "SHIPMENT_SHIPPED_SUCCESSFULLY";
+			// Decrement both allocated qty AND on-hand qty
+			releaseInventory(shipmentId, 1400);
+
 			break;
 
 		case "CANCEL":
@@ -867,63 +908,81 @@ public class ShipmentsService {
 			throw new RuntimeException("Invalid action: " + action);
 		}
 
-		if (!hasShortage) {
-			sqsService.sendShipmentStatus(shipmentId, statusAndDesc, comment);
-			shipmentsRepo.save(shipment);
+		sqsService.sendShipmentStatus(shipmentId, statusAndDesc, comment);
+		shipmentsRepo.save(shipment);
 
-			log.info("applyStatusTransition() completed → shipmentId={}, newStatus={}", shipmentId, statusAndDesc);
-			return updatedStatus;
-		} else {
-			log.info("applyStatusTransition() failed → shipmentId={} ", shipmentId, "because of shortage");
-		}
+		log.info("applyStatusTransition() completed → shipmentId={}, newStatus={}", shipmentId, statusAndDesc);
+		return updatedStatus;
 
-		return "hasShortage";
 	}
 
-	private String checkForInventoryAvailabilityBeforeUpdatingShipmentStatus(String shipmentId, String customerId,
-			String warehouseId) {
+	public boolean hasShortageToUpdateShipmentStatus(String shipmentId, String customerId, String warehouseId) {
 
 		List<ShipmentLines> shipmentLinesList = shipmentLinesRepo.getShipmentLinesByShipmentId(shipmentId);
 
 		String message = "UPDATED_SUCCESSFULLY", shipmentLineId, itemId, itemUom;
-		int quantity, inventoryQuantity, shipShortageQuantity;
+		int shipQuantity, inventoryQuantity, shipShortageQuantity;
+		boolean hasShortage = false;
 
 		for (ShipmentLines sl : shipmentLinesList) {
 			itemId = sl.getItemId();
 			itemUom = sl.getItemUom();
-			quantity = sl.getQuantity();
+			shipQuantity = sl.getQuantity();
 			shipShortageQuantity = sl.getShortageQuantity();
 			shipmentLineId = sl.getShipmentLineId();
 
+			// get the qty for the combination of cust, item, uom, warehouse.
+			// if inventory exists and valid non-zero number is found then fine, else
+			// consider it as 0... this is also implemented in sql using COALESCE
 			inventoryQuantity = inventoryRepo.getInventoryDetailsToVerifyAvailabilityBeforeUpdatingShipmentStatus(
-					customerId, itemId, itemUom, warehouseId);
+					customerId, itemId, itemUom, warehouseId).orElse(0); //
 
-			if (quantity > inventoryQuantity) {
-				sl.setShortageQuantity(quantity - inventoryQuantity);
+			if (shipQuantity > inventoryQuantity) {
+				sl.setShortageQuantity(shipQuantity - inventoryQuantity);
 				shipmentLinesRepo.save(sl);
 				message = "HAS_SHORTAGE";
+				hasShortage = true;
 
 				log.info(
-						"(quantity > inventoryQuantity) for shipmentLineId, itemId, itemUom :: quantity & inventoryQuantity{} → "
-								+ shipmentLineId + ", " + itemId + ", " + itemUom + ", " + quantity + ", "
-								+ inventoryQuantity);
+						"(quantity > inventoryQuantity) for shipmentLineId, customerId, itemId, itemUom, warehouseId :: shipQuantity & inventoryQuantity{} → "
+								+ shipmentLineId + ", " + customerId + ", " + itemId + ", " + itemUom + ", "
+								+ warehouseId + " :: " + shipQuantity + ", " + inventoryQuantity);
 			} else {
 				if (shipShortageQuantity > 0) {
 					sl.setShortageQuantity(0);
 					shipmentLinesRepo.save(sl);
-					
+
 					log.info(
-							"(shortage cleared for shipmentLineId, itemId, itemUom :: quantity & inventoryQuantity & shipShortageQuantity{} → "
-									+ shipmentLineId + ", " + itemId + ", " + itemUom + ", " + quantity + ", "
-									+ inventoryQuantity + ", "+shipShortageQuantity);
+							"(shortage cleared for shipmentLineId, customerId, itemId, itemUom, warehouseId :: shipQuantity & inventoryQuantity & shipShortageQuantity{} → "
+									+ shipmentLineId + ", " + customerId + ", " + itemId + ", " + itemUom + ", "
+									+ warehouseId + ", " + shipQuantity + ", " + inventoryQuantity + ", "
+									+ shipShortageQuantity);
 				}
 			}
 
 		}
 
-		log.info("checkForInventoryAvailabilityBeforeUpdatingShipmentStatus() message → ", message);
+		log.info("hasShortageToUpdateShipmentStatus() message → ", message);
 
-		return message;
+		return hasShortage;
+	}
+
+	public String setHasShortageForShipmentId(String shipmentId, String flagValue) {
+
+		Shipments shipment = shipmentsRepo.findById(shipmentId).get();
+
+		try {
+			if (!(shipment == null)) {
+				shipment.setHasShortage(flagValue);
+				shipmentsRepo.save(shipment);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			return "FAILED DUE TO " + e.getMessage();
+		}
+
+		return "SUCCESS";
+
 	}
 
 }

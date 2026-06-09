@@ -81,7 +81,7 @@ public class MyCustomUtils {
 
 		String formattedAddress = sb.toString();
 
-		MyCustomUtils.calculateDistance(0, 0, 0, 0);
+		MyCustomUtils.calculateDistance(0.0, 0.0, 0.0, 0.0);
 
 		double distance = MyCustomUtils.calculateDistance(12.9716, 77.5946, // Bangalore
 				13.0827, 80.2707 // Chennai
@@ -94,7 +94,7 @@ public class MyCustomUtils {
 
 	private final static ObjectMapper mapper = new ObjectMapper();
 
-	public static double[] getCoordinates(String pincode) throws Exception {
+	public static Double[] getCoordinates(String pincode) throws Exception {
 		
 		System.out.println("Calling getCoordinates(pincode): "+pincode);
 
@@ -113,25 +113,25 @@ public class MyCustomUtils {
 		JsonNode root = mapper.readTree(response.body());
 
 		if (!root.isArray() || root.isEmpty()) {
-			return new double[] { 0, 0 };
+			return new Double[] { 0.0, 0.0 };
 		}
 
 		JsonNode first = root.get(0);
 
-		return new double[] { first.get("lat").asDouble(), first.get("lon").asDouble() };
+		return new Double[] { first.get("lat").asDouble(), first.get("lon").asDouble() };
 	}
 	
-	public static double calculateDistance(double lat1, double lon1, double lat2, double lon2) {
+	public static Double calculateDistance(Double lat1, Double lon1, Double lat2, Double lon2) {
 
 		final int EARTH_RADIUS_KM = 6371;
 
-		double latDistance = Math.toRadians(lat2 - lat1);
-		double lonDistance = Math.toRadians(lon2 - lon1);
+		Double latDistance = Math.toRadians(lat2 - lat1);
+		Double lonDistance = Math.toRadians(lon2 - lon1);
 
-		double a = Math.sin(latDistance / 2) * Math.sin(latDistance / 2) + Math.cos(Math.toRadians(lat1))
+		Double a = Math.sin(latDistance / 2) * Math.sin(latDistance / 2) + Math.cos(Math.toRadians(lat1))
 				* Math.cos(Math.toRadians(lat2)) * Math.sin(lonDistance / 2) * Math.sin(lonDistance / 2);
 
-		double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+		Double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 
 		return EARTH_RADIUS_KM * c;
 	}

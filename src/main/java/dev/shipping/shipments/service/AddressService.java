@@ -79,7 +79,7 @@ public class AddressService {
 			address.setAddressHash(addrHash);
 			System.out.println("Before getCoordinates");
 
-			double[] coordinates = MyCustomUtils.getCoordinates(address.getZipCode());
+			Double[] coordinates = MyCustomUtils.getCoordinates(address.getZipCode());
 
 			System.out.println("After getCoordinates");
 			

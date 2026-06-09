@@ -17,13 +17,11 @@ body {
 
 /* ── STICKY NAVBAR ── */
 /* Targets the Thymeleaf-replaced navbar fragment container */
-body > div:first-child,
-body > nav:first-child,
-body > header:first-child {
+body>div:first-child, body>nav:first-child, body>header:first-child {
 	position: sticky;
 	top: 0;
 	z-index: 999;
-	box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 #msgBox {
@@ -32,12 +30,60 @@ body > header:first-child {
 	border-radius: 10px;
 	font-weight: bold;
 	position: relative;
-	box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
+}
+
+/* ── SHORTAGE WARNING BANNER ── */
+.shortage-warning-banner {
+	background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+	border-left: 5px solid #dc2626;
+	padding: 0;
+	margin: 0;
+	position: sticky;
+	top: 8%;
+	z-index: 998;
+	box-shadow: 0 4px 12px rgba(220, 38, 38, 0.2);
+}
+
+.shortage-banner-content {
+	display: flex;
+	align-items: center;
+	gap: 14px;
+	padding: 14px 28px;
+	max-width: 1600px;
+	margin: 0 auto;
+}
+
+.shortage-icon {
+	font-size: 1.4rem;
+	flex-shrink: 0;
+}
+
+.shortage-text {
+	color: #991b1b;
+	font-weight: 600;
+	font-size: 0.95rem;
+	line-height: 1.5;
+	flex: 1;
+}
+
+.shortage-close {
+	color: #991b1b;
+	font-size: 1.2rem;
+	cursor: pointer;
+	flex-shrink: 0;
+	transition: all 0.2s ease;
+	padding: 4px 8px;
+}
+
+.shortage-close:hover {
+	background: rgba(153, 27, 27, 0.1);
+	border-radius: 4px;
 }
 
 .page-content {
 	padding: 18px 28px 32px;
-	max-width: 1200px;
+	max-width: 1600px;
 	margin: 0 auto;
 }
 
@@ -60,7 +106,8 @@ body > header:first-child {
 .details-card {
 	background: #fff;
 	border-radius: 14px;
-	box-shadow: 0 1px 4px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.06);
+	box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06), 0 4px 16px
+		rgba(0, 0, 0, 0.06);
 	padding: 22px 28px;
 	margin-bottom: 18px;
 }
@@ -82,8 +129,54 @@ body > header:first-child {
 	gap: 0 32px;
 }
 
-@media (max-width: 900px) {
-	.info-grid { grid-template-columns: repeat(2, 1fr); }
+/* ── NEW 3-COLUMN LAYOUT FOR SHIPMENT INFO ── */
+.info-cards-container {
+	display: grid;
+	grid-template-columns: repeat(3, 1fr);
+	gap: 18px;
+	margin-bottom: 18px;
+}
+
+.info-card {
+	background: #fff;
+	border-radius: 12px;
+	padding: 18px;
+	border: 1px solid #e2e8f0;
+	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.info-card .section-title {
+	margin: 0 0 12px;
+	font-size: 0.65rem;
+	font-weight: 800;
+	text-transform: uppercase;
+	letter-spacing: 0.12em;
+	color: #94a3b8;
+	border-bottom: 1px solid #e2e8f0;
+	padding-bottom: 8px;
+}
+
+.info-card .info-field {
+	margin-bottom: 12px;
+}
+
+.info-card .info-field:last-child {
+	margin-bottom: 0;
+}
+
+@media ( max-width : 1200px) {
+	.info-cards-container {
+		grid-template-columns: repeat(2, 1fr);
+	}
+}
+
+@media ( max-width : 768px) {
+	.info-cards-container {
+		grid-template-columns: 1fr;
+	}
+	.info-grid {
+		grid-template-columns: repeat(2, 1fr);
+	}
 }
 
 .info-field {
@@ -122,7 +215,7 @@ body > header:first-child {
 	display: inline-block;
 	padding: 5px 14px;
 	border-radius: 12px;
-	font-size: 0.82rem;
+	font-size: 0.9rem;
 	font-weight: 700;
 }
 
@@ -155,7 +248,8 @@ body > header:first-child {
 .action-card {
 	background: #fff;
 	border-radius: 14px;
-	box-shadow: 0 1px 4px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.06);
+	box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06), 0 4px 16px
+		rgba(0, 0, 0, 0.06);
 	padding: 20px 28px;
 	margin-bottom: 18px;
 }
@@ -207,8 +301,8 @@ body > header:first-child {
 }
 
 .btn-cancel {
-	background: #fee2e2;
-	color: #991b1b;
+	background: #e46c6c;
+	color: #fefefe;
 	border: none;
 	font-weight: 700;
 	font-size: 0.88rem;
@@ -220,9 +314,9 @@ body > header:first-child {
 
 .btn-audit {
 	display: inline-block;
-	background: #f1f5f9;
+	background: #d8e4f0;
 	color: #374151;
-	border: 1.5px solid #cbd5e1;
+	border: none;
 	font-weight: 700;
 	font-size: 0.88rem;
 	padding: 10px 22px;
@@ -359,7 +453,70 @@ button:disabled {
 	cursor: not-allowed;
 }
 
-/* ── CANCEL MODAL specifics ── */
+/* ── ACTION BUTTONS WITH TOOLTIPS ── */
+.action-button-wrapper {
+	position: relative;
+	display: inline-block;
+}
+
+.action-button-wrapper:hover .action-tooltip, button:disabled:hover ~
+	.action-tooltip {
+	visibility: visible;
+	opacity: 1;
+}
+
+.action-tooltip {
+	visibility: hidden;
+	opacity: 0;
+	background: #1e293b;
+	color: #fff;
+	padding: 8px 12px;
+	border-radius: 7px;
+	font-size: 0.75rem;
+	white-space: nowrap;
+	position: absolute;
+	bottom: 120%;
+	left: 50%;
+	transform: translateX(-50%);
+	z-index: 100;
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+	pointer-events: none;
+	transition: opacity 0.2s ease, visibility 0.2s ease;
+	font-weight: 600;
+}
+
+.action-tooltip::after {
+	content: '';
+	position: absolute;
+	top: 100%;
+	left: 50%;
+	transform: translateX(-50%);
+	border: 5px solid transparent;
+	border-top-color: #1e293b;
+}
+
+.btn-check-inventory {
+	background: #8781e7;
+	color: #fff;
+	font-weight: 700;
+	font-size: 0.9rem;
+padding: 10px 22px;	border: none;
+	border-radius: 8px;
+	cursor: pointer;
+	transition: all 0.2s ease;
+	box-shadow: 0 2px 8px rgba(99, 102, 241, 0.25);
+	display: none;
+}
+
+.btn-check-inventory:hover {
+	transform: translateY(-2px);
+	box-shadow: 0 4px 12px rgba(99, 102, 241, 0.35);
+}
+
+.btn-check-inventory.show {
+	display: inline-block;
+}
+
 #cancelReasonInput {
 	width: 100%;
 	padding: 9px 12px;
@@ -584,11 +741,152 @@ table.lines-table input, table.lines-table select {
 	color: var(--color-text-secondary);
 	margin: 0 0 18px
 }
+
+.shipment-overview-card {
+	padding: 26px 30px;
+}
+
+.shipment-header {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 26px;
+	padding-bottom: 18px;
+	border-bottom: 1px solid #e2e8f0;
+}
+
+.shipment-label {
+	font-size: .72rem;
+	text-transform: uppercase;
+	color: #94a3b8;
+	font-weight: 700;
+	letter-spacing: .08em;
+}
+
+.shipment-id {
+	font-size: 1.25rem;
+	font-weight: 800;
+	color: #1e293b;
+	margin-top: 4px;
+}
+
+.overview-grid {
+	display: grid;
+	grid-template-columns: 1.1fr 1fr 1.2fr;
+	gap: 22px;
+}
+
+.overview-panel {
+	background: #f8fafc;
+	border: 1px solid #e2e8f0;
+	border-radius: 12px;
+	padding: 20px;
+}
+
+.panel-title {
+	font-size: .78rem;
+	text-transform: uppercase;
+	font-weight: 800;
+	letter-spacing: .08em;
+	color: #64748b;
+	margin-bottom: 18px;
+}
+
+.detail-row {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	padding: 12px 0;
+	border-bottom: 1px solid #e2e8f0;
+}
+
+.detail-row:last-child {
+	border-bottom: none;
+}
+
+.detail-row span:first-child {
+	color: #64748b;
+	font-size: .9rem;
+}
+
+.timeline {
+	position: relative;
+}
+
+.timeline-item {
+	display: flex;
+	gap: 14px;
+	align-items: flex-start;
+}
+
+.timeline-dot {
+	width: 12px;
+	height: 12px;
+	border-radius: 50%;
+	background: #3b82f6;
+	margin-top: 5px;
+	flex-shrink: 0;
+}
+
+.timeline-dot.secondary {
+	background: #10b981;
+}
+
+.timeline-line {
+	width: 2px;
+	height: 40px;
+	background: #cbd5e1;
+	margin-left: 5px;
+	margin-top: 4px;
+	margin-bottom: 4px;
+}
+
+.timeline-title {
+	font-weight: 700;
+	color: #1e293b;
+}
+
+.timeline-date {
+	color: #64748b;
+	font-size: .88rem;
+	margin-top: 3px;
+}
+
+.address-card {
+	background: white;
+	border-radius: 10px;
+	padding: 16px;
+	border: 1px dashed #cbd5e1;
+	line-height: 1.8;
+	color: #334155;
+	min-height: 120px;
+}
+
+@media ( max-width :1100px) {
+	.overview-grid {
+		grid-template-columns: 1fr;
+	}
+}
 </style>
 </head>
 <body>
 
+
 	<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+	<div id="shortageWarningBanner" class="shortage-warning-banner"
+		style="display: none;">
+		<div class="shortage-banner-content">
+			<span class="shortage-icon">⚠️</span> <span class="shortage-text">Shipment
+				has shortage of inventory. <br /> <span
+				style="color: #4a6fa5; font-weight: bold; border-bottom: 1px dashed #4a6fa5; cursor: pointer"
+				onclick="checkInventoryAvailability()">Check Inventory
+					Availability</span> to view if the shortage inventory is fixed
+			</span> <span class="shortage-close"
+				onclick="this.parentElement.parentElement.style.display='none'">✕</span>
+		</div>
+	</div>
+
 
 	<p th:if="${msg}" id="msgBox" th:data-autohide="${autoHide}"
 		th:style="'background:' + ${bgColor} + '; color:' + ${textColor} + ';'">
@@ -604,7 +902,9 @@ table.lines-table input, table.lines-table select {
 		</div>
 
 		<input type="hidden" id="shipmentId__1"
-			th:value="${shipment.shipmentId}" />
+			th:value="${shipment.shipmentId}" /> <input type="hidden"
+			id="hasShortage" th:value="${shipment.hasShortage}" /> <input
+			type="hidden" id="shipStatus" th:value="${shipment.shipStatus}" />
 
 		<!-- ── ACTIONS CARD ── -->
 		<div class="action-card"
@@ -623,33 +923,38 @@ table.lines-table input, table.lines-table select {
 
 				<!-- PICK -->
 				<form th:if="${shipment.shipStatus == 1100}"
-					th:action="@{/shipments/updateShipmentStatus}" method="post">
+					th:action="@{/shipments/updateShipmentStatus}" method="post"
+					class="action-button-wrapper">
 					<input type="hidden" name="shipmentId"
 						th:value="${shipment.shipmentId}" /> <input type="hidden"
 						name="shipStatus" th:value="${shipment.shipStatus}" /> <input
 						type="hidden" name="customerId" th:value="${shipment.customerId}" />
 					<input type="hidden" name="warehouseId"
 						th:value="${shipment.warehouseId}" />
-					<button type="submit" name="action" value="PICK" class="btn-pick">📦
-						Start Picking</button>
+					<button type="submit" name="action" value="PICK" class="btn-pick"
+						id="btnPick">📦 Start Picking</button>
+					<span class="action-tooltip" id="pickTooltip"></span>
 				</form>
 
 				<!-- PACK -->
 				<form th:if="${shipment.shipStatus == 1200}"
-					th:action="@{/shipments/updateShipmentStatus}" method="post">
+					th:action="@{/shipments/updateShipmentStatus}" method="post"
+					class="action-button-wrapper">
 					<input type="hidden" name="shipmentId"
 						th:value="${shipment.shipmentId}" /> <input type="hidden"
 						name="shipStatus" th:value="${shipment.shipStatus}" /> <input
 						type="hidden" name="customerId" th:value="${shipment.customerId}" />
 					<input type="hidden" name="warehouseId"
 						th:value="${shipment.warehouseId}" />
-					<button type="submit" name="action" value="PACK" class="btn-pack">📫
-						Pack Shipment</button>
+					<button type="submit" name="action" value="PACK" class="btn-pack"
+						id="btnPack">📫 Pack Shipment</button>
+					<span class="action-tooltip" id="packTooltip"></span>
 				</form>
 
 				<!-- SHIP -->
 				<form th:if="${shipment.shipStatus == 1300}"
-					th:action="@{/shipments/updateShipmentStatus}" method="post">
+					th:action="@{/shipments/updateShipmentStatus}" method="post"
+					class="action-button-wrapper">
 					<input type="hidden" name="shipmentId"
 						th:value="${shipment.shipmentId}" /> <input type="hidden"
 						name="shipStatus" th:value="${shipment.shipStatus}" /> <input
@@ -657,15 +962,24 @@ table.lines-table input, table.lines-table select {
 					<input type="hidden" name="warehouseId"
 						th:value="${shipment.warehouseId}" />
 					<button type="submit" name="action" value="SHIP" class="btn-ship"
+						id="btnShip"
 						onclick="return confirm('Are you sure you want to SHIP this shipment?')">🚢
 						Ship Shipment</button>
+					<span class="action-tooltip" id="shipTooltip"></span>
 				</form>
 
-				<!-- CANCEL — opens modal -->
-				<button type="button" class="btn-cancel" id="openCancelModal">✕
-					Cancel Shipment</button>
+				<!-- CHECK INVENTORY AVAILABILITY — only shows if Has Shortage = Y -->
+				<button type="button" class="btn-check-inventory"
+					id="btnCheckInventory" onclick="checkInventoryAvailability()">🔍
+					Check Inventory Availability</button>
 
-				<!-- VIEW AUDIT — opens modal -->
+				<!-- CANCEL — opens modal -->
+				<div class="action-button-wrapper">
+					<button type="button" class="btn-cancel" id="openCancelModal">✕
+						Cancel Shipment</button>
+				</div>
+
+				<!-- VIEW AUDIT — opens modal (ALWAYS ENABLED) -->
 				<button type="button" class="btn-audit" id="openAuditModal">📋
 					View Shipment Audit</button>
 
@@ -683,68 +997,207 @@ table.lines-table input, table.lines-table select {
 		</div>
 
 		<!-- ── INFO CARD ── -->
+		<!-- <div class="details-card">
+			<div class="info-cards-container">
+				COLUMN 1: Basic Shipment Info
+				<div class="info-card">
+					<div class="section-title">📦 Shipment Details</div>
+
+					<div class="info-field">
+						<div class="field-label">Shipment ID</div>
+						<div class="field-value" th:text="${shipment.shipmentId}">SHP-001</div>
+					</div>
+
+					<div class="info-field">
+						<div class="field-label">Customer</div>
+						<div class="field-value cell-link">
+							<a target="_blank"
+								th:href="@{'/customers/showCustomerDetails/' + ${shipment.customerId}}"
+								th:text="${shipment.customerId}"></a>
+						</div>
+					</div>
+
+					<div class="info-field">
+						<div class="field-label">Warehouse</div>
+						<div class="field-value cell-link">
+							<a target="_blank"
+								th:href="@{'/warehouses/showWarehouseDetails/' + ${shipment.warehouseId}}"
+								th:text="${shipment.warehouseId}"></a>
+						</div>
+					</div>
+
+					<div class="info-field">
+						<div class="field-label">Status</div>
+						<div class="field-value">
+							<span th:switch="${shipment.shipStatus}"> <span
+								th:case="1100" class="badge s-1100">1100 — Created</span> <span
+								th:case="1200" class="badge s-1200">1200 — Picked</span> <span
+								th:case="1300" class="badge s-1300">1300 — Packed</span> <span
+								th:case="1400" class="badge s-1400">1400 — Shipped</span> <span
+								th:case="9000" class="badge s-9000">9000 — Cancelled</span> <span
+								th:case="*" class="badge s-1100"
+								th:text="|${shipment.shipStatus} — Unknown|"></span>
+							</span>
+						</div>
+					</div>
+
+					<div class="info-field">
+						<div class="field-label">Has Shortage</div>
+						<div class="field-value" id="hasShortageField">
+							<span th:if="${shipment.hasShortage == 'Y'}" class="badge s-9000">Y
+								— Yes</span> <span th:if="${shipment.hasShortage == 'N'}"
+								class="badge s-1400">N — No</span> <span
+								th:unless="${shipment.hasShortage == 'Y' or shipment.hasShortage == 'N'}"
+								class="badge s-1100">Unknown</span>
+						</div>
+					</div>
+				</div>
+
+				COLUMN 2: Timestamps
+				<div class="info-card">
+					<div class="section-title">⏱️ Timeline</div>
+
+					<div class="info-field">
+						<div class="field-label">Created At</div>
+						<div class="field-value" th:text="${shipment.createdAt}"></div>
+					</div>
+
+					<div class="info-field">
+						<div class="field-label">Modified At</div>
+						<div class="field-value" th:text="${shipment.modifiedAt}"></div>
+					</div>
+				</div>
+
+				COLUMN 3: Delivery Address
+				<div class="info-card">
+					<div class="section-title">📍 Delivery Address</div>
+
+					<div class="info-field">
+						<div class="field-value" th:utext="${address}"></div>
+					</div>
+				</div>
+			</div>
+		</div>
+ -->
 		<div class="details-card">
-			<div class="section-title">Shipment Information</div>
-			<div class="info-grid">
 
-				<div class="info-field">
-					<div class="field-label">Shipment ID</div>
-					<div class="field-value" th:text="${shipment.shipmentId}">SHP-001</div>
-				</div>
+			<div class="details-card shipment-overview-card">
 
-				<div class="info-field">
-					<div class="field-label">Customer</div>
-					<div class="field-value cell-link">
-						<a target="_blank"
-							th:href="@{'/customers/showCustomerDetails/' + ${shipment.customerId}}"
-							th:text="${shipment.customerId}"></a>
+				<div class="shipment-header">
+					<div>
+						<div class="shipment-label">Shipment</div>
+						<div class="shipment-id" th:text="${shipment.shipmentId}">
+							SHP001</div>
 					</div>
-				</div>
 
-				<div class="info-field">
-					<div class="field-label">Warehouse</div>
-					<div class="field-value cell-link">
-						<a target="_blank"
-							th:href="@{'/warehouses/showWarehouseDetails/' + ${shipment.warehouseId}}"
-							th:text="${shipment.warehouseId}"></a>
-					</div>
-				</div>
-
-				<div class="info-field">
-					<div class="field-label">Status</div>
-					<div class="field-value">
+					<div>
 						<span th:switch="${shipment.shipStatus}"> <span
-							th:case="1100" class="badge s-1100">1100 — Created</span> <span
-							th:case="1200" class="badge s-1200">1200 — Picked</span> <span
-							th:case="1300" class="badge s-1300">1300 — Packed</span> <span
-							th:case="1400" class="badge s-1400">1400 — Shipped</span> <span
-							th:case="9000" class="badge s-9000">9000 — Cancelled</span> <span
-							th:case="*" class="badge s-1100"
-							th:text="|${shipment.shipStatus} — Unknown|"></span>
+							th:case="1100" class="badge s-1100">Created</span> <span
+							th:case="1200" class="badge s-1200">Picked</span> <span
+							th:case="1300" class="badge s-1300">Packed</span> <span
+							th:case="1400" class="badge s-1400">Shipped</span> <span
+							th:case="9000" class="badge s-9000">Cancelled</span>
 						</span>
 					</div>
 				</div>
 
-				<div class="info-field">
-					<div class="field-label">Created At</div>
-					<div class="field-value" th:text="${shipment.createdAt}"></div>
-				</div>
+				<div class="overview-grid">
 
-				<div class="info-field">
-					<div class="field-label">Modified At</div>
-					<div class="field-value" th:text="${shipment.modifiedAt}"></div>
-				</div>
-				
-				<div class="info-field">
-					<div class="field-label">Delivery Address</div>
-					<div class="field-value" th:utext="${address}"></div>
+					<!-- Shipment Info -->
+					<div class="overview-panel">
+
+						<div class="panel-title">📦 Shipment Details</div>
+
+
+						<div class="detail-row">
+							<span>Customer</span>
+							<div class="cell-link">
+								<a target="_blank"
+									th:href="@{'/customers/showCustomerDetails/' + ${shipment.customerId}}"
+									th:text="${shipment.customerId}"> </a>
+							</div>
+						</div>
+
+						<div class="detail-row">
+							<span>Warehouse</span>
+							<div class="cell-link">
+								<a target="_blank"
+									th:href="@{'/warehouses/showWarehouseDetails/' + ${shipment.warehouseId}}"
+									th:text="${shipment.warehouseId}"> </a>
+							</div>
+						</div>
+
+						<div class="detail-row">
+							<span>Status</span> <span th:switch="${shipment.shipStatus}">
+								<span th:case="1100" class="badge s-1100">Created</span> <span
+								th:case="1200" class="badge s-1200">Picked</span> <span
+								th:case="1300" class="badge s-1300">Packed</span> <span
+								th:case="1400" class="badge s-1400">Shipped</span> <span
+								th:case="9000" class="badge s-9000">Cancelled</span>
+							</span>
+						</div>
+
+						<div class="detail-row">
+							<span>Inventory Shortage</span> <span
+								th:if="${shipment.hasShortage == 'Y'}" class="badge s-9000">
+								Yes </span> <span th:if="${shipment.hasShortage == 'N'}"
+								class="badge s-1400"> No </span>
+						</div>
+
+					</div>
+
+					<!-- Timeline -->
+					<div class="overview-panel">
+
+						<div class="panel-title">⏱ Shipment Timeline</div>
+
+						<div class="timeline">
+
+							<div class="timeline-item">
+								<div class="timeline-dot"></div>
+
+								<div>
+									<div class="timeline-title">Created</div>
+
+									<div class="timeline-date" th:text="${shipment.createdAt}">
+									</div>
+								</div>
+							</div>
+
+							<div class="timeline-line"></div>
+
+							<div class="timeline-item">
+								<div class="timeline-dot secondary"></div>
+
+								<div>
+									<div class="timeline-title">Last Updated</div>
+
+									<div class="timeline-date" th:text="${shipment.modifiedAt}">
+									</div>
+								</div>
+							</div>
+
+						</div>
+
+					</div>
+
+					<!-- Address -->
+					<div class="overview-panel">
+
+						<div class="panel-title">📍 Delivery Address</div>
+
+						<div class="address-card" th:utext="${address}"></div>
+
+					</div>
+
 				</div>
 
 			</div>
+
 		</div>
 
 		<div class="lines-table-wrap details-card">
-		<!-- <div class="section-title">Shipment Lines</div>
+			<!-- <div class="section-title">Shipment Lines</div>
 			<div class="info-grid"> -->
 			<table class="lines-table info-field " id="linesTable">
 				<thead>
@@ -757,8 +1210,9 @@ table.lines-table input, table.lines-table select {
 					</tr>
 				</thead>
 				<tbody id="linesBody" style="text-align: center;">
-<!-- 					  <tr><td th:text="${shipmentLines}"></td></tr>  
- -->					<tr th:each="sl : ${shipmentLines}">
+					<!-- 					  <tr><td th:text="${shipmentLines}"></td></tr>  
+ -->
+					<tr th:each="sl : ${shipmentLines}">
 						<td><div class="readonly-value" th:text="${sl.lineNo}">1</div></td>
 
 						<input type="hidden" name="shipmentLineId" id="shipmentLineId"
@@ -772,11 +1226,9 @@ table.lines-table input, table.lines-table select {
 						</td>
 						<td><div class="readonly-value" th:text="${sl.quantity}">1</div></td>
 						</td>
-						<td>
-							<span th:classappend="${sl.shortageQuantity == 0} ? 'shortage-zero' : 'shortage-nonzero'"
-								  class="shortage-pill"
-								  th:text="${sl.shortageQuantity}">0</span>
-						</td>
+						<td><span
+							th:classappend="${sl.shortageQuantity == 0} ? 'shortage-zero' : 'shortage-nonzero'"
+							class="shortage-pill" th:text="${sl.shortageQuantity}">0</span></td>
 					</tr>
 				</tbody>
 			</table>
@@ -883,14 +1335,130 @@ table.lines-table input, table.lines-table select {
 
     // ── disable buttons if needed ──
     document.addEventListener("DOMContentLoaded", function () {
+      // ── FIRST: CHECK HAS SHORTAGE (priority logic) ──
+      const hasShortage = document.getElementById('hasShortage').value;
+      const shipStatus = document.getElementById('shipStatus').value;
+
+      if (hasShortage === 'Y') {
+        // Shortage detected - disable actions, show Check Inventory, show banner
+        disableActionsForShortage();
+        showCheckInventoryButton();
+        if(shipStatus < 1400){
+        	showShortageBanner();
+        }
+      } else {
+        // No shortage - enable actions, hide Check Inventory, hide banner
+        enableActionsForShortage();
+        hideCheckInventoryButton();
+        hideShortageBanner();
+      }
+      
+      // ── THEN: Check if customer is inactive (general disable) ──
       var disable = document.getElementById("disableButtonActions");
       if (disable && disable.value === "true") {
-        document.querySelectorAll("button:not(.modal-close-x):not(.btn-modal-cancel):not(.btn-modal-close)").forEach(btn => {
+        // Only disable if not already managed by shortage logic
+        const shortageMsg = 'Action disabled — customer inactive or contract expired';
+        document.querySelectorAll("button:not(.modal-close-x):not(.btn-modal-cancel):not(.btn-modal-close):not(.btn-audit):not(#openAuditModal):not(#openAuditModalTerminal):not(#btnCheckInventory)").forEach(btn => {
           btn.disabled = true;
-          btn.title = "Action disabled — customer inactive or contract expired";
+          btn.title = shortageMsg;
         });
       }
+      
+      // ── ALWAYS ENABLE: View Audit buttons ──
+      const auditBtn = document.getElementById('openAuditModal');
+      if (auditBtn) auditBtn.disabled = false;
+      
+      const auditBtnTerminal = document.getElementById('openAuditModalTerminal');
+      if (auditBtnTerminal) auditBtnTerminal.disabled = false;
     });
+
+    function enableActionsForShortage() {
+      // Clear any shortage-related disabling
+      const buttons = ['btnPick', 'btnPack', 'btnShip'];
+      
+      buttons.forEach(btnId => {
+        const btn = document.getElementById(btnId);
+        if (btn) {
+          btn.disabled = false;
+        }
+        // Clear tooltips
+        const tooltipMap = {
+          'btnPick': 'pickTooltip',
+          'btnPack': 'packTooltip',
+          'btnShip': 'shipTooltip'
+        };
+        
+        const tooltipId = tooltipMap[btnId];
+        if (tooltipId) {
+          const tooltip = document.getElementById(tooltipId);
+          if (tooltip) {
+            tooltip.textContent = '';
+          }
+        }
+      });
+    }
+
+    function disableActionsForShortage() {
+      const shortageMsg = 'Shipment has Shortage, verify the inventory availability before processing it';
+      
+      // Map button IDs to their tooltips (EXCLUDING Cancel button)
+      const buttonTooltipMap = {
+        'btnPick': 'pickTooltip',
+        'btnPack': 'packTooltip',
+        'btnShip': 'shipTooltip'
+        // Note: openCancelModal is NOT included - it stays enabled
+      };
+      
+      Object.entries(buttonTooltipMap).forEach(([btnId, tooltipId]) => {
+        const btn = document.getElementById(btnId);
+        if (btn) {
+          btn.disabled = true;
+        }
+        const tooltip = document.getElementById(tooltipId);
+        if (tooltip) {
+          tooltip.textContent = shortageMsg;
+        }
+      });
+    }
+
+    function showCheckInventoryButton() {
+      const btn = document.getElementById('btnCheckInventory');
+      if (btn) {
+        btn.classList.add('show');
+      }
+    }
+
+    function hideCheckInventoryButton() {
+      const btn = document.getElementById('btnCheckInventory');
+      if (btn) {
+        btn.classList.remove('show');
+      }
+    }
+
+    function showShortageBanner() {
+      const banner = document.getElementById('shortageWarningBanner');
+      if (banner) {
+        banner.style.display = 'block';
+      }
+    }
+
+    function hideShortageBanner() {
+      const banner = document.getElementById('shortageWarningBanner');
+      if (banner) {
+        banner.style.display = 'none';
+      }
+    }
+
+    function checkInventoryAvailability() {
+        const shipmentId = document.getElementById('shipmentId').value;
+        const customerId = document.getElementById('customerId').value;
+        const warehouseId = document.getElementById('warehouseId').value;
+
+        window.location.href =
+            `/shipments/checkInventoryAvailabilityBeforeProcessingShipment/${shipmentId}` +
+            `?customerId=${encodeURIComponent(customerId)}` +
+            `&warehouseId=${encodeURIComponent(warehouseId)}`;
+    }
 
     // ══ CANCEL MODAL ══
     const openCancelBtn = document.getElementById('openCancelModal');

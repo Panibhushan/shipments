@@ -8,6 +8,7 @@ import dev.shipping.shipments.service.CustomersService;
 import dev.shipping.shipments.service.ShipmentLinesService;
 import dev.shipping.shipments.service.ShipmentsService;
 import dev.shipping.shipments.service.WarehousesService;
+import dev.shipping.shipments.repo.ShipmentsRepository;
 
 import java.util.List;
 import java.util.Map;
@@ -45,12 +46,16 @@ public class ShipmentsController {
 	private final WarehousesService warehousesService;
 	private final ShipmentLinesService shipmentLinesService;
 
+	private final ShipmentsRepository shipmentsRepo;
+
 	public ShipmentsController(ShipmentsService shipmentsService, CustomersService customersService,
-			WarehousesService warehousesService, ShipmentLinesService shipmentLinesService) {
+			WarehousesService warehousesService, ShipmentLinesService shipmentLinesService,
+			ShipmentsRepository shipmentsRepo) {
 		this.shipmentsService = shipmentsService;
 		this.customersService = customersService;
 		this.warehousesService = warehousesService;
 		this.shipmentLinesService = shipmentLinesService;
+		this.shipmentsRepo = shipmentsRepo;
 	}
 
 	// ─────────────────────────────────────────────
@@ -209,6 +214,8 @@ public class ShipmentsController {
 
 		if (shipment.isEmpty()) {
 			log.warn("Shipment not found: {}", shipmentId);
+			redirectAttributes.addFlashAttribute("bgColor", "#d95f6c");
+			redirectAttributes.addFlashAttribute("textColor", "#ffffff");
 			redirectAttributes.addFlashAttribute("msg", "Shipment " + shipmentId + " doesn't exist!");
 			return "redirect:/shipments/";
 		}
@@ -220,7 +227,7 @@ public class ShipmentsController {
 		model.addAttribute("shipment", shipment.get());
 		model.addAttribute("address", MyCustomUtils.getFormattedAddress(address.get()));
 		model.addAttribute("shipmentLines", shipmentLinesService.getShipmentLinesByShipmentId(shipmentId));
-		return "show-shipment-details-with-lines";
+		return "show-shipment-details-with-lines-and-address";
 	}
 
 	// ─────────────────────────────────────────────
@@ -298,14 +305,62 @@ public class ShipmentsController {
 	 */
 	@PostMapping("/shipments/checkInventoryAvailability")
 	@ResponseBody
-	public List<Map<String, String>> checkInventoryAvailability(@RequestParam String customerId,
+	public List<Map<String, String>> checkInventoryAvailability(@RequestParam String customerId, @RequestParam String zipCode,
 			@RequestBody List<ShipmentLines> lines) {
 
-		log.info("POST /shipments/checkInventoryAvailability → customerId={}, lineCount={}", customerId, lines.size());
-		List<Map<String, String>> result = shipmentsService.checkInventoryAvailability(customerId, lines);
+		log.info("POST /shipments/checkInventoryAvailability → customerId={}, zipCode={}, lineCount={}", customerId, zipCode, lines.size());
+		List<Map<String, String>> result = shipmentsService.checkInventoryAvailability(customerId, lines, zipCode);
 		log.info("Inventory check for customerId={} returned {} warehouse-line combination(s)", customerId,
 				result.size());
 		return result;
+	}
+
+	/**
+	 * checks inventory availability for a list of shipment lines when
+	 * pick/pack/ship action is performed.
+	 */
+	@GetMapping("/shipments/checkInventoryAvailabilityBeforeProcessingShipment/{shipmentId}")
+	public String checkInventoryAvailabilityBeforeProcessingShipment(@PathVariable String shipmentId,
+			@RequestParam String customerId, @RequestParam String warehouseId, RedirectAttributes redirectAttributes) {
+
+		log.info(
+				"POST /shipments/checkInventoryAvailabilityBeforeProcessingShipment → shipmentId={}, customerId={}, warehouseId={} ",
+				shipmentId, customerId, warehouseId);
+		boolean hasShortage = shipmentsService.hasShortageToUpdateShipmentStatus(shipmentId, customerId, warehouseId);
+		log.info(
+				"hasShortage={} retruned from Service to Controller check shipmentId={}, customerId={}, warehouseId={} ",
+				hasShortage, shipmentId, customerId, warehouseId);
+
+		String message = "Shipment Cannot be processed due to shortage of inventory. Refer shipment lines for shortage item & quantity.",
+				bgColor = "#d95f6c", textColor = "#ffffff";
+
+		// if no shortage was detected for any lines, we are changing hasShortage flag
+		// for shipment to N
+		if (!hasShortage) {
+
+			String result = shipmentsService.setHasShortageForShipmentId(shipmentId, "N");
+
+			if (result.equals("SUCCESS")) {
+				log.info(
+						"shipmentsService.setHasShortageForShipmentId has returned {} for setting HasShortage to N for shipmentId={} ",
+						result, shipmentId);
+				message = "Inventory available. You can process the shipemt now";
+				bgColor = "#d4edda";
+				textColor = "#155724";
+
+			} else {
+				log.error(
+						"shipmentsService.setHasShortageForShipmentId has returned error as ={} for setting HasShortage to N for shipmentId={} ",
+						result, shipmentId);
+			}
+
+		}
+
+		redirectAttributes.addFlashAttribute("bgColor", bgColor);
+		redirectAttributes.addFlashAttribute("textColor", textColor);
+		redirectAttributes.addFlashAttribute("msg", message);
+
+		return "redirect:/shipments/showShipmentDetails/" + shipmentId;
 	}
 
 	/**
@@ -367,18 +422,18 @@ public class ShipmentsController {
 
 	/**
 	 * Fetches the shipments that are allocated for a specific item and shows them
-	 **/	
+	 **/
 	@GetMapping("/shipments/showShipmentsAllocatedForItem/{itemCustomerUomWarehouseId}")
 	public String showShipmentsAllocatedForItem(@PathVariable String itemCustomerUomWarehouseId, Model model) {
 
 		log.info("ShipmentsController:: /shipments/showShipmentsAllocatedForItem/{itemCustomerUomWarehouseId}: "
 				+ itemCustomerUomWarehouseId);
 
-			String[] parts = itemCustomerUomWarehouseId.split("_");
-		    String itemId     = parts[0];
-		    String customerId = parts[1];
-		    String itemUom    = parts[2];
-		
+		String[] parts = itemCustomerUomWarehouseId.split("_");
+		String itemId = parts[0];
+		String customerId = parts[1];
+		String itemUom = parts[2];
+
 		List<Map<String, Object>> lmso = shipmentsService.getShipmentsAlloactedForItem(customerId, itemId, itemUom);
 
 		log.info("ShipmentsController:: /shipments/showShipmentsAllocatedForItem/: lmso: " + lmso.toString());
