@@ -834,7 +834,7 @@ table.lines-table input, table.lines-table select {
 				<!-- CUSTOMER SECTION -->
 				<div class="section-title">👤 Select Customer</div>
 				<select id="customerId"
-					onchange="validateCreateBtn(); validateCheckBtn();" required>
+					onchange="validateCreateBtn(); validateCheckBtn(); getCustomerItems();" required>
 					<option value="">— Select a Customer —</option>
 					<!-- 					<option value="TEST_CUST">TEST_CUST</option>
  -->
@@ -842,6 +842,10 @@ table.lines-table input, table.lines-table select {
 						th:text="|${c.customerId} = ${c.customerName}|"></option>
 				</select> <a href="/customers/goToCreateCustomerPage" class="helper-link">＋
 					Create new customer</a>
+					
+					<!-- <div id="customerItems" ></div></div> -->
+					
+					<datalist id="customerItemsList"></datalist>
 
 				<!-- ADDRESS SECTION (COLLAPSIBLE) -->
 				<div class="collapsible-section" id="addressSection">
@@ -1038,7 +1042,8 @@ table.lines-table input, table.lines-table select {
 		</div>
 	</div>
 
-	<script>
+	<script>		
+	
     const UOM_OPTIONS = ["EACH","MTR","CMTR","PAIR"];
     const MAX_LINES = 5;  // ← Change this value to allow different number of lines
     let lineCount   = 0;
@@ -1082,9 +1087,12 @@ table.lines-table input, table.lines-table select {
       tr.innerHTML = `
         <td>
           <input type="hidden" name="shipmentLineId[${ln}]" id="slid-${ln}" value="">
-          <input type="text" style="text-align:center;" name="itemId[${ln}]" id="item-${ln}"
-                 placeholder="e.g. SKU-001" 
-                 oninput="this.value=this.value.toUpperCase();updateLineId(${ln});validateCheckBtn();">
+          <input type="text"
+              name="itemId[${ln}]"
+              id="item-${ln}"
+              list="customerItemsList"
+              placeholder="Select Item"
+              oninput="this.value=this.value.toUpperCase();updateLineId(${ln});validateCheckBtn();">
         </td>
         <td><select name="itemUom[${ln}]" id="uom-${ln}" oninput="validateCheckBtn();">${uomSelectHtml()}</select></td>
         <td><input type="number" style="text-align:center;" name="quantity[${ln}]" id="quantity-${ln}"
@@ -1165,7 +1173,48 @@ table.lines-table input, table.lines-table select {
       document.getElementById('errorMsg').innerHTML = '';
       return lines;
     }
+ 
 
+	// This will get the items for the selected cutsomer and populated as a suggestion when entering the item-id
+	function getCustomerItems() {
+
+	    const customerId = document.getElementById("customerId").value.trim();
+	    const dataList = document.getElementById("customerItemsList");
+	    
+	    dataList.innerHTML = "";
+	    
+	    if(customerId === "") return;
+
+	    fetch(`/items/getCustomerItems?customerId=${encodeURIComponent(customerId)}`, {
+	        method: "POST"
+	    })
+	    .then(res => res.json())
+	    .then(items => {
+
+	        const dataList = document.getElementById("customerItemsList");
+
+	        dataList.innerHTML = "";
+
+	        items.forEach(item => {
+
+	            const option = document.createElement("option");
+
+	            option.value = item.itemId;
+
+	            // optional display text
+	            option.label = "Uom: "+item.itemUom+" | Description: "+item.itemDescription;
+
+	            dataList.appendChild(option);
+	        });
+
+	    })
+	    .catch(err => {
+	        console.error(err);
+	    });
+	}
+	
+    
+    
     /* ══ VALIDATE BOTH BUTTONS ══ */
     function validateCheckBtn() {
       const custId = document.getElementById('customerId').value;

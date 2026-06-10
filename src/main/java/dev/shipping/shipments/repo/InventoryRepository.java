@@ -21,6 +21,9 @@ public interface InventoryRepository extends JpaRepository<Inventory, String> {
 
 	@Query("SELECT itm FROM Items itm WHERE itm.customerId = :customerId")
 	List<Items> findItemsByCustomer(@Param("customerId") String customerId);
+	
+	@Query("SELECT inv FROM Inventory inv WHERE inv.customerId = :customerId")
+	List<Inventory> findInventoryByCustomer(@Param("customerId") String customerId);
 
 	@Query("SELECT inv FROM Inventory inv WHERE inv.quantity > 0")
 	List<Inventory> getValidInventory();
@@ -42,6 +45,9 @@ public interface InventoryRepository extends JpaRepository<Inventory, String> {
 	@Query("SELECT COALESCE(inv.quantity, 0) from Inventory inv WHERE inv.customerId= :customerId AND inv.itemId= :itemId AND inv.itemUom= :itemUom AND inv.warehouseId= :warehouseId")
 	Optional<Integer> getInventoryDetailsToVerifyAvailabilityBeforeUpdatingShipmentStatus(String customerId, String itemId,
 			String itemUom, String warehouseId);
+
+    @Query("SELECT inv FROM Inventory inv WHERE inv.customerId = :customerId AND inv.warehouseId = :warehouseId")
+    List<Inventory> findbyCustomerIdAndWarehouseId(String customerId, String warehouseId);
 
 
 

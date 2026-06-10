@@ -11,6 +11,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import dev.shipping.shipments.model.Customers;
+import dev.shipping.shipments.model.Warehouses;
 import dev.shipping.shipments.model.Inventory;
 import dev.shipping.shipments.model.InventoryCheckResult;
 import dev.shipping.shipments.model.Items;
@@ -18,6 +20,7 @@ import dev.shipping.shipments.model.ShipmentLines;
 import dev.shipping.shipments.repo.CustomersRepository;
 import dev.shipping.shipments.repo.InventoryRepository;
 import dev.shipping.shipments.repo.ItemsRepository;
+import dev.shipping.shipments.repo.WarehousesRepository;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
@@ -47,13 +50,15 @@ public class InventoryService {
 	private final ItemsRepository itemsRepo;
 	private final CustomersRepository customersRepo;
 	private final ItemsService itemsService;
+	private final WarehousesRepository warehousesRepo;
 
 	public InventoryService(InventoryRepository inventoryRepo, ItemsRepository itemsRepo,
-			CustomersRepository customersRepo, ItemsService itemsService) {
+			CustomersRepository customersRepo, ItemsService itemsService, WarehousesRepository warehousesRepo) {
 		this.inventoryRepo = inventoryRepo;
 		this.itemsRepo = itemsRepo;
 		this.customersRepo = customersRepo;
 		this.itemsService = itemsService;
+		this.warehousesRepo = warehousesRepo;
 	}
 
 	// ─────────────────────────────────────────────
@@ -161,20 +166,42 @@ public class InventoryService {
 	 *         updated
 	 */
 	@Transactional
-	public String createOrUpdateInventory(Inventory inventory, String itemCustomerUomId,
-			String itemCustomerUomWarehouseId, int quantity, String adjustmentType) {
+	public String createOrUpdateInventory(Inventory inventory, String customerId, String warehouseId,
+			String itemCustomerUomId, String itemCustomerUomWarehouseId, int quantity, String adjustmentType) {
 
 		log.info("createOrUpdateInventory() → itemCustomerUomWarehouseId={}, quantity={}, adjustmentType={}",
 				itemCustomerUomWarehouseId, quantity, adjustmentType);
 
-		// ── 1. Item existence check ───────────────────────────────────────────
+		// ── 1. Customer existence & Active check
+		Customers customer = customersRepo.findIfCustomerIsActiveAndHasValidUptoDate(customerId);
+
+		log.info("createOrUpdateInventory() → findIfCustomerIsActiveAndHasValidUptoDate for customer={} is {} ", customerId,
+				customer );
+		
+		if (customer == null) {
+			log.warn("createOrUpdateInventory() →  customer not found/inactive/expired: customerId={}", customerId);
+			return "CUSTOMER_ERROR";
+		}
+
+		// ── 2. Warehouse existence & Active check
+		Warehouses warehouse = warehousesRepo.findIfWarehouseIsActive(warehouseId);
+
+		log.info("createOrUpdateInventory() → findIfWarehouseIsActive for warehouse={} is {} ",
+				warehouseId, warehouse);
+		
+		if (warehouse == null) {
+			log.warn("createOrUpdateInventory() → item not found: itemCustomerUomId={}", itemCustomerUomId);
+			return "WAREHOUSE_INACTIVE";
+		}
+
+		// ── 3. Item existence check ───────────────────────────────────────────
 		Optional<Items> item = itemsRepo.findById(itemCustomerUomId);
 		if (item.isEmpty()) {
 			log.warn("createOrUpdateInventory() → item not found: itemCustomerUomId={}", itemCustomerUomId);
 			return "ITEM_NOT_FOUND";
 		}
 
-		// ── 2. Item active status check ───────────────────────────────────────
+		// ── 4. Item active status check ───────────────────────────────────────
 		if ("DISABLED".equalsIgnoreCase(item.get().getItemStatus())) {
 			log.warn("createOrUpdateInventory() → item is Disabled: itemCustomerUomId={}", itemCustomerUomId);
 			return "ITEM_DISABLED";
@@ -395,90 +422,78 @@ public class InventoryService {
 	 * 
 	 * return results; }
 	 */
-	
+
 	public List<Object> checkIfItemsAndInventoryExists(String customerId, List<ShipmentLines> lines) {
 
-	    List<Object> results = new ArrayList<>();
-	    String itemId, itemUom, errorMessages = "";
-	    List<Inventory> invRes;
-	    int i = 0;
+		List<Object> results = new ArrayList<>();
+		String itemId, itemUom, errorMessages = "";
+		List<Inventory> invRes;
+		int i = 0;
 
-	    log.info("InventoryService:: checkIfItemsAndInventoryExists() → lines: " + lines.toString());
+		log.info("InventoryService:: checkIfItemsAndInventoryExists() → lines: " + lines.toString());
 
-	    String tableStyle  = "style='width:50%; border-collapse:collapse; pointer-events:none;'";
-	    String thStyle     = "style='border:1px solid #000; padding:6px 10px; background-color:#f2f2f2;'";
-	    String tdStyle     = "style='border:1px solid #000; padding:6px 10px;'";
+		String tableStyle = "style='width:50%; border-collapse:collapse; pointer-events:none;'";
+		String thStyle = "style='border:1px solid #000; padding:6px 10px; background-color:#f2f2f2;'";
+		String tdStyle = "style='border:1px solid #000; padding:6px 10px;'";
 
-	    String tableOpen = "<table " + tableStyle + ">"
-	            + "<tr>"
-	            + "<th " + thStyle + ">Customer</th>"
-	            + "<th " + thStyle + ">Item</th>"
-	            + "<th " + thStyle + ">UOM</th>"
-	            + "</tr>";
+		String tableOpen = "<table " + tableStyle + ">" + "<tr>" + "<th " + thStyle + ">Customer</th>" + "<th "
+				+ thStyle + ">Item</th>" + "<th " + thStyle + ">UOM</th>" + "</tr>";
 
-	    String itemErrors      = tableOpen;
-	    String inventoryErrors = tableOpen;
-	    boolean hasItemErrors      = false;
-	    boolean hasInventoryErrors = false;
+		String itemErrors = tableOpen;
+		String inventoryErrors = tableOpen;
+		boolean hasItemErrors = false;
+		boolean hasInventoryErrors = false;
 
-	    for (ShipmentLines sl : lines) {
-	        itemId  = sl.getItemId();
-	        itemUom = sl.getItemUom();
-	        boolean itemExist = itemsService.itemExists(itemId + "_" + customerId + "_" + itemUom);
+		for (ShipmentLines sl : lines) {
+			itemId = sl.getItemId();
+			itemUom = sl.getItemUom();
+			boolean itemExist = itemsService.itemExists(itemId + "_" + customerId + "_" + itemUom);
 
-	        if (!itemExist) {
-	            ++i;
-	            hasItemErrors = true;
-	            itemErrors += "<tr>"
-	                    + "<td " + tdStyle + ">" + customerId + "</td>"
-	                    + "<td " + tdStyle + ">" + itemId     + "</td>"
-	                    + "<td " + tdStyle + ">" + itemUom    + "</td>"
-	                    + "</tr>";
-	            log.warn("InventoryService:: checkIfItemsAndInventoryExists() → ITEM: " + itemId + ", UOM: " + itemUom
-	                    + ", CUTSOMER: " + customerId + " -- Item doesnt exist");
-	        } else {
-	            invRes = inventoryRepo.getInventoryDetailsToVerifyAvailability(customerId, itemId, itemUom);
-	            if (invRes.isEmpty()) {
-	                ++i;
-	                hasInventoryErrors = true;
-	                inventoryErrors += "<tr>"
-	                        + "<td " + tdStyle + ">" + customerId + "</td>"
-	                        + "<td " + tdStyle + ">" + itemId     + "</td>"
-	                        + "<td " + tdStyle + ">" + itemUom    + "</td>"
-	                        + "</tr>";
-	                log.warn("InventoryService:: checkIfItemsAndInventoryExists() → invRes.isEmpty(): "
-	                        + invRes.toString() + " → ITEM: " + itemId + ", UOM: " + itemUom + ", CUTSOMER: "
-	                        + customerId + " -- Inventory doesnt exist");
-	            } else {
-	                log.info("InventoryService:: checkIfItemsAndInventoryExists() → invRes.isEmpty(): "
-	                        + invRes.toString() + " → ITEM: " + itemId + ", UOM: " + itemUom + ", CUTSOMER: "
-	                        + customerId + " -- Item is valid & Inventory exists");
-	            }
-	        }
-	    }
+			if (!itemExist) {
+				++i;
+				hasItemErrors = true;
+				itemErrors += "<tr>" + "<td " + tdStyle + ">" + customerId + "</td>" + "<td " + tdStyle + ">" + itemId
+						+ "</td>" + "<td " + tdStyle + ">" + itemUom + "</td>" + "</tr>";
+				log.warn("InventoryService:: checkIfItemsAndInventoryExists() → ITEM: " + itemId + ", UOM: " + itemUom
+						+ ", CUTSOMER: " + customerId + " -- Item doesnt exist");
+			} else {
+				invRes = inventoryRepo.getInventoryDetailsToVerifyAvailability(customerId, itemId, itemUom);
+				if (invRes.isEmpty()) {
+					++i;
+					hasInventoryErrors = true;
+					inventoryErrors += "<tr>" + "<td " + tdStyle + ">" + customerId + "</td>" + "<td " + tdStyle + ">"
+							+ itemId + "</td>" + "<td " + tdStyle + ">" + itemUom + "</td>" + "</tr>";
+					log.warn("InventoryService:: checkIfItemsAndInventoryExists() → invRes.isEmpty(): "
+							+ invRes.toString() + " → ITEM: " + itemId + ", UOM: " + itemUom + ", CUTSOMER: "
+							+ customerId + " -- Inventory doesnt exist");
+				} else {
+					log.info("InventoryService:: checkIfItemsAndInventoryExists() → invRes.isEmpty(): "
+							+ invRes.toString() + " → ITEM: " + itemId + ", UOM: " + itemUom + ", CUTSOMER: "
+							+ customerId + " -- Item is valid & Inventory exists");
+				}
+			}
+		}
 
-	    if (hasItemErrors)
-	        errorMessages += "Below items are invalid. The combination of item, uom, customer doesnt exist.  "
-	                + itemErrors + "</table>"
-	                + "<br />------------------------------------------------------------------------------------------------------------------------------<br /><br />";
+		if (hasItemErrors)
+			errorMessages += "Below items are invalid. The combination of item, uom, customer doesnt exist.  "
+					+ itemErrors + "</table>"
+					+ "<br />------------------------------------------------------------------------------------------------------------------------------<br /><br />";
 
-	    if (hasInventoryErrors)
-	        errorMessages += "Inventory doesnt exist for below item, uom, customer combination in any warehouse(s).  "
-	                + inventoryErrors + "</table>"
-	                + "<br />------------------------------------------------------------------------------------------------------------------------------ ";
+		if (hasInventoryErrors)
+			errorMessages += "Inventory doesnt exist for below item, uom, customer combination in any warehouse(s).  "
+					+ inventoryErrors + "</table>"
+					+ "<br />------------------------------------------------------------------------------------------------------------------------------ ";
 
-	    log.info("InventoryService:: checkIfItemsAndInventoryExists() → itemErrors & inventoryErrors: " + itemErrors
-	            + " , " + inventoryErrors);
+		log.info("InventoryService:: checkIfItemsAndInventoryExists() → itemErrors & inventoryErrors: " + itemErrors
+				+ " , " + inventoryErrors);
 
-	    results.add(i);
-	    results.add(errorMessages);
+		results.add(i);
+		results.add(errorMessages);
 
-	    log.info("InventoryService:: checkIfItemsAndInventoryExists() → results[]: " + results.get(0) + " , "
-	            + results.get(1));
+		log.info("InventoryService:: checkIfItemsAndInventoryExists() → results[]: " + results.get(0) + " , "
+				+ results.get(1));
 
-	    return results;
+		return results;
 	}
-	
-	
-	
+
 }

@@ -348,8 +348,7 @@ input[type=number].input-error {
 							<label>Item ID</label>
 							<div class="readonly-value">
 								<span class="cell-link"> <a target="_blank"
-									th:href="@{'/customers/showItemDetails/' + ${inventory.itemId}}"
-									th:text="${inventory.itemId}"></a> <span class="cell-tip">View
+th:href="@{'/items/showItemDetails/' + ${inventory.itemId} + '_' + ${inventory.customerId} + '_' + ${inventory.itemUom}}"									th:text="${inventory.itemId}"></a> <span class="cell-tip">View
 										item details</span>
 								</span>
 							</div>
@@ -369,7 +368,7 @@ input[type=number].input-error {
 
 							<div class="readonly-value">
 								<span class="cell-link"> <a target="_blank"
-									th:href="@{'/customers/showWarehouseDetails/' + ${inventory.warehouseId}}"
+									th:href="@{'/warehouses/showWarehouseDetails/' + ${inventory.warehouseId}}"
 									th:text="${inventory.warehouseId}"></a> <span class="cell-tip">View
 										warehouse details</span>
 								</span>
@@ -467,9 +466,12 @@ input[type=number].input-error {
 		const btnWrapper = document.getElementById("btnWrapper");
 		const qtyError = document.getElementById("qtyError");
 		const tooltip = document.getElementById("update-button-tooltip");
+		const adjustmentType = document.getElementById("adjustmentType");
 
 		// Store original value on page load
 		const originalQty = qtyInput.value.trim();
+		const originalAdjustmentType = adjustmentType.value.trim();
+
 
 		// ── Block decimal point, minus, plus, e/E, and all non-digit keys at source
 		qtyInput.addEventListener("keydown", function(e) {
@@ -491,13 +493,14 @@ input[type=number].input-error {
 
 		function evaluateButton() {
 			const val = qtyInput.value.trim();
+			const adjTypeVal = adjustmentType.value.trim();
 			const num = Number(val);
 
 			const isEmpty = val === "";
 			// isInvalid: non-empty but not a clean positive integer
 			const isInvalid = !isEmpty && (!/^\d+$/.test(val) || num < 1);
 			const isValid = !isEmpty && /^\d+$/.test(val) && num >= 1;
-			const isChanged = val !== originalQty;
+			const isChanged = (val !== originalQty) || (adjTypeVal !== originalAdjustmentType);
 			const canEnable = isValid && isChanged;
 
 			// ── Enable / Disable button

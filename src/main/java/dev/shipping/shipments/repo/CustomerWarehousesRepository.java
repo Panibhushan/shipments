@@ -33,7 +33,7 @@ public interface CustomerWarehousesRepository extends JpaRepository<CustomerWare
 
 	@Modifying
     @Transactional
-    @Query("DELETE FROM CustomerWarehouses cw WHERE cw.customerId = :customerId AND cw.warehouseId IN :warehouseIds")
-    void deleteByCustomerIdAndWarehouseIdIn(@Param("customerId") String customerId, 
-                                            @Param("warehouseIds") List<String> toDelete);
+    @Query("DELETE FROM CustomerWarehouses cw WHERE cw.customerId = :customerId AND cw.warehouseId = :warehouseId")
+    void deleteByCustomerIdAndWarehouseId(@Param("customerId") String customerId, 
+                                            @Param("warehouseId") String warehouseId);
 }

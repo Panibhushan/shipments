@@ -377,9 +377,15 @@ table.lines-table input, table.lines-table select {
 	border-top-color: #1e293b;
 }
 
-.btn-wrapper:hover .btn-tooltip, button:disabled:hover ~ .btn-tooltip {
+.btn-wrapper:hover .btn-tooltip {
 	visibility: visible;
 	opacity: 1;
+}
+
+/* Only show tooltip when the button is actually disabled */
+.btn-wrapper button:not(:disabled):hover ~ .btn-tooltip {
+	visibility: hidden;
+	opacity: 0;
 }
 
 .btn-del-line {
@@ -491,8 +497,7 @@ table.lines-table input, table.lines-table select {
 	border-top-color: #1e293b;
 }
 
-.btn-submit:disabled:hover ~ .tooltip-hint, .btn-submit:disabled:focus 
-	 ~ .tooltip-hint {
+.btn-submit:disabled:hover ~ .tooltip-hint {
 	visibility: visible;
 	opacity: 1;
 }
@@ -538,6 +543,52 @@ table.lines-table input, table.lines-table select {
 
 .locked-banner span:hover {
 	background: rgba(234, 88, 12, 0.1);
+}
+
+/* ── SECTION DISABLED OVERLAY ── */
+.collapsible-section.section-disabled {
+	opacity: 0.55;
+	pointer-events: none;
+	position: relative;
+}
+
+.collapsible-section.section-disabled .collapsible-header {
+	cursor: not-allowed;
+	background: linear-gradient(135deg, #f1f5f9 0%, #e2e8f0 100%);
+}
+
+.section-disabled-wrapper {
+	position: relative;
+	display: block;
+}
+
+.section-disabled-tooltip {
+	visibility: hidden;
+	opacity: 0;
+	background: #1e293b;
+	color: #fff;
+	padding: 7px 12px;
+	border-radius: 7px;
+	font-size: 0.76rem;
+	white-space: nowrap;
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	z-index: 200;
+	pointer-events: none;
+	transition: opacity 0.2s ease, visibility 0.2s ease;
+	font-weight: 600;
+	box-shadow: 0 4px 12px rgba(0,0,0,0.18);
+}
+
+.section-disabled-tooltip::after {
+	display: none;
+}
+
+.section-disabled-wrapper.is-disabled:hover .section-disabled-tooltip {
+	visibility: visible;
+	opacity: 1;
 }
 
 /* ── WAREHOUSE & INVENTORY ── */
@@ -834,10 +885,10 @@ table.lines-table input, table.lines-table select {
 				<!-- CUSTOMER SECTION -->
 				<div class="section-title">👤 Select Customer</div>
 				<select id="customerId"
-					onchange="validateCreateBtn(); validateCheckBtn(); getCustomerItems();" required>
+					onchange="onCustomerChange();" required>
 					<option value="">— Select a Customer —</option>
-					<!-- 					<option value="TEST_CUST">TEST_CUST</option>
- -->
+										<!-- <option value="TEST_CUST">TEST_CUST</option>
+										<option value="TEST_CUST1">TEST_CUST1</option> -->
 					<option th:each="c : ${customers}" th:value="${c.customerId}"
 						th:text="|${c.customerId} = ${c.customerName}|"></option>
 				</select> <a href="/customers/goToCreateCustomerPage" class="helper-link">＋
@@ -848,6 +899,8 @@ table.lines-table input, table.lines-table select {
 					<datalist id="customerItemsList"></datalist>
 
 				<!-- ADDRESS SECTION (COLLAPSIBLE) -->
+				<div class="section-disabled-wrapper" id="addressSectionWrapper">
+				<span class="section-disabled-tooltip" id="addressSectionTooltip">Select a customer first</span>
 				<div class="collapsible-section" id="addressSection">
 					<div class="collapsible-header"
 						onclick="toggleSection('addressSection')">
@@ -956,8 +1009,11 @@ table.lines-table input, table.lines-table select {
 						</div>
 					</div>
 				</div>
+				</div><!-- /addressSectionWrapper -->
 
 				<!-- SHIPMENT LINES SECTION (COLLAPSIBLE) -->
+				<div class="section-disabled-wrapper" id="linesSectionWrapper">
+				<span class="section-disabled-tooltip" id="linesSectionTooltip">Select a customer first</span>
 				<div class="collapsible-section" id="linesSection">
 					<div class="collapsible-header"
 						onclick="toggleSection('linesSection')">
@@ -990,6 +1046,7 @@ table.lines-table input, table.lines-table select {
 						</div>
 					</div>
 				</div>
+				</div><!-- /linesSectionWrapper -->
 
 				<!-- CHECK INVENTORY & ERROR DIV -->
 				<div class="button-row">
@@ -1026,13 +1083,13 @@ table.lines-table input, table.lines-table select {
 					<li>Pick a <strong>Customer</strong>.
 					</li>
 					<li>Expand and fill the <strong>Delivery Address</strong>. Use
-						"Check Delivery" to auto-fill.
+						"Check Delivery" to auto-fill District, Taluk, State and Country.
 					</li>
 					<li>Expand <strong>Shipment Lines</strong> and add items with
 						Item ID, UOM, and Quantity.
 					</li>
 					<li>Click <strong>Check Inventory</strong> to find available
-						warehouses.
+						warehouses, order by the lowest to highest distance from warehouse to destination.
 					</li>
 					<li>Select a warehouse and click <strong>Create
 							Shipment</strong>.
@@ -1049,22 +1106,94 @@ table.lines-table input, table.lines-table select {
     let lineCount   = 0;
     let formLocked  = false;
 
+    /* ══ CUSTOMER CHANGE — collapse/disable dependent sections ══ */
+    function setDependentSectionsState(hasCustomer) {
+      ['addressSection', 'linesSection'].forEach(id => {
+        const section = document.getElementById(id);
+        const wrapper = document.getElementById(id + 'Wrapper');
+        if (hasCustomer) {
+          section.classList.remove('section-disabled');
+          if (wrapper) wrapper.classList.remove('is-disabled');
+        } else {
+          section.classList.add('section-disabled');
+          section.classList.add('collapsed');
+          if (wrapper) wrapper.classList.add('is-disabled');
+        }
+      });
+    }
+
+    function onCustomerChange() {
+      const customerId = document.getElementById('customerId').value;
+      const hasCustomer = customerId !== '';
+
+      // If customer changed (including cleared), reset address and lines fields
+      resetAddressFields();
+      resetLineItems();
+
+      setDependentSectionsState(hasCustomer);
+
+      if (hasCustomer) {
+        getCustomerItems();
+      } else {
+        // Clear datalist
+        document.getElementById('customerItemsList').innerHTML = '';
+      }
+
+      validateCreateBtn();
+      validateCheckBtn();
+    }
+
+    function resetAddressFields() {
+      ['firstName','lastName','email','phone','address1','address2','zipCode',
+       'district','taluk','state'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+          el.value = '';
+          el.classList.remove('input-ok','input-error');
+        }
+      });
+      const country = document.getElementById('country');
+      if (country) country.value = 'INDIA';
+      const zipHint = document.getElementById('zipHint');
+      if (zipHint) { zipHint.textContent = ''; zipHint.className = 'zip-hint'; }
+      const btnZip = document.getElementById('btnZip');
+      if (btnZip) btnZip.disabled = true;
+      const lat = document.getElementById('latitude');
+      const lng = document.getElementById('longitude');
+      if (lat) lat.value = '';
+      if (lng) lng.value = '';
+    }
+
+    function resetLineItems() {
+      document.getElementById('linesBody').innerHTML = '';
+      lineCount = 0;
+      addLine();
+      updateAddLineButtonState();
+    }
+
     /* ══ TOGGLE COLLAPSIBLE ══ */
     function toggleSection(sectionId) {
       const section = document.getElementById(sectionId);
+      if (section.classList.contains('section-disabled')) return;
       section.classList.toggle('collapsed');
       localStorage.setItem(sectionId, section.classList.contains('collapsed') ? 'collapsed' : 'expanded');
     }
 
     // load saved state
     window.addEventListener('load', () => {
-    	window.scrollTo({ top: 0, behavior: 'smooth' });      
-    	['addressSection', 'linesSection'].forEach(id => {
-        const section = document.getElementById(id);
-        if (localStorage.getItem(id) === 'collapsed') {
-          section.classList.add('collapsed');
-        }
-      });
+    	window.scrollTo({ top: 0, behavior: 'smooth' });
+      const hasCustomer = document.getElementById('customerId').value !== '';
+      setDependentSectionsState(hasCustomer);
+      if (!hasCustomer) {
+        // Sections already collapsed by setDependentSectionsState; skip localStorage restore for them
+      } else {
+        ['addressSection', 'linesSection'].forEach(id => {
+          const section = document.getElementById(id);
+          if (localStorage.getItem(id) === 'collapsed') {
+            section.classList.add('collapsed');
+          }
+        });
+      }
     });
 
     /* ══ LINE MANAGEMENT ══ */
@@ -1217,9 +1346,18 @@ table.lines-table input, table.lines-table select {
     
     /* ══ VALIDATE BOTH BUTTONS ══ */
     function validateCheckBtn() {
-      const custId = document.getElementById('customerId').value;
-      const rows   = document.querySelectorAll('#linesBody tr');
-      
+      const custId    = document.getElementById('customerId').value;
+      const firstName = document.getElementById('firstName').value.trim();
+      const lastName  = document.getElementById('lastName').value.trim();
+      const email     = document.getElementById('email').value.trim();
+      const phone     = document.getElementById('phone').value.trim();
+      const address1  = document.getElementById('address1').value.trim();
+      const zipCode   = document.getElementById('zipCode').value.trim();
+      const district  = document.getElementById('district').value.trim();
+      const taluk     = document.getElementById('taluk').value.trim();
+      const state     = document.getElementById('state').value.trim();
+
+      const rows = document.querySelectorAll('#linesBody tr');
       const itemsOk = rows.length > 0 && [...rows].every(tr => {
         const item = tr.querySelector('input[name^="itemId"]').value.trim();
         const qty  = tr.querySelector('input[type=number]').value;
@@ -1227,32 +1365,38 @@ table.lines-table input, table.lines-table select {
       });
 
       const btnCheck = document.getElementById('btnCheck');
-      const tooltip = document.getElementById('checkInventoryTooltip');
-      
-      if (btnCheck) {
-        const shouldEnable = custId && itemsOk && !formLocked;
-        btnCheck.disabled = !shouldEnable;
-        
-        // Update tooltip based on reason for disable
-        if (shouldEnable) {
-          tooltip.textContent = '';
-        } else if (!custId) {
-          tooltip.textContent = 'Select a customer first';
-        } else if (!itemsOk) {
-          tooltip.textContent = 'Fill item details (ID, UOM, Qty)';
-        } else if (formLocked) {
-          tooltip.textContent = 'Close warehouse selection first';
-        }
+      const tooltip  = document.getElementById('checkInventoryTooltip');
+      if (!btnCheck) return;
+
+      const missing = [];
+      if (!custId)    missing.push('Customer');
+      if (!firstName) missing.push('First Name');
+      if (!lastName)  missing.push('Last Name');
+      if (!email)     missing.push('Email');
+      if (!phone)     missing.push('Phone');
+      if (!address1)  missing.push('Address Line 1');
+      if (!zipCode)   missing.push('PIN Code');
+      if (!district)  missing.push('District');
+      if (!taluk)     missing.push('Taluk');
+      if (!state)     missing.push('State');
+      if (!itemsOk)   missing.push('Item Details');
+
+      if (formLocked) {
+        btnCheck.disabled = true;
+        tooltip.textContent = 'Close warehouse selection first';
+        return;
       }
+
+      btnCheck.disabled = missing.length > 0;
+      tooltip.textContent = missing.length > 0 ? '⚠ Missing: ' + missing.join(', ') : '';
     }
 
     function convertToUppercase(element) {
-
-        if (element) {
-            element.value = element.value.toUpperCase();
-        }
+      if (element) {
+        element.value = element.value.toUpperCase();
+      }
     }
-    
+
     function validateCreateBtn() {
       const custId    = document.getElementById('customerId').value;
       const firstName = document.getElementById('firstName').value.trim();
@@ -1271,47 +1415,36 @@ table.lines-table input, table.lines-table select {
         return item && qty && parseInt(qty) > 0;
       });
 
-      //The !! operator converts any value into a proper boolean.
-      // Among the list of variables, if any one of them is having "" then the normal && return blank, but !! will treat it as false and give boolean false instead of blank
-      const custOk = !!custId;
-      const addrOk = !!(custId && firstName && lastName && email && phone && address1 && district && taluk && state);
+      const custOk  = !!custId;
+      const addrOk  = !!(firstName && lastName && email && phone && address1 && district && taluk && state);
       const itemsOk = hasItems;
-      
-      // checking  to see if any of the warehouses from inventory result are selected or not -- null means none of them are selected
-      const warehouseRadioButtonSelected = document.querySelector('.wh-radio-card input[type="radio"]:checked') !== null ;
-      
-      console.log('custOk: ',custOk, 'addrOk: ', addrOk, 'itemsOk: ',itemsOk, 'warehouseRadioButtonSelected: ', warehouseRadioButtonSelected, 'custOk && addrOk && itemsOk && warehouseRadioButtonSelected', custOk && addrOk && itemsOk && warehouseRadioButtonSelected);
+      const warehouseSelected = document.querySelector('.wh-radio-card input[type="radio"]:checked') !== null;
 
-    //  const btnCreate = document.querySelector('.btn-submit');
-    
-    const btnCreate = document.getElementById('btnCreate');
-      if (!btnCreate) return;
-      custOk && addrOk && itemsOk
-      
-  
-      const canEnable = custOk && addrOk && itemsOk && warehouseRadioButtonSelected;
-      btnCreate.disabled = !canEnable;
+      const btnCreate = document.getElementById('btnCreate');
+      if (btnCreate) {
+        const canEnable = custOk && addrOk && itemsOk && warehouseSelected;
+        btnCreate.disabled = !canEnable;
 
-      // build hint message
-      let hints = [];
-            
-      if (!warehouseRadioButtonSelected) hints.push('Warehouse');           
-      if (!custOk) hints.push('Customer');
-      if (custId && !firstName) hints.push('First Name');
-      if (custId && !lastName) hints.push('Last Name');
-      if (custId && !email) hints.push('Email');
-      if (custId && !phone) hints.push('Phone');
-      if (custId && !address1) hints.push('Address');
-      if (custId && !district) hints.push('District');
-      if (custId && !taluk) hints.push('Taluk');
-      if (custId && !state) hints.push('State');
-      if (!itemsOk) hints.push('Item Details');
+        const hints = [];
+        if (!custOk)         hints.push('Customer');
+        if (!firstName)      hints.push('First Name');
+        if (!lastName)       hints.push('Last Name');
+        if (!email)          hints.push('Email');
+        if (!phone)          hints.push('Phone');
+        if (!address1)       hints.push('Address');
+        if (!district)       hints.push('District');
+        if (!taluk)          hints.push('Taluk');
+        if (!state)          hints.push('State');
+        if (!itemsOk)        hints.push('Item Details');
+        if (!warehouseSelected) hints.push('Warehouse');
 
-      let tooltip = document.querySelector('.tooltip-hint');
-      if (tooltip) {
-        tooltip.textContent = hints.length > 0 ? '⚠ Missing: ' + hints.join(', ') : '';
+        const tooltip = document.querySelector('.tooltip-hint');
+        if (tooltip) {
+          tooltip.textContent = hints.length > 0 ? '⚠ Missing: ' + hints.join(', ') : '';
+        }
       }
 
+      // Always call validateCheckBtn — regardless of whether btnCreate exists yet
       validateCheckBtn();
     }
 
@@ -1355,7 +1488,7 @@ table.lines-table input, table.lines-table select {
       document.getElementById('country').value = 'INDIA';
       document.getElementById('zipHint').textContent = '';
       document.getElementById('zipHint').className = 'zip-hint';
-      validateForm();
+      validateCheckBtn();
     }
     
     function onZipInput() {
@@ -1467,7 +1600,7 @@ table.lines-table input, table.lines-table select {
  
       const byWh = {};
       results.forEach(r => {
-        if (!byWh[r.warehouseId]) byWh[r.warehouseId] = { warehouseId:r.warehouseId, warehouseName:r.warehouseName, items:[] };
+        if (!byWh[r.warehouseId]) byWh[r.warehouseId] = { warehouseId:r.warehouseId, warehouseName:r.warehouseName, distance:r.distance, items:[] };
         byWh[r.warehouseId].items.push(r);
       });
  
@@ -1499,6 +1632,7 @@ table.lines-table input, table.lines-table select {
             <div class="wh-card-header">
               <input type="radio" name="selectedWarehouse" id="${radioId}" value="${wh.warehouseId}">
               <span class="wh-card-title">${wh.warehouseId}<span class="wh-card-id">${wh.warehouseName}</span></span>
+              ${wh.distance != null ? `<span style="font-size:0.78rem;color:#6a73b2;font-weight:700;margin-left:8px;">📍Distance between warehouse and destination: ${wh.distance} KM</span>` : ''}
               <span class="wh-badge-ok">✔ All lines</span>
             </div>
             <table class="wh-items-table">${itemRows}</table>
@@ -1713,7 +1847,7 @@ table.lines-table input, table.lines-table select {
           msgBox.style.background = 'linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%)';
           msgBox.style.color = '#065f46';
           msgBox.style.border = '1px solid #6ee7b7';
-          msgText.innerHTML = `✔ Shipment created with ID: ${shipmentId} <a href="/shipments/showShipmentDetails/${shipmentId}" style="color:#059669;font-weight:700;text-decoration:underline;">View Details</a>`;
+          msgText.innerHTML = `✔ Shipment created with ID: ${shipmentId} &nbsp;&nbsp;<a href="/shipments/showShipmentDetails/${shipmentId}" style="color:#059669;font-weight:700;text-decoration:underline;">View Details</a>`;
           msgBox.classList.add('show');
           clearForm();
           closeInventorySection();
@@ -1759,6 +1893,7 @@ table.lines-table input, table.lines-table select {
       lineCount = 0;
       addLine();
       updateAddLineButtonState();
+      setDependentSectionsState(false);
       validateCreateBtn();
     }
 

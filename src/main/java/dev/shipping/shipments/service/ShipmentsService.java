@@ -29,6 +29,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -538,26 +539,38 @@ public class ShipmentsService {
 					
 					
 					distance = MyCustomUtils.calculateDistance(shipingAddressCoordinates[0], shipingAddressCoordinates[1], warehouseAddressCoordinates[0], warehouseAddressCoordinates[1]);
-					distance = Math.round(distance * 100.0) / 100.0; // rounding to 2 decimals
+					distance = distance == 0.0 ? 1.0 : Math.round(distance * 100.0) / 100.0; // if distance is 0 then setting it as 1, if its not then rounding to 2 decimals
 					
 					log.error("Calculated distance between warehouse & delivery = "+distance+" KM, for :: coordinates = "+shipingAddressCoordinates[0]+", "+shipingAddressCoordinates[1]+", "+ warehouseAddressCoordinates[0]+", "+warehouseAddressCoordinates[1]);
 
-					
 				} catch (Exception e) {
 					log.error("Error getting the distance between warehouse zip & delivery zip :: coordinates = "+shipingAddressCoordinates[0]+", "+shipingAddressCoordinates[1]+", "+ warehouseAddressCoordinates[0]+", "+warehouseAddressCoordinates[1]);
 					e.printStackTrace();
 				}
 				
-				warehouseName = "<span class=\"wh-card-title\">( "+warehouseName+" )</span> ----------- Distance between Warehouse and Destination: "+distance+" KM ";
+				warehouseName = "<span class=\"wh-card-title\">( "+warehouseName+" )</span>";
 
 				
 				result.add(Map.of("lineNumber", lineNo, "itemId", itemId, "itemUom", itemUom, "requestedQty",
 						requestedQty, "availableQty", availableQty, "warehouseId", warehouseId, "warehouseName",
-						warehouseName));
+						warehouseName, "distance", String.valueOf(distance) ));
 			}
 		}
 
-		log.info("checkInventoryAvailability() → returning {} warehouse-line combination(s)", result.size());
+		log.info("checkInventoryAvailability() → count of warehouse-line combination(s) ={} and the results={}", result.size(), result.toString());
+		
+		//sorting the list based on distance in asceding order
+		//putting "999999" as default value incase the distance is returned null, empty, or non-numeric
+		result.sort(Comparator.comparingDouble(map -> {
+		    try {
+		        return Double.parseDouble(map.getOrDefault("distance", "999999"));
+		    } catch (NumberFormatException e) {
+		        return Double.MAX_VALUE;
+		    }
+		}));
+		
+		log.info("checkInventoryAvailability() → result after sorting the distance in ascending order= {}", result.toString());
+		
 		return result;
 	}
 
