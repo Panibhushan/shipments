@@ -21,6 +21,9 @@ public interface InventoryRepository extends JpaRepository<Inventory, String> {
 
 	@Query("SELECT itm FROM Items itm WHERE itm.customerId = :customerId")
 	List<Items> findItemsByCustomer(@Param("customerId") String customerId);
+	
+	@Query("SELECT inv FROM Inventory inv WHERE inv.customerId = :customerId")
+	List<Inventory> findInventoryByCustomer(@Param("customerId") String customerId);
 
 	@Query("SELECT inv FROM Inventory inv WHERE inv.quantity > 0")
 	List<Inventory> getValidInventory();
@@ -36,5 +39,16 @@ public interface InventoryRepository extends JpaRepository<Inventory, String> {
 
 	List<Inventory> findByCustomerIdAndItemIdInAndItemUomIn(String customerId, List<String> itemIds,
 			List<String> itemUoms);
+
+	// COALESCE(arg1, arg2, ... argn) returns the first non-null value from the given arguments
+	// COALESCE(inv.quantity,NULL,  0, 2) -- this will check for value of inv.quantity if its non-null then returns that, else it will go to next arg i.e., NULL, so it goes to next arg i.e. 0 and returns that.
+	@Query("SELECT COALESCE(inv.quantity, 0) from Inventory inv WHERE inv.customerId= :customerId AND inv.itemId= :itemId AND inv.itemUom= :itemUom AND inv.warehouseId= :warehouseId")
+	Optional<Integer> getInventoryDetailsToVerifyAvailabilityBeforeUpdatingShipmentStatus(String customerId, String itemId,
+			String itemUom, String warehouseId);
+
+    @Query("SELECT inv FROM Inventory inv WHERE inv.customerId = :customerId AND inv.warehouseId = :warehouseId")
+    List<Inventory> findbyCustomerIdAndWarehouseId(String customerId, String warehouseId);
+
+
 
 }

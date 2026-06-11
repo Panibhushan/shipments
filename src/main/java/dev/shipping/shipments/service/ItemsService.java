@@ -303,4 +303,8 @@ public class ItemsService {
         itemsRepo.deleteById(itemCustomerUomId);
         log.info("deleteItem() completed → itemCustomerUomId={}", itemCustomerUomId);
     }
+
+	public List<Items> getCustomerItems(String customerId) {
+		return itemsRepo.findItemsByCustomer(customerId);
+	}
 }

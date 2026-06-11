@@ -12,9 +12,12 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import dev.shipping.shipments.model.Address;
 import dev.shipping.shipments.model.Items;
 import dev.shipping.shipments.service.CustomersService;
 import dev.shipping.shipments.service.ItemsService;
@@ -345,4 +348,27 @@ public class ItemsController {
 
         return "redirect:/items/";
     }
+    
+    @PostMapping("/items/getCustomerItems")
+    @ResponseBody
+    public List<Items> getCustomerItems(@RequestParam String customerId) {
+
+        log.info("POST /items/getCustomerItems → customerId={}", customerId);
+
+        List<Items> itemsListResult = itemsService.getCustomerItems(customerId);
+
+        if (itemsListResult == null || itemsListResult.isEmpty()) {
+            log.warn("getCustomerItems() returned no items → customerId={}", customerId);
+        } else {
+            log.info("getCustomerItems() success → customerId={}: {}",
+                    customerId,
+                    itemsListResult);
+        }
+
+        return itemsListResult;
+    }
+    
+    
+    
+    
 }

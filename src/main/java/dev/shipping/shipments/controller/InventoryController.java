@@ -1,5 +1,6 @@
 package dev.shipping.shipments.controller;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -160,7 +161,7 @@ public class InventoryController {
 				"POST /inventory/addOrUpdateInventory → itemCustomerUomWarehouseId={}, qty={}, adjustmentType={}, pageType={}",
 				itemCustomerUomWarehouseId, inventory.getQuantity(), adjustmentType, inventoryCreationPageType);
 
-		String result = inventoryService.createOrUpdateInventory(inventory, itemCustomerUomId,
+		String result = inventoryService.createOrUpdateInventory(inventory, customerId, warehouseId, itemCustomerUomId,
 				itemCustomerUomWarehouseId, inventory.getQuantity(), adjustmentType);
 
 		log.info("/inventory/addOrUpdateInventory → inventoryService.createOrUpdateInventory() : result →" + result);
@@ -168,41 +169,11 @@ public class InventoryController {
 		// Always carry the UOM list through flash so the form repopulates correctly
 		redirectAttributes.addFlashAttribute("itemUomsList", ITEM_UOMS_LIST);
 
-		boolean hasError = setInventoryResultFlashAttributes(result, itemId, customerId, itemUom, itemCustomerUomId,
+		boolean hasError = setInventoryResultFlashAttributes(result, customerId, warehouseId, itemId,  itemUom, itemCustomerUomId,
 				itemCustomerUomWarehouseId, inventory.getQuantity(), adjustmentType, redirectAttributes);
 
-		List<Customers> customers = null;
-
-		// ── Redirect routing ──────────────────────────────────────────────────
-		/*
-		 * if (inventoryCreationPageType.equals(
-		 * "CREATE_INVENTORY_FROM_CREATE_OR_UPDATE_INVENTORY_PAGE")) { // Always go back
-		 * to the create/update form regardless of success or failure return
-		 * "redirect:/inventory/addOrUpdateInventoryPage"; } else if
-		 * (inventoryCreationPageType.equals(
-		 * "CREATE_INVENTORY_FROM_EDIT_WAREHOUSE_PAGE") && hasError) { //
-		 * redirectAttributes.addFlashAttribute("msg", "Failed to update inventory!");
-		 * // This will be set in setInventoryResultFlashAttributes() so no need to pass
-		 * it again model.addAttribute("itemUomsList", ITEM_UOMS_LIST); return
-		 * "redirect:/inventory/addInventoryForWarehouse/" + warehouseId; } else if
-		 * (inventoryCreationPageType.equals("CREATE_INVENTORY_FROM_EDIT_ITEM_PAGE") &&
-		 * hasError) { return "redirect:/inventory/addInventoryForItem/" +
-		 * itemCustomerUomId; } else { model.addAttribute("msg",
-		 * "Inventory has been updated!"); model.addAttribute("bgColor", "#d4edda");
-		 * model.addAttribute("textColor", "#155724");
-		 * 
-		 * if
-		 * (inventoryCreationPageType.equals("CREATE_INVENTORY_FROM_EDIT_WAREHOUSE_PAGE"
-		 * )) {
-		 * 
-		 * System.out.println(
-		 * "inside if (inventoryCreationPageType.equals(\"CREATE_INVENTORY_FROM_EDIT_WAREHOUSE_PAGE\"))"
-		 * ); return "redirect:/inventory/addInventoryForWarehouse/" + warehouseId;
-		 * 
-		 * } else { return "redirect:/inventory/viewOrEditInventory/" +
-		 * itemCustomerUomWarehouseId; } }
-		 */
-
+		List<Customers> customers = null; 
+		
 		// Determine redirect destination based on which page triggered the inventory action.
 		// hasError only changes the destination and return to the add-inventory-for-(item/warehouse) 
 		// failure or success flash attributes are already set by setInventoryResultFlashAttributes() 
@@ -290,11 +261,11 @@ public class InventoryController {
 
 		String itemCustomerUomId = itemId + "_" + customerId + "_" + itemUom;
 
-		String result = inventoryService.createOrUpdateInventory(new Inventory(), itemCustomerUomId,
+		String result = inventoryService.createOrUpdateInventory(new Inventory(), customerId, warehouseId, itemCustomerUomId,
 				itemCustomerUomWarehouseId, quantity, adjustmentType);
 
-		setInventoryResultFlashAttributes(result, itemId, customerId, itemUom, itemCustomerUomId,
-				itemCustomerUomWarehouseId, quantity, adjustmentType, redirectAttributes);
+		setInventoryResultFlashAttributes(result, customerId, warehouseId, itemId,  itemUom, itemCustomerUomId,
+		itemCustomerUomWarehouseId, quantity, adjustmentType, redirectAttributes);
 
 		return "redirect:/inventory/viewOrEditInventory/" + itemCustomerUomWarehouseId;
 	}
@@ -434,13 +405,26 @@ public class InventoryController {
 	@PostMapping("/inventory/fetchForLines")
 	public String fetchInventoryForLines(@RequestParam String customerId, @RequestBody List<ShipmentLines> lines,
 			Model model) {
+		
+		List<InventoryCheckResult> inventoryList = new ArrayList<>();
+		
+		List<Object> itemsAndInventoryCheckResult = inventoryService.checkIfItemsAndInventoryExists(customerId, lines);
+		
+		log.info("InventoryController:: checkIfItemsAndInventoryExists() → returned {} itemsAndInventoryCheckResult[]:", itemsAndInventoryCheckResult.get(0)+" , "+itemsAndInventoryCheckResult.get(1));
 
 		log.info("POST /inventory/fetchForLines → customerId={}, lineCount={}", customerId, lines.size());
+				
+		log.info("InventoryController:: itemsAndInventoryCheckResult[0] & lines.size()  → "+itemsAndInventoryCheckResult.get(0)+" & "+lines.size());
+		
+		// If the result count returned from checkIfItemsAndInventoryExists() is same as lines.size() that means either all the items passed are invalid or they do not have inventory in any warehouse(s)
+		// Checking the shortage inventory only if result count is not equals to lines.size()
+		if( (int)itemsAndInventoryCheckResult.get(0)  != lines.size()) {
 
-		List<InventoryCheckResult> inventoryList = inventoryService.getInventoryForShipmentLines(customerId, lines);
+			inventoryList = inventoryService.getShortageInventoryForShipmentLines(customerId, lines);
 
-		log.info("fetchInventoryForLines() → returned {} result(s) for customerId={}", inventoryList.size(),
-				customerId);
+			log.info("fetchInventoryForLines() → returned {} result(s) for customerId={}", inventoryList.size(),
+					customerId);	
+		}
 
 		model.addAttribute("inventory", inventoryList);
 		model.addAttribute("selectedCustomer", "ALL");
@@ -450,6 +434,7 @@ public class InventoryController {
 		model.addAttribute("activePage", "allInventory");
 		model.addAttribute("itemUomsList", ITEM_UOMS_LIST);
 		model.addAttribute("filterApplied", false);
+		model.addAttribute("errorMessage", (String) itemsAndInventoryCheckResult.get(1));
 		return "show-shortage-inventory";
 	}
 
@@ -500,12 +485,26 @@ public class InventoryController {
 	 * @return true if the result represents an error (so the caller can choose a
 	 *         different redirect destination on failure), false on success.
 	 */
-	private boolean setInventoryResultFlashAttributes(String result, String itemId, String customerId, String itemUom,
+	private boolean setInventoryResultFlashAttributes(String result, String customerId, String warehouseId,  String itemId, String itemUom,
 			String itemCustomerUomId, String itemCustomerUomWarehouseId, int quantity, String adjustmentType,
 			RedirectAttributes redirectAttributes) {
 
 		switch (result) {
-
+		
+		case "CUSTOMER_ERROR":
+			log.warn("Inventory update failed: CUSTOMER_ERROR → customerId={}", customerId );
+			redirectAttributes.addFlashAttribute("msg", "Customer is either Inactive or Contract has expired!!\nCustomer: " + customerId+ "&ensp;<a style='color: #3474eb;' target='_blank' href='/customers/viewOrEditCustomer/"+customerId+"' > View Customer </a>" );
+			redirectAttributes.addFlashAttribute("bgColor", "#f8d7da");
+			redirectAttributes.addFlashAttribute("textColor", "#721c24");
+			return true;
+			
+		case "WAREHOUSE_INACTIVE":
+			log.warn("Inventory update failed: WAREHOUSE_INACTIVE → warehouseId={} ", warehouseId);
+			redirectAttributes.addFlashAttribute("msg", "Warehouse is in Inactive or Disabled state!!\nWarehouse: " + warehouseId+ "&ensp;<a style='color: #3474eb;' target='_blank' href='/warehouses/viewOrEditWarehouse/"+warehouseId+"' > View Warehouse </a>" );
+			redirectAttributes.addFlashAttribute("bgColor", "#f8d7da");
+			redirectAttributes.addFlashAttribute("textColor", "#721c24");
+			return true;			
+			
 		case "ITEM_NOT_FOUND":
 			log.warn("Inventory update failed: ITEM_NOT_FOUND → itemId={}, customerId={}, itemUom={}", itemId,
 					customerId, itemUom);

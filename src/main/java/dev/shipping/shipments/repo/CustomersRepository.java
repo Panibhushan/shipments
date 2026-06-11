@@ -17,4 +17,8 @@ public interface CustomersRepository extends JpaRepository<Customers, String> {
 
 	@Query("SELECT c FROM Customers c WHERE c.customerStatus = :status AND c.validUpto > :today")
     List<Customers> findByCustomerStatusAndValidUpto(@Param("status") String status, @Param("today") LocalDateTime localDateTime);
+	
+	@Query("SELECT c FROM Customers c WHERE c.customerId = :customerId AND c.customerStatus = 'Active' AND c.validUpto > current_date")
+	Customers findIfCustomerIsActiveAndHasValidUptoDate(String customerId);
+
 }	

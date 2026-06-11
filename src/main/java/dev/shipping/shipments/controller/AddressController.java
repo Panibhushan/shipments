@@ -21,10 +21,8 @@ import dev.shipping.shipments.model.CreateShipmentRequestWithLinesAndAddress;
 import dev.shipping.shipments.model.Warehouses;
 import dev.shipping.shipments.service.AddressService;
 import dev.shipping.shipments.service.WarehousesService;
-import dev.shipping.shipments.utils.MyResourceUtils;
 
 @Controller
-
 public class AddressController {
 
 	private final AddressService addressService;

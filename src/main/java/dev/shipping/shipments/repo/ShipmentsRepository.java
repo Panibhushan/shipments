@@ -20,4 +20,7 @@ public interface ShipmentsRepository extends JpaRepository<Shipments, String> {
 	@Query("SELECT s FROM Shipments s ORDER BY s.createdAt DESC")	
 	List<Shipments> getAllShipmentsByCreatedTimeDesc();
 
+ 	@Query("SELECT s FROM Shipments s WHERE s.customerId = :customerId AND s.shipStatus < 1400")
+	List<Shipments> findOpenShipmentsByCustomer(String customerId);
+
 }

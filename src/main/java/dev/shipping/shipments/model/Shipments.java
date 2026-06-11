@@ -30,6 +30,9 @@ public class Shipments {
 	
 	@Column(name = "ship_to")
 	private String shipTo; // just state and two lettered country code
+	
+	@Column(name = "has_shortage")
+	private String hasShortage = "N"; // if a shipment has shortage then this will be set to N
 
 	// Store as LocalDateTime in DB (no timezone conversion by Hibernate)
 	@Column(name = "created_at", updatable = false, columnDefinition = "DATETIME(6)")
@@ -129,11 +132,20 @@ public class Shipments {
 		this.shipTo = shipTo;
 	}
 
+	public String getHasShortage() {
+		return hasShortage;
+	}
+
+	public void setHasShortage(String hasShortage) {
+		this.hasShortage = hasShortage;
+	}
+
 	@Override
 	public String toString() {
 		return "Shipments [shipmentId=" + shipmentId + ", customerId=" + customerId + ", warehouseId=" + warehouseId
-				+ ", shipStatus=" + shipStatus + ", addressId=" + addressId + ", shipTo=" + shipTo + ", createdAt="
-				+ createdAt + ", modifiedAt=" + modifiedAt + "]";
+				+ ", shipStatus=" + shipStatus + ", addressId=" + addressId + ", shipTo=" + shipTo + ", hasShortage="
+				+ hasShortage + ", createdAt=" + createdAt + ", modifiedAt=" + modifiedAt + "]";
 	}
-	 
+
+  
 }

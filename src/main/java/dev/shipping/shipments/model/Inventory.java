@@ -53,14 +53,15 @@ public class Inventory {
 		this.createdAt = LocalDateTime.now(ZoneId.of("Asia/Kolkata"));
 		this.modifiedAt = LocalDateTime.now(ZoneId.of("Asia/Kolkata"));
 		this.itemCustomerUomWarehouseId = itemId + "_" + customerId + "_" + itemUom + "_" + warehouseId;
-		this.availableQuantity=  quantity - allocatedQuantity;
+		this.availableQuantity =  quantity - allocatedQuantity;
 	}
 
 	// Update modified date-time every time you make update to the inventory
 	@PreUpdate
 	public void setModifiedAtAndAvailableQuantity() {
 		this.modifiedAt = LocalDateTime.now(ZoneId.of("Asia/Kolkata"));
-		this.availableQuantity =  quantity - allocatedQuantity;
+		int qty = quantity - allocatedQuantity;		
+		this.availableQuantity=  qty < 0 ? 0 : qty ; // if available qty is negative then update it to 0
 	}
 
 	// Returning string for createdAt in DD-MMM-YYYY hh:mm:ss AM/PM IST format

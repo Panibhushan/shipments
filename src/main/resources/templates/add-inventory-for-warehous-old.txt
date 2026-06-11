@@ -212,79 +212,6 @@
 	margin-bottom: 4px;
 }
 
-/* ── FIELD DISABLED STATE ── */
-input:disabled,
-select:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  background: #f1f5f9;
-}
-
-/* ── FIELD TOOLTIP WRAPPER ── */
-.field-tooltip-wrapper {
-  position: relative;
-  display: block;
-}
-
-.field-tooltip {
-  visibility: hidden;
-  opacity: 0;
-  background: #1e293b;
-  color: #fff;
-  padding: 6px 11px;
-  border-radius: 7px;
-  font-size: 0.74rem;
-  white-space: nowrap;
-  position: absolute;
-  bottom: calc(100% + 6px);
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 200;
-  pointer-events: none;
-  transition: opacity 0.2s ease, visibility 0.2s ease;
-  font-weight: 600;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.18);
-  text-transform: none;
-  letter-spacing: 0;
-}
-
-.field-tooltip::after {
-  content: '';
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  border: 5px solid transparent;
-  border-top-color: #1e293b;
-}
-
-.field-tooltip-wrapper.show-tooltip:hover .field-tooltip {
-  visibility: visible;
-  opacity: 1;
-}
-
-/* ── NO CUSTOMERS WARNING ── */
-.no-customers-warning {
-  font-size: 0.85rem;
-  color: #92400e;
-  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-  border: 1px solid #fcd34d;
-  border-radius: 8px;
-  padding: 10px 14px;
-  margin-top: 6px;
-  grid-column: 1 / -1;
-}
-
-.no-customers-warning a {
-  color: #b45309;
-  font-weight: 700;
-  text-decoration: underline;
-}
-
-.no-customers-warning a:hover {
-  color: #92400e;
-}
-
   </style>
 </head>
 
@@ -325,21 +252,15 @@ select:disabled {
             </div>
             <div>
               <label for="customerId">Customer</label>
-              <div th:if="${customers != null and !#lists.isEmpty(customers)}">
-                <select name="customerId" id="customerId" required onchange="onCustomerChange()">
-                  <option value="">— Select Customer —</option>
-                  <option th:each="c : ${customers}"
-                          th:value="${c.customerId}"
-                          th:text="|${c.customerId} = ${c.customerName}|"></option>
-                </select><!-- 
-                <a href="/customers/createCustomerPage" class="helper-link">
-                  ＋ Customer doesn't exist? Create one
-                </a> -->
-              </div>
-              <div th:if="${customers == null or #lists.isEmpty(customers)}" class="no-customers-warning">
-                ⚠ No customers are configured for this warehouse. Assign a warehouse to a customer to add inventory.
-                 <a href="/customers/">Go to Customers →</a>
-              </div>
+              <select name="customerId" id="customerId"required>
+                <option value="">— Select Customer —</option>
+                <option th:each="c : ${customers}"
+                        th:value="${c.customerId}"
+                        th:text="|${c.customerId} = ${c.customerName}|"></option>
+              </select>
+              <a href="/customers/createCustomerPage" class="helper-link">
+                ＋ Customer doesn't exist? Create one
+              </a>
             </div>
           </div>
 
@@ -350,31 +271,21 @@ select:disabled {
 
             <div>
               <label for="itemId">Item ID</label>
-              <div class="field-tooltip-wrapper show-tooltip" id="wrap-itemId">
-                <span class="field-tooltip">Select a customer first</span>
-                <input type="text" name="itemId" id="itemId"
-                       placeholder="e.g. ITM-001"
-                       th:value="${itemIdFromController != null} ? ${itemIdFromController} : ''"
-                       oninput="this.value = this.value.toUpperCase()"
-                       required disabled />
-                    
-					<!-- loads the customer item -->  
-                  	<datalist id="customerItemsList"></datalist>                  
-                  
-              </div>
+              <input type="text" name="itemId" id="itemId"
+                     placeholder="e.g. ITM-001"
+                     th:value="${itemIdFromController != null} ? ${itemIdFromController} : ''"
+                     oninput="this.value = this.value.toUpperCase()"
+                     required />
             </div>
 
             <div>
               <label for="itemUom">Item UOM</label>
-              <div class="field-tooltip-wrapper show-tooltip" id="wrap-itemUom">
-                <span class="field-tooltip">Select a customer first</span>
-                <select name="itemUom" id="itemUom" required disabled>
-                  <option value="">— Select UOM —</option>
-                  <option th:each="opt : ${itemUomsList}"
-                          th:value="${opt}"
-                          th:text="${opt}"></option>
-                </select>
-              </div>
+              <select name="itemUom" id="itemUom" required>
+                <option value="">— Select UOM —</option>
+                <option th:each="opt : ${itemUomsList}"
+                        th:value="${opt}"
+                        th:text="${opt}"></option>
+              </select>
             </div>
 
           </div>
@@ -386,34 +297,25 @@ select:disabled {
 
             <div>
               <label for="adjustmentType">Adjustment Type</label>
-              <div class="field-tooltip-wrapper show-tooltip" id="wrap-adjustmentType">
-                <span class="field-tooltip">Select a customer first</span>
-                <select name="adjustmentType" id="adjustmentType" required disabled>
-                  <option value="increaseBy">Increase By</option>
-                  <option value="decreaseBy">Decrease By</option>
-                </select>
-              </div>
+              <select name="adjustmentType" id="adjustmentType" required>
+                <option value="increaseBy">Increase By</option>
+                <option value="decreaseBy">Decrease By</option>
+              </select>
             </div>
 
             <div>
               <label for="quantity">Quantity</label>
-              <div class="field-tooltip-wrapper show-tooltip" id="wrap-quantity">
-                <span class="field-tooltip">Select a customer first</span>
-                <input type="number" name="quantity" id="quantity"
-                       placeholder="Enter quantity" min="1"
-                       th:value="${quantityFromController != null} ? ${quantityFromController} : ''"
-                       required disabled />
-              </div>
+              <input type="number" name="quantity" id="quantity"
+                     placeholder="Enter quantity" min="1"
+                     th:value="${quantityFromController != null} ? ${quantityFromController} : ''"
+                     required />
             </div>
 
           </div>
 
           <!-- ── BUTTONS ── -->
           <div class="button-row">
-            <div class="field-tooltip-wrapper show-tooltip" id="wrap-submit">
-              <span class="field-tooltip">Select a customer first</span>
-              <button type="submit" class="btn-submit" id="btnSubmit" disabled>✔ Add Inventory</button>
-            </div>
+            <button type="submit" class="btn-submit">✔ Add Inventory</button>
           </div>
 
         </form>
@@ -442,98 +344,7 @@ select:disabled {
       if (msg) {
         setTimeout(function () { msg.style.display = "none"; }, 10000);
       }
-
-      // Apply initial state on page load
-      const customerId = document.getElementById('customerId');
-      if (customerId) {
-        setFieldsState(customerId.value !== '');
-      }
-    });
-
-    const DEPENDENT_FIELDS = ['itemId', 'itemUom', 'adjustmentType', 'quantity', 'btnSubmit'];
-
-    function setFieldsState(hasCustomer) {
-      DEPENDENT_FIELDS.forEach(function(id) {
-        const el = document.getElementById(id);
-        const wrapper = document.getElementById('wrap-' + id);
-        if (!el) return;
-        el.disabled = !hasCustomer;
-        if (wrapper) {
-          if (hasCustomer) {
-            wrapper.classList.remove('show-tooltip');
-          } else {
-            wrapper.classList.add('show-tooltip');
-          }
-        }
-      });
-    }
-
-    function resetDependentFields() {
-      const itemId = document.getElementById('itemId');
-      if (itemId) { itemId.value = ''; }
-
-      const itemUom = document.getElementById('itemUom');
-      if (itemUom) { itemUom.value = ''; }
-
-      const adjustmentType = document.getElementById('adjustmentType');
-      if (adjustmentType) { adjustmentType.value = 'increaseBy'; }
-
-      const quantity = document.getElementById('quantity');
-      if (quantity) { quantity.value = ''; }
-    }
-
-    function onCustomerChange() {
-      const customerId = document.getElementById('customerId').value;
-      const hasCustomer = customerId !== '';
-      resetDependentFields();
-      setFieldsState(hasCustomer);
-      
-      if (hasCustomer) {
-          getCustomerItems();
-        } else {
-          // Clear datalist
-          document.getElementById('customerItemsList').innerHTML = '';
-        }
-    }
-    
- // This will get the items for the selected cutsomer and populated as a suggestion when entering the item-id
-	function getCustomerItems() {
-
-	    const customerId = document.getElementById("customerId").value.trim();
-	    const dataList = document.getElementById("customerItemsList");
-	    
-	    dataList.innerHTML = "";
-	    
-	    if(customerId === "") return;
-
-	    fetch(`/items/getCustomerItems?customerId=${encodeURIComponent(customerId)}`, {
-	        method: "POST"
-	    })
-	    .then(res => res.json())
-	    .then(items => {
-
-	        const dataList = document.getElementById("customerItemsList");
-
-	        dataList.innerHTML = "";
-
-	        items.forEach(item => {
-
-	            const option = document.createElement("option");
-
-	            option.value = item.itemId;
-
-	            // optional display text
-	            option.label = "Uom: "+item.itemUom+" | Description: "+item.itemDescription;
-
-	            dataList.appendChild(option);
-	        });
-
-	    })
-	    .catch(err => {
-	        console.error(err);
-	    });
-	}    
-    
+    }); 
   </script>
 
 </body>
