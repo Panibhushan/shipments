@@ -18,10 +18,9 @@ import dev.shipping.shipments.model.Inventory;
 import dev.shipping.shipments.model.Warehouses;
 import dev.shipping.shipments.repo.AddressRepository;
 import dev.shipping.shipments.repo.WarehousesRepository;
-
+import dev.shipping.shipments.utils.MyCustomUtils;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
-import utils.MyCustomUtils;
 
 /**
  * Core business logic for warehouse operations.

@@ -8,6 +8,7 @@ import dev.shipping.shipments.service.CustomersService;
 import dev.shipping.shipments.service.ShipmentLinesService;
 import dev.shipping.shipments.service.ShipmentsService;
 import dev.shipping.shipments.service.WarehousesService;
+import dev.shipping.shipments.utils.MyCustomUtils;
 import dev.shipping.shipments.repo.ShipmentsRepository;
 
 import java.util.List;
@@ -23,7 +24,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import dev.shipping.shipments.model.Warehouses;
-import utils.MyCustomUtils;
 
 /**
  * Handles all HTTP requests related to shipments.

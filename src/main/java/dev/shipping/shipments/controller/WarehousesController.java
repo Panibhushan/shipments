@@ -122,7 +122,7 @@ public class WarehousesController {
         log.info("GET /warehouses/createWarehousePage → rendering create warehouse form");
         model.addAttribute("warehouse", new Warehouses());
         model.addAttribute("activePage", "createWarehouse");
-        return "create-warehouse";
+        return "create-warehouse-with-address";
     }
 
     /**

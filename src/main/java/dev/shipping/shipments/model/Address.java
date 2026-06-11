@@ -1,7 +1,6 @@
 package dev.shipping.shipments.model;
 
 import jakarta.persistence.*;
-import utils.MyCustomUtils;
 
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -10,6 +9,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 
 import dev.shipping.shipments.config.AppProperties;
+import dev.shipping.shipments.utils.MyCustomUtils;
 
 @Entity
 public class Address {

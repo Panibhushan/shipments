@@ -17,10 +17,9 @@ import dev.shipping.shipments.model.Items;
 import dev.shipping.shipments.model.Warehouses;
 import dev.shipping.shipments.repo.AddressRepository;
 import dev.shipping.shipments.repo.WarehousesRepository;
-import dev.shipping.shipments.utils.MyResourceUtils;
+import dev.shipping.shipments.utils.MyCustomUtils;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
-import utils.MyCustomUtils;
 
 @Service
 public class AddressService {

@@ -1,4 +1,4 @@
-package utils;
+package dev.shipping.shipments.utils;
 
 import java.net.URI;
 import java.net.http.HttpClient;
@@ -82,12 +82,6 @@ public class MyCustomUtils {
 		String formattedAddress = sb.toString();
 
 		MyCustomUtils.calculateDistance(0.0, 0.0, 0.0, 0.0);
-
-		double distance = MyCustomUtils.calculateDistance(12.9716, 77.5946, // Bangalore
-				13.0827, 80.2707 // Chennai
-		);
-
-		System.out.println(distance + " km");
 
 		return formattedAddress;
 	}
