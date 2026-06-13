@@ -302,6 +302,34 @@ input[type=number].input-error {
 	visibility: visible;
 	opacity: 1;
 }
+
+/* ── ACTION LINKS ── */
+.action-link {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	padding: 10px 16px;
+	text-decoration: none;
+	border-radius: 8px;
+	font-weight: 700;
+	font-size: 0.9rem;
+	border: 1.5px solid #93c5fd;
+	transition: all 0.2s ease;
+	cursor: pointer;
+}
+
+.view-audit-btn {
+	background-color: #ffffe0;
+	color: #4a3131;
+	border: 1.5px solid #edf4b0;
+}
+
+.view-audit-btn:hover {
+	background-color: #e8e895;
+	color: #1e293b;
+	transform: translateY(-1px);
+}
+
 </style>
 </head>
 
@@ -438,6 +466,10 @@ th:href="@{'/items/showItemDetails/' + ${inventory.itemId} + '_' + ${inventory.c
 							<span id="update-button-tooltip" class="tooltip-text">
 								Make changes to quantity to enable the update button </span>
 						</div>
+						
+						<a type="button" class="action-link view-audit-btn"
+							th:href="@{'/inventory/viewInventoryAudit/' + ${inventory.itemCustomerUomWarehouseId}}">🔍
+							View Audit</a>
 					</div>
 
 				</div>

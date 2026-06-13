@@ -11,12 +11,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import dev.shipping.shipments.model.AuditFieldChange;
+import dev.shipping.shipments.model.Audits;
 import dev.shipping.shipments.model.Customers;
 import dev.shipping.shipments.model.Warehouses;
 import dev.shipping.shipments.model.Inventory;
 import dev.shipping.shipments.model.InventoryCheckResult;
 import dev.shipping.shipments.model.Items;
 import dev.shipping.shipments.model.ShipmentLines;
+import dev.shipping.shipments.repo.AuditsRepository;
 import dev.shipping.shipments.repo.CustomersRepository;
 import dev.shipping.shipments.repo.InventoryRepository;
 import dev.shipping.shipments.repo.ItemsRepository;
@@ -25,6 +28,8 @@ import dev.shipping.shipments.repo.WarehousesRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 import jakarta.persistence.TypedQuery;
+import tools.jackson.databind.ObjectMapper;
+import utils.MyCustomUtils;
 
 /**
  * Core business logic for inventory operations.
@@ -51,14 +56,17 @@ public class InventoryService {
 	private final CustomersRepository customersRepo;
 	private final ItemsService itemsService;
 	private final WarehousesRepository warehousesRepo;
+	private final AuditsRepository auditsRepo;
 
 	public InventoryService(InventoryRepository inventoryRepo, ItemsRepository itemsRepo,
-			CustomersRepository customersRepo, ItemsService itemsService, WarehousesRepository warehousesRepo) {
+			CustomersRepository customersRepo, ItemsService itemsService, WarehousesRepository warehousesRepo,
+			AuditsRepository auditsRepo) {
 		this.inventoryRepo = inventoryRepo;
 		this.itemsRepo = itemsRepo;
 		this.customersRepo = customersRepo;
 		this.itemsService = itemsService;
 		this.warehousesRepo = warehousesRepo;
+		this.auditsRepo = auditsRepo;
 	}
 
 	// ─────────────────────────────────────────────
@@ -175,9 +183,9 @@ public class InventoryService {
 		// ── 1. Customer existence & Active check
 		Customers customer = customersRepo.findIfCustomerIsActiveAndHasValidUptoDate(customerId);
 
-		log.info("createOrUpdateInventory() → findIfCustomerIsActiveAndHasValidUptoDate for customer={} is {} ", customerId,
-				customer );
-		
+		log.info("createOrUpdateInventory() → findIfCustomerIsActiveAndHasValidUptoDate for customer={} is {} ",
+				customerId, customer);
+
 		if (customer == null) {
 			log.warn("createOrUpdateInventory() →  customer not found/inactive/expired: customerId={}", customerId);
 			return "CUSTOMER_ERROR";
@@ -186,9 +194,8 @@ public class InventoryService {
 		// ── 2. Warehouse existence & Active check
 		Warehouses warehouse = warehousesRepo.findIfWarehouseIsActive(warehouseId);
 
-		log.info("createOrUpdateInventory() → findIfWarehouseIsActive for warehouse={} is {} ",
-				warehouseId, warehouse);
-		
+		log.info("createOrUpdateInventory() → findIfWarehouseIsActive for warehouse={} is {} ", warehouseId, warehouse);
+
 		if (warehouse == null) {
 			log.warn("createOrUpdateInventory() → item not found: itemCustomerUomId={}", itemCustomerUomId);
 			return "WAREHOUSE_INACTIVE";
@@ -223,6 +230,12 @@ public class InventoryService {
 				return "CANNOT_MAKE_INVENTORY_NEGATIVE";
 			}
 
+			// This is to build the audit-json and this needs to be before the item.set
+			// methods else the old & new values will be same and audit will not reflect
+			// correctly
+			Inventory currentInventory = inventoryRepo.findById(itemCustomerUomWarehouseId)
+					.orElseThrow(() -> new RuntimeException("Inventory not found: " + itemCustomerUomWarehouseId));
+
 			// Apply the adjustment: increase adds, decrease subtracts
 			int adjustedQty = "increaseBy".equals(adjustmentType) ? quantity : -quantity;
 			toUpdate.setQuantity(currentQty + adjustedQty);
@@ -232,14 +245,78 @@ public class InventoryService {
 					"createOrUpdateInventory() → updated: itemCustomerUomWarehouseId={}, oldQty={}, adjustment={}, newQty={}",
 					itemCustomerUomWarehouseId, currentQty, adjustedQty, toUpdate.getQuantity());
 
+			String auditData = buildInventoryChangesObjectForAudit_UPDATE(currentQty , adjustmentType, quantity);
+			log.info("createOrUpdateInventory() auditData = {}", auditData);
+			log.info("createOrUpdateInventory() completed → itemCustomerUomWarehouseId={}", itemCustomerUomId);
+			Audits audit = MyCustomUtils.setFieldsForAudit("INVENTORY", itemCustomerUomWarehouseId, "MODIFY", auditData,
+					"ADMIN");
+			auditsRepo.save(audit);
+			log.info("createOrUpdateInventory() audit={} saved for → itemCustomerUomWarehouseId={}", audit.toString(),
+					itemCustomerUomWarehouseId);
+
 		} else {
 			// ── Create new record ─────────────────────────────────────────────
 			inventoryRepo.save(inventory);
 			log.info("createOrUpdateInventory() → created new record: itemCustomerUomWarehouseId={}",
 					itemCustomerUomWarehouseId);
+
+			Inventory createdInventory = inventoryRepo.findById(itemCustomerUomWarehouseId).get();
+
+			String auditData = buildInventoryChangesObjectForAudit_CREATE(createdInventory,
+					new ArrayList<AuditFieldChange>());
+			log.info("createOrUpdateInventory() auditData = {}", auditData);
+			Audits audit = MyCustomUtils.setFieldsForAudit("INVENTORY", itemCustomerUomWarehouseId, "CREATE", auditData,
+					"SYSTEM");
+			auditsRepo.save(audit);
+			log.info("createOrUpdateInventory() audit={} saved for → itemCustomerUomWarehouseId={}", audit.toString(),
+					itemCustomerUomWarehouseId);
+
 		}
 
 		return "INVENTORY_UPDATED";
+	}
+
+	public String buildInventoryChangesObjectForAudit_CREATE(Inventory inventory, List<AuditFieldChange> changes) {
+		changes.add(new AuditFieldChange("ItemCustomerUomWarehouseId", "", inventory.getItemCustomerUomWarehouseId()));
+		changes.add(new AuditFieldChange("Item Id", "", inventory.getItemId()));
+		changes.add(new AuditFieldChange("Uom", "", inventory.getItemUom()));
+		changes.add(new AuditFieldChange("Customer", "", inventory.getCustomerId()));
+		changes.add(new AuditFieldChange("Quantity", "", Integer.toString(inventory.getQuantity())));
+		changes.add(new AuditFieldChange("Allocated Quantity", "", Integer.toString(inventory.getAllocatedQuantity())));
+		changes.add(new AuditFieldChange("Available Quantity", "", Integer.toString(inventory.getAvailableQuantity())));
+		changes.add(new AuditFieldChange("Warehouse Id", "", inventory.getWarehouseId()));
+		changes.add(new AuditFieldChange("Created At", "", inventory.getCreatedAt()));
+		changes.add(new AuditFieldChange("Modified At", "", inventory.getModifiedAt()));
+
+		ObjectMapper mapper = new ObjectMapper();
+
+		String auditData = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(changes);
+
+		return auditData;
+	}
+
+	public String buildInventoryChangesObjectForAudit_UPDATE(int existingQuantity, String adjustmentType, int quantity) {
+		List<AuditFieldChange> changes = new ArrayList<>();
+
+		changes.add(new AuditFieldChange("Adjustment Type", "", adjustmentType+" "+quantity));
+		
+		int newQuantity= 0;
+		String newQuantityString = "", oldQuantityString = Integer.toString(existingQuantity), quantityToUpdateString=Integer.toString(quantity);
+		if("increaseBy".equals(adjustmentType)) {
+			newQuantity = existingQuantity + quantity;
+			newQuantityString =		"( "+oldQuantityString+" + "+ quantityToUpdateString+" = ) "+ Integer.toString(newQuantity);
+		}else {
+			newQuantity = existingQuantity - quantity;
+			newQuantityString =		"( "+oldQuantityString+" - "+ quantityToUpdateString+" = ) "+ Integer.toString(newQuantity);
+		}		
+
+		changes.add(new AuditFieldChange("Quantity", oldQuantityString,newQuantityString));
+
+		ObjectMapper mapper = new ObjectMapper();
+
+		String auditData = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(changes);
+
+		return auditData;
 	}
 
 	// ─────────────────────────────────────────────
@@ -447,7 +524,7 @@ public class InventoryService {
 		for (ShipmentLines sl : lines) {
 			itemId = sl.getItemId();
 			itemUom = sl.getItemUom();
-			boolean itemExist = itemsService.itemExists(itemId + "_" + customerId + "_" + itemUom);
+			boolean itemExist = itemsService.itemExistsAndActive(itemId + "_" + customerId + "_" + itemUom);
 
 			if (!itemExist) {
 				++i;
@@ -455,7 +532,7 @@ public class InventoryService {
 				itemErrors += "<tr>" + "<td " + tdStyle + ">" + customerId + "</td>" + "<td " + tdStyle + ">" + itemId
 						+ "</td>" + "<td " + tdStyle + ">" + itemUom + "</td>" + "</tr>";
 				log.warn("InventoryService:: checkIfItemsAndInventoryExists() → ITEM: " + itemId + ", UOM: " + itemUom
-						+ ", CUTSOMER: " + customerId + " -- Item doesnt exist");
+						+ ", CUTSOMER: " + customerId + " -- Item doesnt exist or Inactive");
 			} else {
 				invRes = inventoryRepo.getInventoryDetailsToVerifyAvailability(customerId, itemId, itemUom);
 				if (invRes.isEmpty()) {
@@ -475,7 +552,7 @@ public class InventoryService {
 		}
 
 		if (hasItemErrors)
-			errorMessages += "Below items are invalid. The combination of item, uom, customer doesnt exist.  "
+			errorMessages += "Below items are invalid. The combination of item, uom, customer doesnt exist or item is Inactive.  "
 					+ itemErrors + "</table>"
 					+ "<br />------------------------------------------------------------------------------------------------------------------------------<br /><br />";
 

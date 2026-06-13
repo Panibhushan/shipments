@@ -22,12 +22,6 @@ public class SnsPublisherService {
 
     public void publishShipmentStatus(String shipmentId, String shipmentStatusAndDesc, String comment) {
 
-    	/*
-		 * String message = "{" + "\"shipmentId\":\"" + shipmentId + "\"," +
-		 * "\"shipmentStatusAndDesc\":\"" + shipmentStatusAndDesc + "\"," +
-		 * "\"comment\":\"" + comment + "\"" + "}";
-		 */
-    	
     	//Building a JSON object to send to SQS
     	ObjectMapper mapper = new ObjectMapper();
 
@@ -37,6 +31,12 @@ public class SnsPublisherService {
 		json.put("comment", comment);
 		
 		String message = mapper.writeValueAsString(json);
+		
+		publishToSns(message);
+
+    }     
+    
+    public void publishToSns(String message) {		
 
         PublishRequest request = PublishRequest.builder()
                 .topicArn(topicArn)
@@ -54,4 +54,6 @@ public class SnsPublisherService {
             e.printStackTrace();
         } 
     }
+    
+    
 }

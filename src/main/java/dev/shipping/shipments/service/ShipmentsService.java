@@ -78,12 +78,14 @@ public class ShipmentsService {
 	private final ShipmentLinesService shipmentLinesService;
 	private final AddressRepository addressRepo;
 	private final AddressService addressService;
+	private final ItemsService itemsService;
 
 	public ShipmentsService(ShipmentsRepository shipmentsRepo, CustomersRepository customersRepo,
 			CustomerWarehousesRepository customerWarehousesRepo, WarehousesRepository warehousesRepo,
 			InventoryRepository inventoryRepo, ShipmentLinesRepository shipmentLinesRepo,
 			DynamoDbService dynamoDbService, SnsPublisherService snsService, SqsSenderService sqsService,
-			ShipmentLinesService shipmentLinesService, AddressRepository addressRepo, AddressService addressService) {
+			ShipmentLinesService shipmentLinesService, AddressRepository addressRepo, AddressService addressService,
+			ItemsService itemsService) {
 		this.shipmentsRepo = shipmentsRepo;
 		this.customersRepo = customersRepo;
 		this.customerWarehousesRepo = customerWarehousesRepo;
@@ -96,6 +98,7 @@ public class ShipmentsService {
 		this.shipmentLinesService = shipmentLinesService;
 		this.addressRepo = addressRepo;
 		this.addressService = addressService;
+		this.itemsService = itemsService;
 	}
 
 	// ─────────────────────────────────────────────
@@ -319,11 +322,17 @@ public class ShipmentsService {
 		boolean isWarehouseActive = warehouse.isPresent() && "Active".equals(warehouse.get().getWarehouseStatus());
 		boolean isCustomerValid = isCustomerActiveAndValid(customer.get());
 		boolean isCustomerWarehouseLinked = customerWarehouses.isPresent();
+		boolean areitemsValid = true;
 
+		List<ShipmentLines> ShipmentLinesList = shipmentLinesRepo.getShipmentLinesByShipmentId(shipmentId);
+		String validateShipmentLinesResult= validateShipmentLines(customerId, ShipmentLinesList);
+
+		areitemsValid = validateShipmentLinesResult.trim().equals("");
+		
 		log.debug("updateShipmentStatus() precondition check → isCustomerValid={}, isWarehouseActive={}, isLinked={}",
 				isCustomerValid, isWarehouseActive, isCustomerWarehouseLinked);
 
-		if (isCustomerValid && isWarehouseActive && isCustomerWarehouseLinked) {
+		if (isCustomerValid && isWarehouseActive && isCustomerWarehouseLinked && areitemsValid) {
 			// All checks passed — apply the status transition
 			return applyStatusTransition(shipment, shipmentId, action, customerId, warehouseId, cancellationReason);
 		}
@@ -331,12 +340,28 @@ public class ShipmentsService {
 		// At least one precondition failed — build a detailed error for the UI
 		log.warn("updateShipmentStatus() precondition(s) failed → shipmentId={}, action={}", shipmentId, action);
 		return buildStatusUpdateErrorMessage(shipmentId, customerId, warehouseId, isCustomerValid, isWarehouseActive,
-				isCustomerWarehouseLinked);
+				isCustomerWarehouseLinked, areitemsValid, validateShipmentLinesResult);
 	}
 
 	// ─────────────────────────────────────────────
 	// FILTER QUERIES
 	// ─────────────────────────────────────────────
+
+	private String validateShipmentLines(String customerId, List<ShipmentLines> shipmentLinesList) {
+
+		String itemCustomerUomId = "", errorMessage ="";
+		String[] itemExistsAndActiveResults = new String[2]; 
+
+		for (ShipmentLines sl : shipmentLinesList) {
+			itemCustomerUomId = sl.getItemId() + "_" + customerId + "_" + sl.getItemUom();
+			itemExistsAndActiveResults = itemsService.itemExistsAndActive(sl.getLineNo(), itemCustomerUomId, sl.getItemId(), sl.getItemUom());
+			
+			if(itemExistsAndActiveResults[1] == null)
+				errorMessage += itemExistsAndActiveResults[0]+"\n"  ;
+		}
+
+		return errorMessage;
+	}
 
 	/**
 	 * Builds and executes a dynamic JPQL query for the basic filter form. Any field
@@ -464,12 +489,14 @@ public class ShipmentsService {
 	 * group, query inventory for warehouses that have enough available stock to
 	 * fulfil the total requested quantity. 3. Flatten the results into a list of
 	 * maps suitable for a JSON response.
-	 * @param zipCode 
+	 * 
+	 * @param zipCode
 	 *
 	 * @return list of {lineNumber, itemId, itemUom, requestedQty, availableQty,
 	 *         warehouseId, warehouseName} for each line that has sufficient stock.
 	 */
-	public List<Map<String, String>> checkInventoryAvailability(String customerId, List<ShipmentLines> lines, String shippingZipCode) {
+	public List<Map<String, String>> checkInventoryAvailability(String customerId, List<ShipmentLines> lines,
+			String shippingZipCode) {
 
 		log.info("checkInventoryAvailability() → customerId={}, lineCount={}", customerId, lines.size());
 
@@ -516,61 +543,71 @@ public class ShipmentsService {
 				String requestedQty = String
 						.valueOf(groupedByLine.getOrDefault(lineNo + "::" + itemId + "::" + itemUom, 0));
 				String availableQty = String.valueOf(inv.getAvailableQuantity());
-				
+
 				Warehouses warehouse = warehousesRepo.findById(warehouseId).get();
-				
+
 				String warehouseName = warehouse.getWarehouseName();
-				
+
 				Optional<Address> address = addressRepo.findById(warehouse.getAddressId());
-				
+
 				String warehouseZipCode = "000000";
-				
-				if(address.isPresent()) {
-					warehouseZipCode = address.get().getZipCode();	
+
+				if (address.isPresent()) {
+					warehouseZipCode = address.get().getZipCode();
 				}
-				
-				
+
 				Double[] warehouseAddressCoordinates = new Double[2], shipingAddressCoordinates = new Double[2];
 				Double distance = 0.0;
-				
+
 				try {
-					 warehouseAddressCoordinates = MyCustomUtils.getCoordinates(warehouseZipCode);
-					 shipingAddressCoordinates = MyCustomUtils.getCoordinates(shippingZipCode);
-					
-					
-					distance = MyCustomUtils.calculateDistance(shipingAddressCoordinates[0], shipingAddressCoordinates[1], warehouseAddressCoordinates[0], warehouseAddressCoordinates[1]);
-					distance = distance == 0.0 ? 1.0 : Math.round(distance * 100.0) / 100.0; // if distance is 0 then setting it as 1, if its not then rounding to 2 decimals
-					
-					log.error("Calculated distance between warehouse & delivery = "+distance+" KM, for :: coordinates = "+shipingAddressCoordinates[0]+", "+shipingAddressCoordinates[1]+", "+ warehouseAddressCoordinates[0]+", "+warehouseAddressCoordinates[1]);
+					warehouseAddressCoordinates = MyCustomUtils.getCoordinates(warehouseZipCode);
+					shipingAddressCoordinates = MyCustomUtils.getCoordinates(shippingZipCode);
+
+					distance = MyCustomUtils.calculateDistance(shipingAddressCoordinates[0],
+							shipingAddressCoordinates[1], warehouseAddressCoordinates[0],
+							warehouseAddressCoordinates[1]);
+					distance = distance == 0.0 ? 1.0 : Math.round(distance * 100.0) / 100.0; // if distance is 0 then
+																								// setting it as 1, if
+																								// its not then rounding
+																								// to 2 decimals
+
+					log.error("Calculated distance between warehouse & delivery = " + distance
+							+ " KM, for :: coordinates = " + shipingAddressCoordinates[0] + ", "
+							+ shipingAddressCoordinates[1] + ", " + warehouseAddressCoordinates[0] + ", "
+							+ warehouseAddressCoordinates[1]);
 
 				} catch (Exception e) {
-					log.error("Error getting the distance between warehouse zip & delivery zip :: coordinates = "+shipingAddressCoordinates[0]+", "+shipingAddressCoordinates[1]+", "+ warehouseAddressCoordinates[0]+", "+warehouseAddressCoordinates[1]);
+					log.error("Error getting the distance between warehouse zip & delivery zip :: coordinates = "
+							+ shipingAddressCoordinates[0] + ", " + shipingAddressCoordinates[1] + ", "
+							+ warehouseAddressCoordinates[0] + ", " + warehouseAddressCoordinates[1]);
 					e.printStackTrace();
 				}
-				
-				warehouseName = "<span class=\"wh-card-title\">( "+warehouseName+" )</span>";
 
-				
+				warehouseName = "<span class=\"wh-card-title\">( " + warehouseName + " )</span>";
+
 				result.add(Map.of("lineNumber", lineNo, "itemId", itemId, "itemUom", itemUom, "requestedQty",
 						requestedQty, "availableQty", availableQty, "warehouseId", warehouseId, "warehouseName",
-						warehouseName, "distance", String.valueOf(distance) ));
+						warehouseName, "distance", String.valueOf(distance)));
 			}
 		}
 
-		log.info("checkInventoryAvailability() → count of warehouse-line combination(s) ={} and the results={}", result.size(), result.toString());
-		
-		//sorting the list based on distance in asceding order
-		//putting "999999" as default value incase the distance is returned null, empty, or non-numeric
+		log.info("checkInventoryAvailability() → count of warehouse-line combination(s) ={} and the results={}",
+				result.size(), result.toString());
+
+		// sorting the list based on distance in asceding order
+		// putting "999999" as default value incase the distance is returned null,
+		// empty, or non-numeric
 		result.sort(Comparator.comparingDouble(map -> {
-		    try {
-		        return Double.parseDouble(map.getOrDefault("distance", "999999"));
-		    } catch (NumberFormatException e) {
-		        return Double.MAX_VALUE;
-		    }
+			try {
+				return Double.parseDouble(map.getOrDefault("distance", "999999"));
+			} catch (NumberFormatException e) {
+				return Double.MAX_VALUE;
+			}
 		}));
-		
-		log.info("checkInventoryAvailability() → result after sorting the distance in ascending order= {}", result.toString());
-		
+
+		log.info("checkInventoryAvailability() → result after sorting the distance in ascending order= {}",
+				result.toString());
+
 		return result;
 	}
 
@@ -616,6 +653,14 @@ public class ShipmentsService {
 			toCreate.setItemUom(line.getItemUom());
 			toCreate.setQuantity(line.getQuantity());
 			toCreate.setShortageQuantity(0); // default; updated later during picking
+			
+			String itemCustomerUomId = line.getItemId()+"_"+customerId+"_"+line.getItemUom();
+			
+			String[] itemCheckResult = itemsService.itemExistsAndActive(line.getLineNo(), itemCustomerUomId, line.getItemId(), line.getItemUom());
+			
+			if(itemCheckResult[1] == null) {
+				return "FAILED TO CREATE SHIPMENT BECAUSE THIS ITEM IS EITHER DOESNT EXIST OR INACTIVE: "+itemCheckResult[0];
+			}
 
 			String createdId = shipmentLinesService.createShipmentLines(toCreate);
 			if (createdId == null) {
@@ -794,9 +839,12 @@ public class ShipmentsService {
 	/**
 	 * Builds a user-facing HTML error message listing every failed precondition for
 	 * a status update, with deep-links to the relevant admin pages.
+	 * 
+	 * @param itemsValid
+	 * @param validateShipmentLinesResult 
 	 */
 	private String buildStatusUpdateErrorMessage(String shipmentId, String customerId, String warehouseId,
-			boolean isCustomerValid, boolean isWarehouseActive, boolean isCustomerWarehouseLinked) {
+			boolean isCustomerValid, boolean isWarehouseActive, boolean isCustomerWarehouseLinked, boolean areItemsValid, String validateShipmentLinesResult) {
 
 		StringBuilder msg = new StringBuilder(
 				"Shipment# " + shipmentId + " cannot be updated because of the following reason(s):\n");
@@ -817,7 +865,9 @@ public class ShipmentsService {
 					.append(" &nbsp;&nbsp;<a style=\"color: #edff2b;\"" + " href='/warehouses/viewOrEditWarehouse/")
 					.append(warehouseId).append("'>View ").append(warehouseId).append("</a>");
 		}
-
+		if (!areItemsValid) {
+			msg.append("\nOne or more of below items doesnt exits or inactive, check the items and update accordingly\n"+validateShipmentLinesResult);
+		}
 		return msg.toString();
 	}
 
@@ -868,8 +918,10 @@ public class ShipmentsService {
 
 		hasShortage = hasShortageToUpdateShipmentStatus(shipmentId, customerId, warehouseId);
 
-		// If the action is not for cancellation and shortage if found for one/more lines then return the message stating
-		// shortage for shipment, else proceed with updating the shipment to respective status.
+		// If the action is not for cancellation and shortage if found for one/more
+		// lines then return the message stating
+		// shortage for shipment, else proceed with updating the shipment to respective
+		// status.
 		// if action is to cancel the shipment then proceed to cancel it.
 		if (hasShortage && !action.equals("CANCEL")) {
 			shipment.setHasShortage("Y");
@@ -878,9 +930,10 @@ public class ShipmentsService {
 			return "Shipment Cannot be processed due to shortage of inventory. Refer shipment lines for shortage item & quantity.";
 		}
 
-		// If the action is not for cancellation and IF no shortage was detected for any lines, we are changing hasShortage
+		// If the action is not for cancellation and IF no shortage was detected for any
+		// lines, we are changing hasShortage
 		// flag for shipment to N
-		if (shipment.getHasShortage().equals("Y")  && !action.equals("CANCEL")) {
+		if (shipment.getHasShortage().equals("Y") && !action.equals("CANCEL")) {
 			shipment.setHasShortage("N");
 			shipmentsRepo.save(shipment);
 		}

@@ -110,7 +110,7 @@ public class Customers {
 		if (validUpto == null)
 			return null;
 		return validUpto.format(DateTimeFormatter.ofPattern("dd-MMM-yyyy 23:59:59"))  ;
-		// returns "15-MAY-2026 00:00:00"
+		// returns "15-MAY-2026 23:59:59"
 	}
 
 	public String getCustomerEmail() {

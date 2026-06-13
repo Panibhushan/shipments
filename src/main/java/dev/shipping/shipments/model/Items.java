@@ -24,6 +24,9 @@ public class Items {
 
 	@Column(name = "item_id")
 	private String itemId;
+	
+	@Column(name = "item_name")
+	private String itemName;
 
 	@Column(name = "customer_id")
 	private String customerId;
@@ -119,11 +122,19 @@ public class Items {
 		this.itemUom = itemUom;
 	}
 
-	@Override
-	public String toString() {
-		return "Items [itemCustomerUomId=" + itemCustomerUomId + ", itemId=" + itemId + ", customerId=" + customerId
-				+ ", itemDescription=" + itemDescription + ", createdAt=" + createdAt + ", modifiedAt=" + modifiedAt
-				+ ", itemStatus=" + itemStatus + ", itemUom=" + itemUom + "]";
+	public String getItemName() {
+		return itemName;
 	}
 
+	public void setItemName(String itemName) {
+		this.itemName = itemName;
+	}
+
+	@Override
+	public String toString() {
+		return "Items [itemCustomerUomId=" + itemCustomerUomId + ", itemId=" + itemId + ", itemName=" + itemName
+				+ ", customerId=" + customerId + ", itemDescription=" + itemDescription + ", createdAt=" + createdAt
+				+ ", modifiedAt=" + modifiedAt + ", itemStatus=" + itemStatus + ", itemUom=" + itemUom + "]";
+	}
+ 
 }

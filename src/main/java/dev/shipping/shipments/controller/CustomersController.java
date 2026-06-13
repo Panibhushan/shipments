@@ -14,7 +14,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import dev.shipping.shipments.model.Audits;
 import dev.shipping.shipments.model.Customers;
+import dev.shipping.shipments.service.AuditsService;
 import dev.shipping.shipments.service.CustomersService;
 
 /**
@@ -44,9 +46,11 @@ public class CustomersController {
 	private static final List<String> EXPIRY_UNIT_OPTIONS = Arrays.asList("DAY", "WEEK", "MONTH", "QUARTER", "YEAR");
 
 	private final CustomersService customersService;
+	private final AuditsService auditsService;
 
-	public CustomersController(CustomersService customersService) {
+	public CustomersController(CustomersService customersService, AuditsService auditsService) {
 		this.customersService = customersService;
+		this.auditsService = auditsService;
 	}
 
 	// ─────────────────────────────────────────────
@@ -256,13 +260,13 @@ public class CustomersController {
 	 */
 	@PostMapping("/customers/updateCustomer")
 	public String updateCustomer(@RequestParam String customerId, @RequestParam String customerName,
-			@RequestParam String customerStatus, @RequestParam String validUpto,
+			@RequestParam String customerStatus, @RequestParam String validUpto, @RequestParam String customerEmail,
 			@RequestParam(value = "selectedWarehouses", required = false, defaultValue = "") List<String> selectedWarehouses,
 			RedirectAttributes redirectAttributes) {
 
 		log.info(
-				"POST /customers/updateCustomer → customerId={}, customerName={}, status={}, validUpto={}, warehouseCount={}",
-				customerId, customerName, customerStatus, validUpto, selectedWarehouses.size());
+				"POST /customers/updateCustomer → customerId={}, customerName={}, status={}, validUpto={}, customerEmail={}, warehouseCount={}",
+				customerId, customerName, customerStatus, validUpto, customerEmail, selectedWarehouses.size());
 
 		String bgColor = "#f8d7da", textColor = "#721c24", msg = "", resultMessage="";
 
@@ -287,7 +291,7 @@ public class CustomersController {
 			} else {
 				// ── 3. Persist ────────────────────────────────────────────────
 				resultMessage = customersService.updateCustomer(customerId, customerName, customerStatus,
-						validUpto, selectedWarehouses);
+						validUpto, customerEmail, selectedWarehouses);
 				
 				log.info("updateCustomer() → customer update customerId={} resultMessage={}, isSuccess={}", customerId, resultMessage, resultMessage.equals("SUCCESS"));
 
@@ -348,10 +352,36 @@ public class CustomersController {
 				textColor = "#45484d";
 			} else {
 				msg = deletionResult;
+				redirectAttributes.addFlashAttribute("msg", msg);
+				redirectAttributes.addFlashAttribute("bgColor", bgColor);
+				redirectAttributes.addFlashAttribute("textColor", textColor);
 				return "redirect:/customers/viewOrEditCustomer/" + customerId;
 			}
 		}
 
+		redirectAttributes.addFlashAttribute("msg", msg);
+		redirectAttributes.addFlashAttribute("bgColor", bgColor);
+		redirectAttributes.addFlashAttribute("textColor", textColor);
 		return "redirect:/customers/";
 	}
+	
+	
+	@GetMapping("/customers/viewCustomerAudit/{customerId}")
+	public String viewCustomerAudit(@PathVariable String customerId, Model model) {
+
+		List<Audits> auditDetails = auditsService.getAuditDetailsList(customerId); 
+		
+		log.info("/customers/viewCustomerAudit/customerId={}  → audit={}", customerId, auditDetails);
+
+		if (auditDetails.isEmpty() || auditDetails == null)
+			model.addAttribute("audit", "");
+		else {
+			model.addAttribute("auditDetails", auditDetails);
+			model.addAttribute("auditForEntity", customerId);
+		}
+
+		return "show-audit";
+	}
+	
+	
 }
