@@ -15,7 +15,7 @@ import dev.shipping.shipments.repo.InventoryRepository;
 import dev.shipping.shipments.repo.ShipmentLinesRepository;
 import dev.shipping.shipments.repo.ShipmentsRepository;
 import dev.shipping.shipments.repo.WarehousesRepository;
-import utils.MyCustomUtils;
+import dev.shipping.shipments.utils.MyCustomUtils;
 
 import org.hibernate.transform.Transformers;
 import org.slf4j.Logger;
