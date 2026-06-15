@@ -13,52 +13,42 @@ import tools.jackson.databind.node.ObjectNode;
 @Service
 public class SqsSenderService {
 
-    private final SqsClient sqsClient;
+	private final SqsClient sqsClient;
+	private final String queueUrl = "https://sqs.us-east-1.amazonaws.com/953158925887/ShippingSQS";
 
-    // Replace with your SNS Topic ARN
-    private final String topicArn =
-            "arn:aws:sns:us-east-1:953158925887:shipment-status-updates";
+	public SqsSenderService(SqsClient sqsClient) {
+		this.sqsClient = sqsClient;
+	}
 
-    public SqsSenderService(SqsClient sqsClient) {
-        this.sqsClient = sqsClient;
-    }
+	public void sendShipmentStatus(String shipmentId, String shipmentStatusAndDesc, String comment) {
 
-    public void sendShipmentStatus(String shipmentId, String shipmentStatusAndDesc, String comment) {
+		// Building a JSON object to send to SQS
+		ObjectMapper mapper = new ObjectMapper();
 
-		/*
-		 * String message = "{" + "\"shipmentId\":\"" + shipmentId + "\"," +
-		 * "\"shipmentStatusAndDesc\":\"" + shipmentStatusAndDesc + "\"," +
-		 * "\"comment\":\"" + comment + "\"" + "}";
-		 */
-    	
-    	//Building a JSON object to send to SQS
-    	ObjectMapper mapper = new ObjectMapper();
+		ObjectNode json = mapper.createObjectNode();
+		json.put("shipmentId", shipmentId);
+		json.put("shipmentStatusAndDesc", shipmentStatusAndDesc);
+		json.put("comment", comment);
 
-    	ObjectNode json = mapper.createObjectNode();
-    	json.put("shipmentId", shipmentId);
-    	json.put("shipmentStatusAndDesc", shipmentStatusAndDesc);
-    		json.put("comment", comment); 
+		String message = mapper.writeValueAsString(json);
+		
+		publishAudit(message);
 
-    	String message = mapper.writeValueAsString(json);
+	}
 
-        String queueUrl = "https://sqs.us-east-1.amazonaws.com/953158925887/ShippingSQS";
+	public void publishAudit(String message) {
 
-        SendMessageRequest request = SendMessageRequest.builder()
-                .queueUrl(queueUrl)
-                .messageBody(message)
-                .build();
- 
-        
-        try {
-        	SendMessageResponse  response = sqsClient.sendMessage(request);
+		SendMessageRequest request = SendMessageRequest.builder().queueUrl(queueUrl).messageBody(message).build();
 
-            System.out.println("SQS PUBLISH SUCCESS ✔");
-            System.out.println("MessageId: " + response.messageId());
+		try {
+			SendMessageResponse response = sqsClient.sendMessage(request);
 
-        } catch (Exception e) {
-            System.out.println("SQS PUBLISH FAILED ❌");
-            e.printStackTrace();
-        } 
-    }
+			System.out.println("SQS PUBLISH SUCCESS ✔");
+			System.out.println("MessageId: " + response.messageId());
+
+		} catch (Exception e) {
+			System.out.println("SQS PUBLISH FAILED ❌");
+			e.printStackTrace();
+		}
+	}
 }
-

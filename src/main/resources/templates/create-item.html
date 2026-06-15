@@ -69,7 +69,7 @@ body {
 }
 
 .full-span {
-	grid-column: 1/-1;
+	grid-column: 1 / -1;
 }
 
 label {
@@ -121,6 +121,12 @@ input[type=text]:focus, select:focus {
 	border-top: 1px solid #e2e8f0;
 }
 
+/* ── Submit button wrapper + disabled tooltip ── */
+.btn-submit-wrapper {
+	position: relative;
+	display: inline-block;
+}
+
 .btn-submit {
 	background-color: #4CAF50;
 	color: #fff;
@@ -130,12 +136,62 @@ input[type=text]:focus, select:focus {
 	border: none;
 	border-radius: 8px;
 	cursor: pointer;
-	transition: background-color 0.2s, transform 0.15s;
+	transition: background-color 0.2s, transform 0.15s, opacity 0.2s;
 }
 
-.btn-submit:hover {
+.btn-submit:disabled {
+	background-color: #a3c8a5;
+	cursor: not-allowed;
+	opacity: 0.65;
+	transform: none !important;
+}
+
+.btn-submit:not(:disabled):hover {
 	background-color: #3d9140;
 	transform: translateY(-1px);
+}
+
+.btn-submit-wrapper .submit-tip {
+	visibility: hidden;
+	opacity: 0;
+	background: #1e293b;
+	color: #fff;
+	font-size: 0.72rem;
+	padding: 5px 10px;
+	border-radius: 6px;
+	white-space: nowrap;
+	position: absolute;
+	bottom: calc(100% + 7px);
+	left: 50%;
+	transform: translateX(-50%);
+	transition: opacity 0.18s;
+	pointer-events: none;
+	z-index: 20;
+	line-height: 1.5;
+	text-align: center;
+}
+
+.btn-submit-wrapper .submit-tip::after {
+	content: '';
+	position: absolute;
+	top: 100%;
+	left: 50%;
+	transform: translateX(-50%);
+	border-width: 4px;
+	border-style: solid;
+	border-color: #1e293b transparent transparent transparent;
+}
+
+/* Show tooltip only when button is disabled */
+.btn-submit-wrapper:hover .submit-tip {
+	visibility: visible;
+	opacity: 1;
+}
+
+/* Hide tooltip when button is enabled */
+.btn-submit-wrapper.enabled:hover .submit-tip {
+	visibility: hidden;
+	opacity: 0;
 }
 
 .conditions-section {
@@ -182,53 +238,75 @@ input[type=text]:focus, select:focus {
 
 					<div class="section-title">Customer</div>
 					<div>
-						<!--             <label for="customerId">Customer</label>
- -->
 						<select name="customerId" id="customerId" required>
 							<option value="">— Select Customer —</option>
 							<option th:each="c : ${customers}" th:value="${c.customerId}"
 								th:selected="${c.customerId == selectedCustomer}"
 								th:text="|${c.customerId} = ${c.customerName}|"></option>
-						</select> <a href="/customers/goToCreateCustomerPage" class="helper-link">＋
-							Customer doesn't exist? Create one</a>
+						</select>
+						<a href="/customers/goToCreateCustomerPage" class="helper-link">＋ Customer doesn't exist? Create one</a>
 					</div>
 
 					<div class="section-title">Item Details</div>
 					<div class="form-grid">
+
+						<!-- Row 1, Col 1: Item ID -->
 						<div>
-							<label for="itemId">Item ID</label> <input type="text"
-								name="itemId" id="itemId" placeholder="e.g. ITEM001"
+							<label for="itemId">Item ID</label>
+							<input type="text" name="itemId" id="itemId"
+								placeholder="e.g. ITEM001"
 								th:value="${enteredItemId != null} ? ${enteredItemId} : ''"
-								oninput="this.value = this.value.toUpperCase()" required />
-						</div>
-						<div>
-							<label for="itemDescription">Item Description</label> <input
-								type="text" name="itemDescription" id="itemDescription"
-								placeholder="Enter item description"
-								th:value="${enteredItemDescription != null} ? ${enteredItemDescription} : ''"
+								oninput="this.value = this.value.toUpperCase(); checkFormFilled();"
 								required />
 						</div>
+
+						<!-- Row 1, Col 2: Item Name -->
 						<div>
-							<label for="itemUom">Item UOM</label> <select name="itemUom"
-								id="itemUom" required>
+							<label for="itemName">Item Name</label>
+							<input type="text" name="itemName" id="itemName"
+								placeholder="Enter item name"
+								th:value="${enteredItemName != null} ? ${enteredItemName} : ''"
+								maxlength="15"
+								oninput="checkFormFilled();"
+								required />
+						</div>
+
+						<!-- Row 2, Col 1: Item UOM -->
+						<div>
+							<label for="itemUom">Item UOM</label>
+							<select name="itemUom" id="itemUom" required onchange="checkFormFilled();">
 								<option value="">— Select UOM —</option>
 								<option th:each="opt : ${itemUomsList}" th:value="${opt}"
 									th:text="${opt}" th:selected="${opt == selectedItemUom}"></option>
 							</select>
 						</div>
+
+						<!-- Row 2, Col 2: Item Status -->
 						<div>
-							<label for="itemStatus">Item Status</label> <select
-								name="itemStatus" id="itemStatus" required>
-								<option value="Active"
-									th:selected="${selectedItemStatus == 'Active'}">Active</option>
-								<option value="Disabled"
-									th:selected="${selectedItemStatus == 'Disabled'}">Disabled</option>
+							<label for="itemStatus">Item Status</label>
+							<select name="itemStatus" id="itemStatus" required onchange="checkFormFilled();">
+								<option value="Active"   th:selected="${selectedItemStatus == 'Active'}">Active</option>
+								<option value="Disabled" th:selected="${selectedItemStatus == 'Disabled'}">Disabled</option>
 							</select>
 						</div>
+
+						<!-- Row 3, full span: Item Description -->
+						<div class="full-span">
+							<label for="itemDescription">Item Description</label>
+							<input type="text" name="itemDescription" id="itemDescription"
+								placeholder="Enter item description"
+								th:value="${enteredItemDescription != null} ? ${enteredItemDescription} : ''"
+								oninput="checkFormFilled();"
+								required />
+						</div>
+
 					</div>
 
 					<div class="button-row">
-						<button type="submit" class="btn-submit">✔ Create Item</button>
+						<span class="btn-submit-wrapper" id="submitWrapper">
+							<button type="submit" class="btn-submit" id="btnSubmit" disabled>✔ Create Item</button>
+							<span class="submit-tip" id="submitTip">Fill in all fields to<br>create the item</span>
+						</span>
 					</div>
 
 				</form>
@@ -238,16 +316,17 @@ input[type=text]:focus, select:focus {
 		<div class="conditions-section">
 			<h4>📌 Conditions for creating item</h4>
 			<ol>
-				<li>Item ID must be in <strong>upper case</strong>.
-				</li>
+				<li>Item ID must be in <strong>upper case</strong>.</li>
 				<li>Item ID can contain only alphabets, numbers and hyphens.</li>
 				<li>Item ID must be at least 5 characters long.</li>
 				<li>Item ID must be maximum 15 characters only.</li>
-				<li>Item Description must be at least 5 characters long.</li>
-				<li>Item Description must be maximum 30 characters only.</li>
+				<li>Item Name must be at least 5 characters long.</li>
+				<li>Item Name must be maximum 15 characters only.</li>
+				<li>Item Description must be at least 10 characters long.</li>
+				<li>Item Description must be maximum 60 characters only.</li>
 				<li>Item UOM must be selected from the available options.</li>
-				<li><strong>Active</strong> = Shipping is allowed. <strong>Disabled</strong>
-					= Not allowed.</li>
+				<li><strong>Active</strong> = Shipping is allowed. <strong>Disabled</strong> = Not allowed.</li>
+				<li>All fields must be filled to enable the <strong>Create Item</strong> button.</li>
 			</ol>
 		</div>
 	</div>
@@ -256,10 +335,38 @@ input[type=text]:focus, select:focus {
     window.addEventListener("load", function () {
       var msg = document.getElementById("msgBox");
       if (msg) setTimeout(() => msg.style.display = "none", 10000);
+      checkFormFilled();
     });
 
+    /* ── Enable/disable Create button based on all fields filled ── */
+    function checkFormFilled() {
+      const customerId      = document.getElementById("customerId").value.trim();
+      const itemId          = document.getElementById("itemId").value.trim();
+      const itemName        = document.getElementById("itemName").value.trim();
+      const itemUom         = document.getElementById("itemUom").value;
+      const itemStatus      = document.getElementById("itemStatus").value;
+      const itemDescription = document.getElementById("itemDescription").value.trim();
+
+      const allFilled = customerId && itemId && itemName && itemUom && itemStatus && itemDescription;
+
+      const btn     = document.getElementById("btnSubmit");
+      const wrapper = document.getElementById("submitWrapper");
+
+      btn.disabled = !allFilled;
+      if (allFilled) {
+        wrapper.classList.add("enabled");
+      } else {
+        wrapper.classList.remove("enabled");
+      }
+    }
+
+    /* Attach change listener to Customer dropdown too */
+    document.getElementById("customerId").addEventListener("change", checkFormFilled);
+
+    /* ── Form submit validation ── */
     document.getElementById("itemForm").addEventListener("submit", function (event) {
       let itemId          = document.getElementById("itemId").value;
+      let itemName        = document.getElementById("itemName").value.trim();
       let itemDescription = document.getElementById("itemDescription").value;
       let errorMessage = '', isError = false;
 
@@ -271,10 +378,16 @@ input[type=text]:focus, select:focus {
         isError = true; errorMessage += "Item ID must be maximum 15 characters!\n";
       }
 
-      if (itemDescription.trim().length < 5) {
-        isError = true; errorMessage += "Item Description must be at least 5 characters!\n";
-      } else if (itemDescription.trim().length > 30) {
-        isError = true; errorMessage += "Item Description must be maximum 30 characters!\n";
+      if (itemName.length < 5) {
+        isError = true; errorMessage += "Item Name must be at least 56 characters!\n";
+      } else if (itemName.length > 15) {
+        isError = true; errorMessage += "Item Name must be maximum 15 characters!\n";
+      }
+
+      if (itemDescription.trim().length < 10) {
+        isError = true; errorMessage += "Item Description must be at least 10 characters!\n";
+      } else if (itemDescription.trim().length > 60) {
+        isError = true; errorMessage += "Item Description must be maximum 60 characters!\n";
       }
 
       if (isError) { alert(errorMessage); event.preventDefault(); }

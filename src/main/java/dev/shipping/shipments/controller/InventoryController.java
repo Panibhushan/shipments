@@ -18,12 +18,14 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import dev.shipping.shipments.model.Audits;
 import dev.shipping.shipments.model.Customers;
 import dev.shipping.shipments.model.Inventory;
 import dev.shipping.shipments.model.InventoryCheckResult;
 import dev.shipping.shipments.model.Items;
 import dev.shipping.shipments.model.ShipmentLines;
 import dev.shipping.shipments.model.Warehouses;
+import dev.shipping.shipments.service.AuditsService;
 import dev.shipping.shipments.service.CustomersService;
 import dev.shipping.shipments.service.InventoryService;
 import dev.shipping.shipments.service.ItemsService;
@@ -56,14 +58,17 @@ public class InventoryController {
 	private final ShipmentsService shipmentsService;
 	private final CustomersService customersService;
 	private final WarehousesService warehousesService;
+	private final AuditsService auditsService;
+
 
 	public InventoryController(InventoryService inventoryService, ItemsService itemsService,
-			ShipmentsService shipmentsService, CustomersService customersService, WarehousesService warehousesService) {
+			ShipmentsService shipmentsService, CustomersService customersService, WarehousesService warehousesService, AuditsService auditsService) {
 		this.inventoryService = inventoryService;
 		this.itemsService = itemsService;
 		this.shipmentsService = shipmentsService;
 		this.customersService = customersService;
 		this.warehousesService = warehousesService;
+		this.auditsService = auditsService;
 	}
 
 	// ─────────────────────────────────────────────
@@ -547,4 +552,29 @@ public class InventoryController {
 			return false;
 		}
 	}
+		
+	@GetMapping("/inventory/viewInventoryAudit/{itemCustomerUomWarehouseId}")
+	public String viewItemAudit(@PathVariable String itemCustomerUomWarehouseId, Model model) {
+
+		List<Audits> auditDetails = auditsService.getAuditDetailsList(itemCustomerUomWarehouseId);
+		
+		String[] parts = itemCustomerUomWarehouseId.split("_");
+		String itemId = parts[0];
+		String customerId = parts[1];
+		String itemUom = parts[2];
+		String warehouseId = parts[3];
+
+		log.info("/inventory/viewInventoryAudit/itemCustomerUomWarehouseId={}  → audit={}", itemCustomerUomWarehouseId, auditDetails);
+
+		if (auditDetails.isEmpty() || auditDetails == null)
+			model.addAttribute("audit", "");
+		else {
+			model.addAttribute("auditDetails", auditDetails);
+			model.addAttribute("auditForEntity", "Item: "+itemId+", Uom: "+itemUom+", Customer: "+customerId+", Warehouse: "+warehouseId);
+		}
+
+		return "show-audit";
+
+	}
+	
 }

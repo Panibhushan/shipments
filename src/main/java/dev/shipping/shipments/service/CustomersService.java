@@ -19,11 +19,15 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 
+import dev.shipping.shipments.model.AuditFieldChange;
+import dev.shipping.shipments.model.Audits;
 import dev.shipping.shipments.model.CustomerWarehouses;
 import dev.shipping.shipments.model.Customers;
 import dev.shipping.shipments.model.Inventory;
+import dev.shipping.shipments.model.Items;
 import dev.shipping.shipments.model.Shipments;
 import dev.shipping.shipments.model.Warehouses;
+import dev.shipping.shipments.repo.AuditsRepository;
 import dev.shipping.shipments.repo.CustomerWarehousesRepository;
 import dev.shipping.shipments.repo.CustomersRepository;
 import dev.shipping.shipments.repo.InventoryRepository;
@@ -33,6 +37,8 @@ import dev.shipping.shipments.repo.WarehousesRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 import jakarta.persistence.TypedQuery;
+import tools.jackson.databind.ObjectMapper;
+import utils.MyCustomUtils;
 
 /**
  * Core business logic for customer operations.
@@ -66,17 +72,18 @@ public class CustomersService {
 	private final WarehousesRepository warehousesRepo;
 	private final InventoryRepository inventoryRepo;
 	private final ShipmentsRepository shipmentsRepo;
-
+	private final AuditsRepository auditsRepo;
 	private final CustomerWarehousesRepository customerWarehousesRepo;
 
 	public CustomersService(CustomersRepository customersRepo, WarehousesRepository warehousesRepo,
 			CustomerWarehousesRepository customerWarehousesRepo, InventoryRepository inventoryRepo,
-			ShipmentsRepository shipmentsRepo) {
+			ShipmentsRepository shipmentsRepo, AuditsRepository auditsRepo) {
 		this.customersRepo = customersRepo;
 		this.warehousesRepo = warehousesRepo;
 		this.customerWarehousesRepo = customerWarehousesRepo;
 		this.inventoryRepo = inventoryRepo;
 		this.shipmentsRepo = shipmentsRepo;
+		this.auditsRepo = auditsRepo;
 	}
 
 	// ─────────────────────────────────────────────
@@ -295,7 +302,38 @@ public class CustomersService {
 					customer.getCustomerId());
 		}
 
+		Customers createdCustomer = customersRepo.findById(customer.getCustomerId()).get();
+		
 		log.info("createCustomer() completed → customerId={}", customer.getCustomerId());
+
+		String auditData = buildCustomerChangesObjectForAudit_CREATE(createdCustomer, new ArrayList<AuditFieldChange>());
+		log.info("createCustomer() auditData = {}", auditData);
+		Audits audit = MyCustomUtils.setFieldsForAudit("CUSTOMER", customer.getCustomerId(), "CREATE", auditData,
+				"SYSTEM");
+		auditsRepo.save(audit);
+		log.info("createCustomer() audit={} saved for → CustomerId={}", audit.toString(), customer.getCustomerId());
+
+	}
+
+	public String buildCustomerChangesObjectForAudit_CREATE(Customers customer, List<AuditFieldChange> changes) {
+
+		changes.add(new AuditFieldChange("Customer Id", "", customer.getCustomerId()));
+		changes.add(new AuditFieldChange("Name", "", customer.getCustomerName()));
+		changes.add(new AuditFieldChange("Valid upto", "", customer.getValidUpto() +" IST"));
+		changes.add(new AuditFieldChange("Status", "", customer.getCustomerStatus()));
+		changes.add(new AuditFieldChange("Email", "", customer.getCustomerEmail()));
+
+		changes.add(new AuditFieldChange("Created At", "", customer.getCreatedAt()));
+		changes.add(new AuditFieldChange("Modified At", "", customer.getModifiedAt()));
+
+		List<String> warehouses = customerWarehousesRepo.findAllWarehousesByCustomerId(customer.getCustomerId());
+		changes.add(new AuditFieldChange("Warehouses", "", warehouses.toString()));
+
+		ObjectMapper mapper = new ObjectMapper();
+
+		String auditData = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(changes);
+
+		return auditData;
 	}
 
 	/**
@@ -309,20 +347,29 @@ public class CustomersService {
 	 */
 	@Transactional
 	public String updateCustomer(String customerId, String customerName, String customerStatus, String validUpto,
-			List<String> selectedWarehouses) {
+			String customerEmail, List<String> selectedWarehouses) {
 
 		String resultMessage = "";
 
-		log.info("updateCustomer() → customerId={}, customerName={}, status={}, validUpto={}, warehouseCount={}",
-				customerId, customerName, customerStatus, validUpto, selectedWarehouses.size());
+		log.info(
+				"updateCustomer() → customerId={}, customerName={}, status={}, validUpto={}, customerEmail={}, warehouseCount={}",
+				customerId, customerName, customerStatus, validUpto, customerEmail, selectedWarehouses.size());
 
 		// ── Update customer fields ─────────────────────────────────────────────
 		Customers customer = customersRepo.findById(customerId)
 				.orElseThrow(() -> new RuntimeException("Customer not found: " + customerId));
 
+		// This is to build the audit-json and this needs to be before the item.set
+		// methods else the old & new values will be same and audit will not reflect
+		// correctly
+		String auditData = buildCustomerChangesObjectForAudit_UPDATE(customer, customerId, customerName, customerStatus,
+				validUpto, customerEmail, selectedWarehouses);
+		log.info("updateItem() auditData = {}", auditData);
+
 		customer.setCustomerName(customerName);
 		customer.setValidUpto(validUpto);
 		customer.setCustomerStatus(customerStatus);
+		customer.setCustomerEmail(customerEmail);
 		customersRepo.save(customer);
 
 		// ── Sync warehouse assignments ─────────────────────────────────────────
@@ -358,15 +405,53 @@ public class CustomersService {
 				if (inventoryList.isEmpty())
 					customerWarehousesRepo.deleteByCustomerIdAndWarehouseId(customerId, warehouseId);
 				else
-					resultMessage +=  warehouseId
+					resultMessage += warehouseId
 							+ " has inventory in it, adjust out that inventory first and then disable the warehouse <br />";
 			}
 		}
 
-		log.info("updateCustomer() result → customerId={}, inserted={}, deleted={}, resultMessage={}", customerId, toInsert.size(),
-				toDelete.size(), resultMessage);
+		log.info("updateCustomer() result → customerId={}, inserted={}, deleted={}, resultMessage={}", customerId,
+				toInsert.size(), toDelete.size(), resultMessage);
+
+		Audits audit = MyCustomUtils.setFieldsForAudit("CUSTOMER", customerId, "MODIFY", auditData, "ADMIN");
+		auditsRepo.save(audit);
+		log.info("updateCustomer() audit={} saved for → customerId={}", audit.toString(), customerId);
 
 		return resultMessage == "" ? "SUCCESS" : resultMessage;
+	}
+
+	public String buildCustomerChangesObjectForAudit_UPDATE(Customers customer, String customerId, String customerName,
+			String customerStatus, String validUpto, String customerEmail, List<String> selectedWarehouses) {
+		List<AuditFieldChange> changes = new ArrayList<>();
+
+		if (!customer.getCustomerName().equals(customerName)) {
+			changes.add(new AuditFieldChange("Name", customer.getCustomerName(), customerName));
+		}
+
+		if (!customer.getCustomerEmail().equals(customerEmail)) {
+			changes.add(new AuditFieldChange("Email", customer.getCustomerEmail(), customerEmail));
+		}
+
+		if (!customer.getCustomerStatus().equals(customerStatus)) {
+			changes.add(new AuditFieldChange("Status", customer.getCustomerStatus(), customerStatus));
+		}
+
+		if (!customer.getValidUpto().equals(MyCustomUtils.getFormattedValidUpto(validUpto))) {
+			changes.add(new AuditFieldChange("Valid Upto", customer.getValidUpto()+" IST",
+					MyCustomUtils.getFormattedValidUpto(validUpto)+" IST"));
+		}
+
+		List<String> currentWarehouse = customerWarehousesRepo.findAllWarehousesByCustomerId(customerId);
+
+		if (!currentWarehouse.equals(selectedWarehouses)) {
+			changes.add(new AuditFieldChange("Warehouses", currentWarehouse.toString(), selectedWarehouses.toString()));
+		}
+
+		ObjectMapper mapper = new ObjectMapper();
+
+		String auditData = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(changes);
+
+		return auditData;
 	}
 
 	/**
@@ -382,34 +467,64 @@ public class CustomersService {
 
 		List<Shipments> openShipments = shipmentsRepo.findOpenShipmentsByCustomer(customerId);
 		List<Inventory> inventory = inventoryRepo.findInventoryByCustomer(customerId);
+		
+		Customers customer = customersRepo.findById(customerId).get();
 
 		log.info("deleteCustomer() openShipments result size={}", openShipments.size());
 		log.info("deleteCustomer() inventory result size={}", inventory.size());
 
 		if (!openShipments.isEmpty()) {
-			deletionResult = "<br />Open Shipments exists for customer, Cancel or Ship them and then you can delete the customer"
-					+ "<a href='/shipments/showShipmentsByAdvancedFilters?shipmentId=&customerId=" + customerId
-					+ "&warehouseId=ALL&itemId=&statusFrom=1100&statusTo=1300&createdFrom=&createdTo=' > View Shipments </a>";
+			deletionResult = "Open Shipments exists for customer, Cancel or Ship them and then you can delete the customer"
+					+ "&ensp;<a style='color: #ffffff' href='/shipments/showShipmentsByAdvancedFilters?shipmentId=&customerId="
+					+ customerId
+					+ "&warehouseId=ALL&itemId=&statusFrom=1100&statusTo=1300&createdFrom=&createdTo=' > View Shipments </a><br />";
 		}
 
 		log.info("deleteCustomer() openShipments result size={}", openShipments.size());
-		deletionResult = "CUSTOMER_DELETED_SUCCESSFULLY";
 
 		if (!inventory.isEmpty()) {
-			deletionResult += "<br />Inventory exists for customer, adjust themo out them and then you can delete the customer"
-					+ "<a href='/inventory/showInventoryByFilters?itemId=&itemUom=ALL&customerId=" + customerId
-					+ "&warehouseSelect=ALL' > View Inventory </a>";
+			deletionResult += "Inventory exists for customer, adjust them out them and then you can delete the customer"
+					+ "&ensp;<a style='color: #ffffff' href='/inventory/showInventoryByFilters?itemId=&itemUom=ALL&customerId="
+					+ customerId + "&warehouseSelect=ALL' > View Inventory </a>";
 		}
 
 		if (deletionResult == "") {
 			customersRepo.deleteById(customerId);
+			
+			List<String> existingWarehouses = customerWarehousesRepo.findAllWarehousesByCustomerId(customer.getCustomerId());
+
 			customerWarehousesRepo.deleteAllWarehousesByCustomerId(customerId);
 			log.info("deleteCustomer() completed → customerId={}", customerId);
 			deletionResult = "CUSTOMER_DELETED_SUCCESSFULLY";
+			
+			String auditData = buildCustomerChangesObjectForAudit_DELETE(customer, existingWarehouses, new ArrayList<AuditFieldChange>());
+			log.info("deleteCustomer() auditData = {}", auditData);
+			Audits audit = MyCustomUtils.setFieldsForAudit("CUSTOMER", customerId, "DELETE", auditData, "ADMIN");
+			auditsRepo.save(audit);
+			log.info("deleteCustomer() audit={} saved for → customerId={}", audit.toString(), customerId);
 		}
 
 		return deletionResult;
 
+	}
+
+	public String buildCustomerChangesObjectForAudit_DELETE(Customers customer, List<String> existingWarehouses, List<AuditFieldChange> changes) {
+		changes.add(new AuditFieldChange("Customer Id", customer.getCustomerId(), ""));
+		changes.add(new AuditFieldChange("Name", customer.getCustomerName(), ""));
+		changes.add(new AuditFieldChange("Valid upto", customer.getValidUpto()+" IST", ""));
+		changes.add(new AuditFieldChange("Status", customer.getCustomerStatus(), ""));
+		changes.add(new AuditFieldChange("Email", customer.getCustomerEmail(), ""));
+
+		changes.add(new AuditFieldChange("Warehouses", existingWarehouses.toString(), ""));
+
+		changes.add(new AuditFieldChange("Created At", customer.getCreatedAt(), ""));
+		changes.add(new AuditFieldChange("Modified At", customer.getModifiedAt(), ""));
+
+		ObjectMapper mapper = new ObjectMapper();
+
+		String auditData = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(changes);
+
+		return auditData;
 	}
 
 	// ─────────────────────────────────────────────

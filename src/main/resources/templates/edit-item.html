@@ -112,12 +112,15 @@ input:focus, select:focus {
 	background: #fff;
 }
 
+/* ── Button row ── */
 .button-row {
 	margin-top: 18px;
 	padding-top: 14px;
 	border-top: 1px solid #e2e8f0;
 	display: flex;
 	gap: 10px;
+	flex-wrap: wrap;
+	align-items: center;
 }
 
 .btn-add-inventory {
@@ -146,6 +149,12 @@ input:focus, select:focus {
 	text-decoration: none;
 }
 
+/* ── Update button with disabled state ── */
+.btn-update-wrapper {
+	position: relative;
+	display: inline-block;
+}
+
 .btn-update {
 	background-color: #6a73b2;
 	color: #ffffff;
@@ -155,7 +164,65 @@ input:focus, select:focus {
 	border: none;
 	border-radius: 8px;
 	cursor: pointer;
+	transition: background-color 0.2s, transform 0.15s, opacity 0.2s;
+}
+
+.btn-update:disabled {
+	background-color: #b0b7d8;
+	cursor: not-allowed;
+	opacity: 0.65;
+	transform: none !important;
+}
+
+/* Tooltip on disabled update button */
+.btn-update-wrapper .update-tip {
+	visibility: hidden;
+	opacity: 0;
+	background: #1e293b;
+	color: #fff;
+	font-size: 0.72rem;
+	padding: 5px 10px;
+	border-radius: 6px;
+	white-space: nowrap;
+	position: absolute;
+	bottom: calc(100% + 7px);
+	left: 50%;
+	transform: translateX(-50%);
+	transition: opacity 0.18s;
+	pointer-events: none;
+	z-index: 20;
+	line-height: 1.4;
+	text-align: center;
+}
+
+.btn-update-wrapper .update-tip::after {
+	content: '';
+	position: absolute;
+	top: 100%;
+	left: 50%;
+	transform: translateX(-50%);
+	border-width: 4px;
+	border-style: solid;
+	border-color: #1e293b transparent transparent transparent;
+}
+
+.btn-update-wrapper:hover .update-tip {
+	visibility: visible;
+	opacity: 1;
+}
+
+/* View Audit button */
+.btn-view-audit {
+	background-color: #eff6ff;
+	color: #1d4ed8;
+	border: 1.5px solid #bfdbfe;
+	font-weight: 700;
+	font-size: 0.9rem;
+	padding: 10px 26px;
+	border-radius: 8px;
+	cursor: pointer;
 	transition: background-color 0.2s, transform 0.15s;
+	text-decoration: none;
 }
 
 .btn-add-inventory:hover {
@@ -169,8 +236,14 @@ input:focus, select:focus {
 	transform: translateY(-1px);
 }
 
-.btn-update:hover {
+.btn-update:not(:disabled):hover {
 	background-color: #555fa0;
+	transform: translateY(-1px);
+}
+
+.btn-view-audit:hover {
+	background-color: #dbeafe;
+	color: #1e3a8a;
 	transform: translateY(-1px);
 }
 
@@ -194,6 +267,7 @@ input:focus, select:focus {
 	transform: translateY(-1px);
 }
 
+/* ── Conditions panel ── */
 .conditions-section {
 	width: 38%;
 	background: #f0f7f2;
@@ -218,6 +292,7 @@ input:focus, select:focus {
 	font-size: 0.85rem;
 }
 
+/* ── Cell link / tooltip ── */
 .cell-link {
 	position: relative;
 	display: inline-block;
@@ -267,6 +342,197 @@ input:focus, select:focus {
 	visibility: visible;
 	opacity: 1;
 }
+
+/* ── Audit Modal ── */
+.audit-overlay {
+	display: none;
+	position: fixed;
+	inset: 0;
+	background: rgba(15, 23, 42, 0.45);
+	z-index: 1000;
+	align-items: center;
+	justify-content: center;
+}
+
+.audit-overlay.active {
+	display: flex;
+}
+
+.audit-modal {
+	background: #fff;
+	border-radius: 14px;
+	box-shadow: 0 8px 40px rgba(0, 0, 0, 0.18);
+	width: 620px;
+	max-width: 95vw;
+	max-height: 80vh;
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
+}
+
+.audit-modal-header {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 16px 22px 14px;
+	border-bottom: 1px solid #e2e8f0;
+	background: #f8fafc;
+}
+
+.audit-modal-header h3 {
+	margin: 0;
+	font-size: 0.95rem;
+	color: #1e293b;
+	font-weight: 700;
+}
+
+.audit-modal-header .audit-item-badge {
+	font-size: 0.72rem;
+	background: #eff6ff;
+	color: #1d4ed8;
+	border: 1px solid #bfdbfe;
+	border-radius: 20px;
+	padding: 2px 10px;
+	font-weight: 700;
+	margin-left: 8px;
+}
+
+.audit-modal-close {
+	background: none;
+	border: none;
+	font-size: 1.2rem;
+	cursor: pointer;
+	color: #64748b;
+	line-height: 1;
+	padding: 2px 6px;
+	border-radius: 4px;
+	transition: background 0.15s;
+}
+
+.audit-modal-close:hover {
+	background: #f1f5f9;
+	color: #1e293b;
+}
+
+.audit-modal-body {
+	overflow-y: auto;
+	flex: 1;
+	padding: 0;
+}
+
+.audit-loading {
+	text-align: center;
+	padding: 40px 20px;
+	color: #64748b;
+	font-size: 0.88rem;
+}
+
+.audit-loading .spinner {
+	display: inline-block;
+	width: 22px;
+	height: 22px;
+	border: 3px solid #e2e8f0;
+	border-top-color: #6a73b2;
+	border-radius: 50%;
+	animation: spin 0.7s linear infinite;
+	margin-bottom: 10px;
+}
+
+@
+keyframes spin {to { transform:rotate(360deg);
+	
+}
+
+}
+.audit-error {
+	text-align: center;
+	padding: 36px 20px;
+	color: #991b1b;
+	font-size: 0.88rem;
+	background: #fff5f5;
+}
+
+.audit-empty {
+	text-align: center;
+	padding: 36px 20px;
+	color: #64748b;
+	font-size: 0.88rem;
+}
+
+.audit-table {
+	width: 100%;
+	border-collapse: collapse;
+	font-size: 0.85rem;
+}
+
+.audit-table thead th {
+	position: sticky;
+	top: 0;
+	background: #f1f5f9;
+	color: #475569;
+	font-size: 0.68rem;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.08em;
+	padding: 10px 16px;
+	border-bottom: 2px solid #e2e8f0;
+	text-align: left;
+	white-space: nowrap;
+}
+
+.audit-table tbody tr {
+	border-bottom: 1px solid #f1f5f9;
+	transition: background 0.12s;
+}
+
+.audit-table tbody tr:hover {
+	background: #f8fafc;
+}
+
+.audit-table tbody td {
+	padding: 10px 16px;
+	color: #1e293b;
+	vertical-align: middle;
+}
+
+.audit-type-badge {
+	display: inline-block;
+	font-size: 0.68rem;
+	font-weight: 700;
+	padding: 2px 9px;
+	border-radius: 20px;
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+}
+
+.audit-type-CREATE {
+	background: #dcfce7;
+	color: #15803d;
+}
+
+.audit-type-UPDATE {
+	background: #fef9c3;
+	color: #a16207;
+}
+
+.audit-type-DELETE {
+	background: #fee2e2;
+	color: #991b1b;
+}
+
+.audit-type-default {
+	background: #f1f5f9;
+	color: #475569;
+}
+
+.audit-modal-footer {
+	padding: 10px 22px;
+	border-top: 1px solid #e2e8f0;
+	background: #f8fafc;
+	font-size: 0.75rem;
+	color: #94a3b8;
+	text-align: right;
+}
 </style>
 </head>
 <body>
@@ -274,7 +540,7 @@ input:focus, select:focus {
 
 	<p th:if="${msg}" id="msgBox"
 		th:style="'background:' + ${bgColor} + '; color:' + ${textColor} + ';'">
-		<span th:text="${msg}"></span> <span
+		<span th:utext="${msg}"></span> <span
 			onclick="this.parentElement.style.display='none'"
 			style="position: absolute; right: 14px; top: 50%; transform: translateY(-50%); cursor: pointer; font-weight: bold;">✕</span>
 	</p>
@@ -291,12 +557,13 @@ input:focus, select:focus {
 
 					<div class="section-title">Item Details</div>
 					<div class="form-grid">
+						<!-- Left column: read-only identifiers -->
 						<div>
 							<label>Item ID</label>
 							<div class="readonly-value" th:text="${item.itemId}">ITM-001</div>
+
 							<label>Customer</label>
-<!-- 							<div class="readonly-value" th:text="${item.customerId}">CUST-042</div>
- -->							<div class="readonly-value">
+							<div class="readonly-value">
 								<span class="cell-link"> <a target="_blank"
 									th:href="@{'/customers/showCustomerDetails/' + ${item.customerId}}"
 									th:text="${item.customerId}"></a> <span class="cell-tip">View
@@ -304,25 +571,38 @@ input:focus, select:focus {
 								</span>
 							</div>
 
-
 							<label>Item UOM</label>
 							<div class="readonly-value" th:text="${item.itemUom}">EACH</div>
 						</div>
+
+						<!-- Right column: timestamps + status -->
 						<div>
 							<label>Created At</label>
 							<div class="readonly-value"
 								th:text="${formattedCreatedAt != null} ? ${formattedCreatedAt} : ${item.createdAt}">28-MAY-2026
 								01:07:42 PM IST</div>
+
 							<label>Modified At</label>
 							<div class="readonly-value"
 								th:text="${formattedModifiedAt != null} ? ${formattedModifiedAt} : ${item.modifiedAt}">28-MAY-2026
 								01:07:42 PM IST</div>
+
 							<label for="itemStatus">Item Status</label> <select
 								name="itemStatus" id="itemStatus" required>
 								<option th:each="opt : ${options}" th:value="${opt}"
 									th:text="${opt}" th:selected="${opt == selectedItemStatus}"></option>
 							</select>
 						</div>
+
+						<!-- Full-width: Item Name (editable) -->
+						<div class="full-span">
+							<label for="itemName">Item Name</label> <input type="text"
+								name="itemName" id="itemName" placeholder="Enter item name"
+								th:value="${item.itemName != null} ? ${item.itemName} : ''"
+								maxlength="60" />
+						</div>
+
+						<!-- Full-width: Item Description (editable) -->
 						<div class="full-span">
 							<label for="itemDescription">Item Description</label> <input
 								type="text" name="itemDescription" id="itemDescription"
@@ -333,13 +613,31 @@ input:focus, select:focus {
 					</div>
 
 					<div class="button-row">
-						<button type="button" class="btn-update"
-							onclick="submitIfChanged(event)">✔ Update Item</button>
+						<!-- Update — disabled until a tracked field changes -->
+						<span class="btn-update-wrapper" id="updateWrapper">
+							<button type="button" class="btn-update" id="btnUpdate"
+								onclick="submitIfChanged(event)" disabled>✔ Update Item</button>
+							<span class="update-tip" id="updateTip">Edit Item Name,
+								Description<br>or Status to enable update
+						</span>
+						</span>
+
+						<!-- <button type="button" class="btn-view-audit" id="btnViewAudit"
+							th:attr="data-itemid=${item.itemId}"
+							onclick="openAuditModal(this.dataset.itemid)">🔍 View
+							Audit</button> -->
+							
+							<a
+							type="button" class="btn-view-audit"
+							th:href="@{'/items/viewItemAudit/' + ${item.itemCustomerUomId}}">🔍
+							View Audit</a>
+
 						<a class="btn-view-inventory"
 							th:href="@{'/inventory/viewInventoryForItem/' + ${item.itemCustomerUomId}}">
 							👁️ View Inventory</a> <a class="btn-add-inventory"
 							th:href="@{'/inventory/addInventoryForItem/' + ${item.itemCustomerUomId}}">
 							＋ Add Inventory</a>
+
 						<button type="button" class="btn-delete" onclick="confirmDelete()">🗑
 							Delete Item</button>
 					</div>
@@ -354,45 +652,201 @@ input:focus, select:focus {
 		<div class="conditions-section">
 			<h4>📌 Conditions for updating item</h4>
 			<ol>
-				<li>Item Description must be at least 5 characters long.</li>
-				<li>Item Description must be maximum 30 characters only.</li>
+				<li>Item Name is optional but must not exceed 60 characters.</li>
+				<li>Item Name must be at least 5 characters long.</li>
+				<li>Item Name must be maximum 15 characters only.</li>
+				<li>Item Description must be at least 10 characters long.</li>
+				<li>Item Description must be maximum 60 characters only.</li>
 				<li>Item UOM is read-only and cannot be changed.</li>
 				<li><strong>Active</strong> = Shipping is allowed. <strong>Disabled</strong>
 					= Not allowed.</li>
+				<li>The <strong>Update</strong> button activates only when Item
+					Name, Description, or Status is changed.
+				</li>
 			</ol>
 		</div>
 	</div>
 
+	<!-- ── Audit Modal ── -->
+	<div class="audit-overlay" id="auditOverlay"
+		onclick="closeAuditOnBackdrop(event)">
+		<div class="audit-modal" role="dialog" aria-modal="true"
+			aria-labelledby="auditModalTitle">
+			<div class="audit-modal-header">
+				<div style="display: flex; align-items: center; gap: 6px;">
+					<h3 id="auditModalTitle">📋 Audit Trail</h3>
+					<span class="audit-item-badge" id="auditItemBadge"></span>
+				</div>
+				<button class="audit-modal-close" onclick="closeAuditModal()"
+					aria-label="Close">✕</button>
+			</div>
+			<div class="audit-modal-body" id="auditModalBody">
+				<div class="audit-loading">
+					<div class="spinner"></div>
+					<br>Loading audit records…
+				</div>
+			</div>
+			<div class="audit-modal-footer" id="auditModalFooter"></div>
+		</div>
+	</div>
+
 	<script>
+    /* ────────────────────────────────────────────────
+       1.  Auto-dismiss flash message
+    ──────────────────────────────────────────────── */
     window.addEventListener("load", function () {
       var msg = document.getElementById("msgBox");
       if (msg) setTimeout(() => msg.style.display = "none", 10000);
     });
 
+    /* ────────────────────────────────────────────────
+       2.  Track ONLY the three editable/tracked fields
+           for the Update button enable/disable logic
+    ──────────────────────────────────────────────── */
+    const TRACKED_FIELDS = ["itemName", "itemDescription", "itemStatus"];
+    const originalValues = {};
+    TRACKED_FIELDS.forEach(name => {
+      const el = document.getElementById(name);
+      if (el) originalValues[name] = el.value;
+    });
+
+    function checkForChanges() {
+      const hasChanges = TRACKED_FIELDS.some(name => {
+        const el = document.getElementById(name);
+        return el && el.value !== originalValues[name];
+      });
+      const btn  = document.getElementById("btnUpdate");
+      const tip  = document.getElementById("updateTip");
+      btn.disabled = !hasChanges;
+      tip.style.display = hasChanges ? "none" : "";
+    }
+
+    TRACKED_FIELDS.forEach(name => {
+      const el = document.getElementById(name);
+      if (el) el.addEventListener("input",  checkForChanges);
+      if (el) el.addEventListener("change", checkForChanges);
+    });
+
+    /* ────────────────────────────────────────────────
+       3.  Form submit validation (description length)
+    ──────────────────────────────────────────────── */
     document.getElementById("updateItemDetails").addEventListener("submit", function (event) {
       let itemDescription = document.getElementById("itemDescription").value;
+      let itemName = document.getElementById("itemName").value;      
       let errorMessage = '', isError = false;
-      if (itemDescription.trim().length < 5)  { isError = true; errorMessage += "Item Description must be at least 5 characters!\n"; }
-      else if (itemDescription.trim().length > 30) { isError = true; errorMessage += "Item Description must be maximum 30 characters!\n"; }
+      
+      if (itemName.trim().length < 5)  { isError = true; errorMessage += "Item Name must be at least 5 characters!\n"; }
+      else if (itemName.trim().length > 15) { isError = true; errorMessage += "Item Name must be maximum 15 characters!\n"; }
+      
+      if (itemDescription.trim().length < 10)  { isError = true; errorMessage += "Item Description must be at least 10 characters!\n"; }
+      else if (itemDescription.trim().length > 60) { isError = true; errorMessage += "Item Description must be maximum 60 characters!\n"; }
       if (isError) { alert(errorMessage); event.preventDefault(); }
     });
 
-    const originalValues = {};
-    document.querySelectorAll("#updateItemDetails input, #updateItemDetails select").forEach(field => {
-      originalValues[field.name] = field.value;
-    });
-
+    /* ────────────────────────────────────────────────
+       4.  Delete confirmation
+    ──────────────────────────────────────────────── */
     function confirmDelete() {
-      if (confirm('Are you sure you want to delete this item?')) document.getElementById("deleteItemForm").submit();
+      if (confirm('Are you sure you want to delete this item?'))
+        document.getElementById("deleteItemForm").submit();
     }
 
+    /* ────────────────────────────────────────────────
+       5.  Submit only if tracked fields changed
+    ──────────────────────────────────────────────── */
     function submitIfChanged(event) {
-      const hasChanges = Object.keys(originalValues).some(name => {
-        const field = document.querySelector(`#updateItemDetails [name="${name}"]`);
-        return field && field.value !== originalValues[name];
+      const hasChanges = TRACKED_FIELDS.some(name => {
+        const el = document.getElementById(name);
+        return el && el.value !== originalValues[name];
       });
       if (!hasChanges) { alert("No changes were made — not updating."); return false; }
       document.getElementById("updateItemDetails").submit();
+    }
+
+    /* ────────────────────────────────────────────────
+       6.  Audit Modal
+    ──────────────────────────────────────────────── */
+    function openAuditModal(itemId) {
+      const overlay = document.getElementById("auditOverlay");
+      const body    = document.getElementById("auditModalBody");
+      const badge   = document.getElementById("auditItemBadge");
+      const footer  = document.getElementById("auditModalFooter");
+
+      badge.textContent = "Item: " + itemId;
+      body.innerHTML = '<div class="audit-loading"><div class="spinner"></div><br>Loading audit records…</div>';
+      footer.textContent = "";
+      overlay.classList.add("active");
+      document.body.style.overflow = "hidden";
+
+      fetch('/items/getAudit/' + encodeURIComponent(itemId))
+        .then(res => {
+          if (!res.ok) throw new Error("Server returned " + res.status);
+          return res.json();
+        })
+        .then(data => {
+          renderAuditTable(data, body, footer);
+        })
+        .catch(err => {
+          body.innerHTML = '<div class="audit-error">⚠️ Failed to load audit records.<br><small>' + err.message + '</small></div>';
+          footer.textContent = "";
+        });
+    }
+
+    function renderAuditTable(data, body, footer) {
+      if (!data || data.length === 0) {
+        body.innerHTML = '<div class="audit-empty">No audit records found for this item.</div>';
+        footer.textContent = "";
+        return;
+      }
+
+      let rows = "";
+      data.forEach(row => {
+        const typeVal  = (row.type || "").toUpperCase();
+        const badgeCls = ["CREATE","UPDATE","DELETE"].includes(typeVal)
+                         ? "audit-type-" + typeVal
+                         : "audit-type-default";
+
+        rows += `<tr>
+          <td>${escapeHtml(row.date || "—")}</td>
+          <td><span class="audit-type-badge ${badgeCls}">${escapeHtml(row.type || "—")}</span></td>
+          <td>${escapeHtml(row.timestamp || "—")}</td>
+        </tr>`;
+      });
+
+      body.innerHTML = `
+        <table class="audit-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Type</th>
+              <th>Timestamp</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>`;
+
+      footer.textContent = data.length + " record" + (data.length !== 1 ? "s" : "") + " found";
+    }
+
+    function closeAuditModal() {
+      document.getElementById("auditOverlay").classList.remove("active");
+      document.body.style.overflow = "";
+    }
+
+    function closeAuditOnBackdrop(e) {
+      if (e.target === document.getElementById("auditOverlay")) closeAuditModal();
+    }
+
+    document.addEventListener("keydown", e => {
+      if (e.key === "Escape") closeAuditModal();
+    });
+
+    function escapeHtml(str) {
+      return String(str)
+        .replace(/&/g,"&amp;")
+        .replace(/</g,"&lt;")
+        .replace(/>/g,"&gt;")
+        .replace(/"/g,"&quot;");
     }
   </script>
 </body>

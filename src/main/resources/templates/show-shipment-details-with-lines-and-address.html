@@ -217,31 +217,33 @@ body>div:first-child, body>nav:first-child, body>header:first-child {
 	border-radius: 12px;
 	font-size: 0.9rem;
 	font-weight: 700;
+	/* Prevent color bleed from parent detail-row or any inherited span color */
+	color: inherit;
 }
 
 .s-1100 {
 	background: #e2e8f0;
-	color: #374151;
+	color: #374151 !important;
 }
 
 .s-1200 {
 	background: #dbeafe;
-	color: #1e40af;
+	color: #1e40af !important;
 }
 
 .s-1300 {
 	background: #fef3c7;
-	color: #92400e;
+	color: #92400e !important;
 }
 
 .s-1400 {
 	background: #d1fae5;
-	color: #065f46;
+	color: #065f46 !important;
 }
 
 .s-9000 {
 	background: #fee2e2;
-	color: #991b1b;
+	color: #991b1b !important;
 }
 
 /* ── ACTION BUTTONS ── */
@@ -493,6 +495,11 @@ button:disabled {
 	transform: translateX(-50%);
 	border: 5px solid transparent;
 	border-top-color: #1e293b;
+}
+
+/* Never show tooltip when it has no content */
+.action-tooltip:empty {
+	display: none !important;
 }
 
 .btn-check-inventory {
@@ -994,91 +1001,8 @@ table.lines-table input, table.lines-table select {
 			style="padding: 4px 0;">
 			<button type="button" class="btn-audit" id="openAuditModalTerminal">📋
 				View Shipment Audit</button>
-		</div>
-
-		<!-- ── INFO CARD ── -->
-		<!-- <div class="details-card">
-			<div class="info-cards-container">
-				COLUMN 1: Basic Shipment Info
-				<div class="info-card">
-					<div class="section-title">📦 Shipment Details</div>
-
-					<div class="info-field">
-						<div class="field-label">Shipment ID</div>
-						<div class="field-value" th:text="${shipment.shipmentId}">SHP-001</div>
-					</div>
-
-					<div class="info-field">
-						<div class="field-label">Customer</div>
-						<div class="field-value cell-link">
-							<a target="_blank"
-								th:href="@{'/customers/showCustomerDetails/' + ${shipment.customerId}}"
-								th:text="${shipment.customerId}"></a>
-						</div>
-					</div>
-
-					<div class="info-field">
-						<div class="field-label">Warehouse</div>
-						<div class="field-value cell-link">
-							<a target="_blank"
-								th:href="@{'/warehouses/showWarehouseDetails/' + ${shipment.warehouseId}}"
-								th:text="${shipment.warehouseId}"></a>
-						</div>
-					</div>
-
-					<div class="info-field">
-						<div class="field-label">Status</div>
-						<div class="field-value">
-							<span th:switch="${shipment.shipStatus}"> <span
-								th:case="1100" class="badge s-1100">1100 — Created</span> <span
-								th:case="1200" class="badge s-1200">1200 — Picked</span> <span
-								th:case="1300" class="badge s-1300">1300 — Packed</span> <span
-								th:case="1400" class="badge s-1400">1400 — Shipped</span> <span
-								th:case="9000" class="badge s-9000">9000 — Cancelled</span> <span
-								th:case="*" class="badge s-1100"
-								th:text="|${shipment.shipStatus} — Unknown|"></span>
-							</span>
-						</div>
-					</div>
-
-					<div class="info-field">
-						<div class="field-label">Has Shortage</div>
-						<div class="field-value" id="hasShortageField">
-							<span th:if="${shipment.hasShortage == 'Y'}" class="badge s-9000">Y
-								— Yes</span> <span th:if="${shipment.hasShortage == 'N'}"
-								class="badge s-1400">N — No</span> <span
-								th:unless="${shipment.hasShortage == 'Y' or shipment.hasShortage == 'N'}"
-								class="badge s-1100">Unknown</span>
-						</div>
-					</div>
-				</div>
-
-				COLUMN 2: Timestamps
-				<div class="info-card">
-					<div class="section-title">⏱️ Timeline</div>
-
-					<div class="info-field">
-						<div class="field-label">Created At</div>
-						<div class="field-value" th:text="${shipment.createdAt}"></div>
-					</div>
-
-					<div class="info-field">
-						<div class="field-label">Modified At</div>
-						<div class="field-value" th:text="${shipment.modifiedAt}"></div>
-					</div>
-				</div>
-
-				COLUMN 3: Delivery Address
-				<div class="info-card">
-					<div class="section-title">📍 Delivery Address</div>
-
-					<div class="info-field">
-						<div class="field-value" th:utext="${address}"></div>
-					</div>
-				</div>
-			</div>
-		</div>
- -->
+		</div> 
+		
 		<div class="details-card">
 
 			<div class="details-card shipment-overview-card">
@@ -1218,7 +1142,8 @@ table.lines-table input, table.lines-table select {
 						<input type="hidden" name="shipmentLineId" id="shipmentLineId"
 							value="${sl.shipmentLineId}">
 						<td>
-							<div class="readonly-value" th:text="${sl.itemId}">ITEM-101</div>
+							<div class="cell-link">
+							<a target="_blank" th:text="${sl.itemId}" th:href="@{'/items/showItemDetails/' + ${sl.itemId} + '_' + ${shipment.customerId} + '_' + ${sl.itemUom}}"> </a> </div>
 						</td>
 						</td>
 						<td>
@@ -1356,11 +1281,27 @@ table.lines-table input, table.lines-table select {
       // ── THEN: Check if customer is inactive (general disable) ──
       var disable = document.getElementById("disableButtonActions");
       if (disable && disable.value === "true") {
-        // Only disable if not already managed by shortage logic
-        const shortageMsg = 'Action disabled — customer inactive or contract expired';
-        document.querySelectorAll("button:not(.modal-close-x):not(.btn-modal-cancel):not(.btn-modal-close):not(.btn-audit):not(#openAuditModal):not(#openAuditModalTerminal):not(#btnCheckInventory)").forEach(btn => {
+        const inactiveMsg = 'Action disabled — customer inactive or contract expired';
+        // Cancel and Audit buttons always remain usable — explicitly excluded
+        const selector = [
+          "button",
+          ":not(.modal-close-x)",
+          ":not(.btn-modal-cancel)",
+          ":not(.btn-modal-close)",
+          ":not(.btn-audit)",
+          ":not(#openAuditModal)",
+          ":not(#openAuditModalTerminal)",
+          ":not(#btnCheckInventory)",
+          ":not(#openCancelModal)"
+        ].join("");
+        document.querySelectorAll(selector).forEach(btn => {
           btn.disabled = true;
-          btn.title = shortageMsg;
+          // Populate the action-tooltip span — avoids native browser title tooltip
+          const wrapper = btn.closest('.action-button-wrapper');
+          if (wrapper) {
+            const tip = wrapper.querySelector('.action-tooltip');
+            if (tip) tip.textContent = inactiveMsg;
+          }
         });
       }
       
@@ -1374,26 +1315,20 @@ table.lines-table input, table.lines-table select {
 
     function enableActionsForShortage() {
       // Clear any shortage-related disabling
-      const buttons = ['btnPick', 'btnPack', 'btnShip'];
-      
-      buttons.forEach(btnId => {
+      const buttonTooltipMap = {
+        'btnPick': 'pickTooltip',
+        'btnPack': 'packTooltip',
+        'btnShip': 'shipTooltip'
+      };
+
+      Object.entries(buttonTooltipMap).forEach(([btnId, tooltipId]) => {
         const btn = document.getElementById(btnId);
-        if (btn) {
-          btn.disabled = false;
-        }
-        // Clear tooltips
-        const tooltipMap = {
-          'btnPick': 'pickTooltip',
-          'btnPack': 'packTooltip',
-          'btnShip': 'shipTooltip'
-        };
-        
-        const tooltipId = tooltipMap[btnId];
-        if (tooltipId) {
-          const tooltip = document.getElementById(tooltipId);
-          if (tooltip) {
-            tooltip.textContent = '';
-          }
+        if (btn) btn.disabled = false;
+
+        const tooltip = document.getElementById(tooltipId);
+        if (tooltip) {
+          // Clear text so :empty CSS rule hides it — no blank tooltip shown
+          tooltip.textContent = '';
         }
       });
     }

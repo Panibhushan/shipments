@@ -125,6 +125,11 @@ input:focus, select:focus {
 	align-items: center;
 }
 
+.btn-update-wrapper {
+	position: relative;
+	display: inline-block;
+}
+
 .btn-update {
 	background-color: #6a73b2;
 	color: #fff;
@@ -134,12 +139,60 @@ input:focus, select:focus {
 	border: none;
 	border-radius: 8px;
 	cursor: pointer;
-	transition: background-color 0.2s, transform 0.15s;
+	transition: background-color 0.2s, transform 0.15s, opacity 0.2s;
 }
 
-.btn-update:hover {
+.btn-update:disabled {
+	background-color: #b0b7d8;
+	cursor: not-allowed;
+	opacity: 0.65;
+	transform: none !important;
+}
+
+.btn-update:not(:disabled):hover {
 	background-color: #555fa0;
 	transform: translateY(-1px);
+}
+
+.btn-update-wrapper .update-tip {
+	visibility: hidden;
+	opacity: 0;
+	background: #1e293b;
+	color: #fff;
+	font-size: 0.72rem;
+	padding: 5px 10px;
+	border-radius: 6px;
+	white-space: nowrap;
+	position: absolute;
+	bottom: calc(100% + 7px);
+	left: 50%;
+	transform: translateX(-50%);
+	transition: opacity 0.18s;
+	pointer-events: none;
+	z-index: 20;
+	line-height: 1.5;
+	text-align: center;
+}
+
+.btn-update-wrapper .update-tip::after {
+	content: '';
+	position: absolute;
+	top: 100%;
+	left: 50%;
+	transform: translateX(-50%);
+	border-width: 4px;
+	border-style: solid;
+	border-color: #1e293b transparent transparent transparent;
+}
+
+.btn-update-wrapper:hover .update-tip {
+	visibility: visible;
+	opacity: 1;
+}
+
+.btn-update-wrapper.enabled:hover .update-tip {
+	visibility: hidden;
+	opacity: 0;
 }
 
 .btn-delete {
@@ -178,12 +231,25 @@ input:focus, select:focus {
 .add-inv-btn {
 	background-color: #4CAF50;
 	color: #ffffff;
+	border: 1.5px solid #6ac529;
 }
 
 .view-inv-btn {
 	background-color: #f1f5f9;
 	color: #374151;
 	border: 1.5px solid #cbd5e1;
+}
+
+.view-audit-btn {
+	background-color: #ffffe0;
+	color: #4a3131;
+	border: 1.5px solid #edf4b0;
+}
+
+.view-audit-btn:hover {
+	background-color: #e8e895;
+	color: #1e293b;
+	transform: translateY(-1px);
 }
 
 .add-inv-btn:hover {
@@ -593,13 +659,20 @@ keyframes spin {to { transform:rotate(360deg);
 					</div>
 
 					<div class="button-row">
-						<button type="button" class="btn-update"
-							onclick="submitIfChanged(event)">✔ Update</button>
-						<a
+						<span class="btn-update-wrapper" id="updateWrapper">
+							<button type="button" class="btn-update" id="btnUpdate"
+								onclick="submitIfChanged(event)" disabled>✔ Update</button> <span
+							class="update-tip">Edit Warehouse Name or Status<br>to
+								enable update
+						</span>
+						</span> <a
 							th:href="@{'/inventory/viewInventoryForWarehouse/' + ${warehouse.warehouseId}}"
 							class="action-link view-inv-btn"> 📦 View Inventory </a> <a
 							th:href="@{'/inventory/addInventoryForWarehouse/' + ${warehouse.warehouseId}}"
-							class="action-link add-inv-btn"> ＋ Add Inventory </a>
+							class="action-link add-inv-btn"> ＋ Add Inventory </a> <a
+							type="button" class="action-link view-audit-btn"
+							th:href="@{'/warehouses/viewWarehouseAudit/' + ${warehouse.warehouseId}}">🔍
+							View Audit</a>
 						<button type="button" class="btn-delete" onclick="confirmDelete()">🗑
 							Delete</button>
 
@@ -651,12 +724,14 @@ keyframes spin {to { transform:rotate(360deg);
 							th:value="${fullAddressToEdit.lastName != null} ? ${fullAddressToEdit.lastName} : ''" />
 					</div>
 					<div>
-						<label for="phone">Phone</label> <input type="text" name="phone"
-							id="phone" placeholder="Phone number"
-							th:value="${fullAddressToEdit.phone != null} ? ${fullAddressToEdit.phone} : ''" />
+						<label for="phone">Phone</label> <input type="tel" maxlength="10"
+							pattern="[0-9]{10}" id="phone" name="phone"
+							placeholder="9876543210"
+							th:value="${fullAddressToEdit.phone != null} ? ${fullAddressToEdit.phone} : ''"
+							oninput="this.value = this.value.replace(/\D/g,'').slice(0,10);" />
 					</div>
 					<div>
-						<label for="email">Email</label> <input type="text" name="email"
+						<label for="email">Email</label> <input type="email" name="email"
 							id="email" placeholder="Email address"
 							th:value="${fullAddressToEdit.email != null} ? ${fullAddressToEdit.email} : ''" />
 					</div>
@@ -743,9 +818,27 @@ keyframes spin {to { transform:rotate(360deg);
       if (bad) { alert(err); e.preventDefault(); }
     });
 
+    const TRACKED = ["warehouseName", "warehouseStatus"];
     const originalValues = {};
     document.querySelectorAll("#updateWarehouseDetails input, #updateWarehouseDetails select").forEach(f => {
       originalValues[f.name] = f.value;
+    });
+
+    function checkForChanges() {
+      const hasChanges = TRACKED.some(name => {
+        const el = document.getElementById(name);
+        return el && el.value !== originalValues[name];
+      });
+      const btn     = document.getElementById("btnUpdate");
+      const wrapper = document.getElementById("updateWrapper");
+      btn.disabled  = !hasChanges;
+      hasChanges ? wrapper.classList.add("enabled") : wrapper.classList.remove("enabled");
+    }
+
+    TRACKED.forEach(name => {
+      const el = document.getElementById(name);
+      if (el) el.addEventListener("input",  checkForChanges);
+      if (el) el.addEventListener("change", checkForChanges);
     });
 
     function confirmDelete() {
