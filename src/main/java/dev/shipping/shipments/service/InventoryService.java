@@ -29,7 +29,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 import jakarta.persistence.TypedQuery;
 import tools.jackson.databind.ObjectMapper;
-import utils.MyCustomUtils;
+import dev.shipping.shipments.utils.MyCustomUtils;
 
 /**
  * Core business logic for inventory operations.

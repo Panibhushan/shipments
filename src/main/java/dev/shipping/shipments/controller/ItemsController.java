@@ -24,7 +24,6 @@ import dev.shipping.shipments.service.AuditsService;
 import dev.shipping.shipments.service.CustomersService;
 import dev.shipping.shipments.service.ItemsService;
 import dev.shipping.shipments.service.ShipmentsService;
-import utils.MyCustomUtils;
 
 /**
  * Handles all HTTP requests related to items.

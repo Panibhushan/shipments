@@ -21,10 +21,9 @@ import dev.shipping.shipments.model.Warehouses;
 import dev.shipping.shipments.repo.AddressRepository;
 import dev.shipping.shipments.repo.AuditsRepository;
 import dev.shipping.shipments.repo.WarehousesRepository;
-import dev.shipping.shipments.utils.MyResourceUtils;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
-import utils.MyCustomUtils;
+import dev.shipping.shipments.utils.MyCustomUtils;
 
 @Service
 public class AuditsService {

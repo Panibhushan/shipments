@@ -24,7 +24,7 @@ import dev.shipping.shipments.repo.ItemsRepository;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
-import utils.MyCustomUtils;
+import dev.shipping.shipments.utils.MyCustomUtils;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.node.ObjectNode;
 

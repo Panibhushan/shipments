@@ -25,11 +25,9 @@ import dev.shipping.shipments.repo.WarehousesRepository;
 import dev.shipping.shipments.utils.MyCustomUtils;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.TypedQuery;
-<<<<<<< HEAD
 import tools.jackson.databind.ObjectMapper;
-import utils.MyCustomUtils;
-=======
->>>>>>> e32936f4bd51f8d6a302504089acb711b62e7bcd
+import dev.shipping.shipments.utils.MyCustomUtils;
+ 
 
 /**
  * Core business logic for warehouse operations.

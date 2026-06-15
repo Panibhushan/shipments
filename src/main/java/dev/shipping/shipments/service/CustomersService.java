@@ -38,7 +38,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 import jakarta.persistence.TypedQuery;
 import tools.jackson.databind.ObjectMapper;
-import utils.MyCustomUtils;
+import dev.shipping.shipments.utils.MyCustomUtils;
 
 /**
  * Core business logic for customer operations.
@@ -303,10 +303,11 @@ public class CustomersService {
 		}
 
 		Customers createdCustomer = customersRepo.findById(customer.getCustomerId()).get();
-		
+
 		log.info("createCustomer() completed → customerId={}", customer.getCustomerId());
 
-		String auditData = buildCustomerChangesObjectForAudit_CREATE(createdCustomer, new ArrayList<AuditFieldChange>());
+		String auditData = buildCustomerChangesObjectForAudit_CREATE(createdCustomer,
+				new ArrayList<AuditFieldChange>());
 		log.info("createCustomer() auditData = {}", auditData);
 		Audits audit = MyCustomUtils.setFieldsForAudit("CUSTOMER", customer.getCustomerId(), "CREATE", auditData,
 				"SYSTEM");
@@ -319,7 +320,7 @@ public class CustomersService {
 
 		changes.add(new AuditFieldChange("Customer Id", "", customer.getCustomerId()));
 		changes.add(new AuditFieldChange("Name", "", customer.getCustomerName()));
-		changes.add(new AuditFieldChange("Valid upto", "", customer.getValidUpto() +" IST"));
+		changes.add(new AuditFieldChange("Valid upto", "", customer.getValidUpto() + " IST"));
 		changes.add(new AuditFieldChange("Status", "", customer.getCustomerStatus()));
 		changes.add(new AuditFieldChange("Email", "", customer.getCustomerEmail()));
 
@@ -413,10 +414,12 @@ public class CustomersService {
 		log.info("updateCustomer() result → customerId={}, inserted={}, deleted={}, resultMessage={}", customerId,
 				toInsert.size(), toDelete.size(), resultMessage);
 
-		Audits audit = MyCustomUtils.setFieldsForAudit("CUSTOMER", customerId, "MODIFY", auditData, "ADMIN");
-		auditsRepo.save(audit);
-		log.info("updateCustomer() audit={} saved for → customerId={}", audit.toString(), customerId);
-
+		if (resultMessage == "") {
+			Audits audit = MyCustomUtils.setFieldsForAudit("CUSTOMER", customerId, "MODIFY", auditData, "ADMIN");
+			auditsRepo.save(audit);
+			log.info("updateCustomer() audit={} saved for → customerId={}", audit.toString(), customerId);
+		}
+		
 		return resultMessage == "" ? "SUCCESS" : resultMessage;
 	}
 
@@ -437,8 +440,8 @@ public class CustomersService {
 		}
 
 		if (!customer.getValidUpto().equals(MyCustomUtils.getFormattedValidUpto(validUpto))) {
-			changes.add(new AuditFieldChange("Valid Upto", customer.getValidUpto()+" IST",
-					MyCustomUtils.getFormattedValidUpto(validUpto)+" IST"));
+			changes.add(new AuditFieldChange("Valid Upto", customer.getValidUpto() + " IST",
+					MyCustomUtils.getFormattedValidUpto(validUpto) + " IST"));
 		}
 
 		List<String> currentWarehouse = customerWarehousesRepo.findAllWarehousesByCustomerId(customerId);
@@ -467,7 +470,7 @@ public class CustomersService {
 
 		List<Shipments> openShipments = shipmentsRepo.findOpenShipmentsByCustomer(customerId);
 		List<Inventory> inventory = inventoryRepo.findInventoryByCustomer(customerId);
-		
+
 		Customers customer = customersRepo.findById(customerId).get();
 
 		log.info("deleteCustomer() openShipments result size={}", openShipments.size());
@@ -490,14 +493,16 @@ public class CustomersService {
 
 		if (deletionResult == "") {
 			customersRepo.deleteById(customerId);
-			
-			List<String> existingWarehouses = customerWarehousesRepo.findAllWarehousesByCustomerId(customer.getCustomerId());
+
+			List<String> existingWarehouses = customerWarehousesRepo
+					.findAllWarehousesByCustomerId(customer.getCustomerId());
 
 			customerWarehousesRepo.deleteAllWarehousesByCustomerId(customerId);
 			log.info("deleteCustomer() completed → customerId={}", customerId);
 			deletionResult = "CUSTOMER_DELETED_SUCCESSFULLY";
-			
-			String auditData = buildCustomerChangesObjectForAudit_DELETE(customer, existingWarehouses, new ArrayList<AuditFieldChange>());
+
+			String auditData = buildCustomerChangesObjectForAudit_DELETE(customer, existingWarehouses,
+					new ArrayList<AuditFieldChange>());
 			log.info("deleteCustomer() auditData = {}", auditData);
 			Audits audit = MyCustomUtils.setFieldsForAudit("CUSTOMER", customerId, "DELETE", auditData, "ADMIN");
 			auditsRepo.save(audit);
@@ -508,10 +513,11 @@ public class CustomersService {
 
 	}
 
-	public String buildCustomerChangesObjectForAudit_DELETE(Customers customer, List<String> existingWarehouses, List<AuditFieldChange> changes) {
+	public String buildCustomerChangesObjectForAudit_DELETE(Customers customer, List<String> existingWarehouses,
+			List<AuditFieldChange> changes) {
 		changes.add(new AuditFieldChange("Customer Id", customer.getCustomerId(), ""));
 		changes.add(new AuditFieldChange("Name", customer.getCustomerName(), ""));
-		changes.add(new AuditFieldChange("Valid upto", customer.getValidUpto()+" IST", ""));
+		changes.add(new AuditFieldChange("Valid upto", customer.getValidUpto() + " IST", ""));
 		changes.add(new AuditFieldChange("Status", customer.getCustomerStatus(), ""));
 		changes.add(new AuditFieldChange("Email", customer.getCustomerEmail(), ""));
 
