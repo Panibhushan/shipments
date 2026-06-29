@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+<meta charset="UTF-8">
+<title>Audit History</title>
+
+<link rel="stylesheet" th:href="@{/css/navbar.css}" />
+
+<style>
+*, *::before, *::after {
+	box-sizing: border-box;
+}
+
+:root {
+	--primary: #2563eb;
+	--primary-dark: #1d4ed8;
+	--bg: #f8fafc;
+	--card: #ffffff;
+	--border: #e5e7eb;
+	--text: #1f2937;
+	--muted: #64748b;
+	--success-bg: #dcfce7;
+	--success-text: #166534;
+	--warning-bg: #fef3c7;
+	--warning-text: #92400e;
+	--danger-bg: #fee2e2;
+	--danger-text: #991b1b;
+}
+
+body {
+	margin: 0;
+	background: var(--bg);
+	font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+	color: var(--text);
+	min-height: 100vh;
+}
+/* PAGE */
+body {
+	background: #f5f7fb;
+	font-family: "Segoe UI", sans-serif;
+}
+
+.page-content {
+	max-width: 1400px;
+	margin: 0 auto;
+	padding: 25px 30px;
+}
+
+/* HEADER CARD */
+.audit-header-card {
+	background: white;
+	border-radius: 14px;
+	padding: 24px;
+	margin-bottom: 24px;
+	box-shadow: 0 3px 12px rgba(0, 0, 0, .08);
+}
+
+.audit-header-card h2 {
+	margin: 0 0 20px;
+	color: #1f2937;
+	font-size: 1.4rem;
+}
+
+/* GRID */
+.audit-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+	gap: 18px;
+}
+
+.audit-info {
+	display: flex;
+	flex-direction: column;
+}
+
+.audit-info label {
+	font-size: .75rem;
+	text-transform: uppercase;
+	font-weight: 700;
+	color: #64748b;
+	margin-bottom: 6px;
+	letter-spacing: .05em;
+}
+
+.audit-info span {
+	font-size: .95rem;
+	font-weight: 600;
+	color: #1f2937;
+}
+
+/* ACTION BADGE */
+.action-badge {
+	display: inline-block;
+	width: fit-content;
+	padding: 6px 12px;
+	border-radius: 999px;
+	background: #dbeafe;
+	color: #1d4ed8;
+	font-weight: 700;
+}
+
+/* TABLE CARD */
+.table-wrapper {
+	background: white;
+	border-radius: 14px;
+	overflow: hidden;
+	box-shadow: 0 3px 12px rgba(0, 0, 0, .08);
+}
+
+/* TABLE */
+.audit-table {
+	width: 100%;
+	border-collapse: collapse;
+}
+
+.audit-table thead {
+	background: #f8fafc;
+}
+
+.audit-table th {
+	padding: 14px;
+	text-align: left;
+	font-size: .8rem;
+	text-transform: uppercase;
+	letter-spacing: .05em;
+	color: #475569;
+	border-bottom: 2px solid #e2e8f0;
+}
+
+.audit-table td {
+	padding: 14px;
+	border-bottom: 1px solid #eef2f7;
+	vertical-align: top;
+}
+
+.audit-table tbody tr:hover {
+	background: #f8fafc;
+}
+
+/* FIELD */
+.field-name {
+	font-weight: 700;
+	color: #1e293b;
+	width: 20%;
+}
+
+/* OLD VALUE */
+.old-value {
+	color: #991b1b;
+	background: #fef2f2;
+	font-family: Consolas, monospace;
+}
+
+/* NEW VALUE */
+.new-value {
+	color: #166534;
+	background: #f0fdf4;
+	font-family: Consolas, monospace;
+}
+
+/* MOBILE */
+@media ( max-width : 768px) {
+	.audit-table {
+		font-size: .85rem;
+	}
+	.audit-table td, .audit-table th {
+		padding: 10px;
+	}
+}
+ 
+</style>
+
+</head>
+
+<body>
+
+	<div th:replace="~{fragments/navbar :: navbar}"></div>
+
+	<div class="page-content">
+
+		<div id="msgBox" th:if="${msg}" th:utext="${msg}"></div>
+
+		<!-- TABLE -->
+		<div class="table-wrapper" th:if="${not #lists.isEmpty(audit)}">
+
+			<div class="table-title"></div>
+
+			<div class="table-container">
+
+				<div class="audit-header-card">
+
+					<h2>Audit Details</h2>
+
+					<div class="audit-grid">
+
+						<div class="audit-info">
+							<label>Entity Type</label> <span th:text="${audit.entityType}"></span>
+						</div>
+
+						<div class="audit-info">
+							<label>Entity</label> <span th:utext="${auditForEntity}"></span>
+						</div>
+
+						<div class="audit-info">
+							<label>Action Type</label> <span th:text="${audit.actionType}"> </span>
+						</div>
+
+						<div class="audit-info">
+							<label>Action By</label> <span th:text="${audit.actionBy}"></span>
+						</div>
+
+						<div class="audit-info">
+							<label>Audit DateTime</label> <span th:text="${audit.createdAt}"></span>
+						</div>
+
+					</div>
+
+				</div>
+
+				<div class="table-wrapper">
+
+					<table class="audit-table">
+
+						<thead>
+							<tr>
+								<th>Field</th>
+								<th>Old Value</th>
+								<th>New Value</th>
+							</tr>
+						</thead>
+
+						<tbody>
+
+							<tr th:each="change : ${changes}">
+
+								<td class="field-name" th:text="${change.field}"></td>
+
+								<td class="old-value" th:text="${change.oldValue}"></td>
+
+								<td class="new-value" th:text="${change.newValue}"></td>
+
+							</tr>
+
+						</tbody>
+
+					</table>
+
+				</div>
+				<!-- EMPTY STATE -->
+
+				<div class="empty-state" th:if="${#lists.isEmpty(audit)}">
+
+					<div class="empty-state-icon">📋</div>
+
+					<h3>No Audit Records Found</h3>
+
+					<p>There are currently no audit entries available for this
+						entity.</p>
+
+				</div>
+
+			</div>
+
+			<script>
+
+	function rowClick(row) {
+
+	    const form = document.createElement('form');
+	    form.method = 'POST';
+	    form.action = '/audit/showAuditDetails';
+
+	    const input = document.createElement('input');
+	    input.type = 'hidden';
+	    input.name = 'auditId';
+	    input.value = row.dataset.auditId;
+
+	    form.appendChild(input);
+	    document.body.appendChild(form);
+
+	    form.submit();
+	}
+	(function() {
+
+		let sortState = {
+			col : -1,
+			asc : true
+		};
+
+		document.querySelectorAll('thead th.sortable').forEach(th => {
+
+			th.addEventListener('click', function() {
+
+				const col = parseInt(this.dataset.col, 10);
+
+				if (sortState.col === col) {
+					sortState.asc = !sortState.asc;
+				} else {
+					sortState.col = col;
+					sortState.asc = true;
+				}
+
+				document.querySelectorAll('thead th.sortable').forEach(h => {
+
+					h.classList.remove('sort-asc', 'sort-desc');
+					h.querySelector('.sort-arrow').textContent = '⇅';
+
+				});
+
+				this.classList.add(sortState.asc ? 'sort-asc' : 'sort-desc');
+
+				this.querySelector('.sort-arrow').textContent =
+					sortState.asc ? '↑' : '↓';
+
+				const tbody =
+					document.querySelector('#auditTable tbody');
+
+				const rows =
+					Array.from(tbody.querySelectorAll('tr'));
+
+				rows.sort((a, b) => {
+
+					const cellA = getCellText(a, col);
+					const cellB = getCellText(b, col);
+
+					let cmp;
+
+					if (col === 0) {
+
+						const dA =
+							new Date(cellA.trim().replace(' ', 'T'));
+
+						const dB =
+							new Date(cellB.trim().replace(' ', 'T'));
+
+						cmp =
+							(isNaN(dA) || isNaN(dB))
+								? cellA.localeCompare(cellB)
+								: dA - dB;
+
+					} else {
+
+						cmp =
+							cellA.localeCompare(
+								cellB,
+								undefined,
+								{
+									numeric : true,
+									sensitivity : 'base'
+								}
+							);
+
+					}
+
+					return sortState.asc ? cmp : -cmp;
+
+				});
+
+				rows.forEach(r => tbody.appendChild(r));
+
+			});
+
+		});
+
+		function getCellText(row, col) {
+
+			const cell = row.querySelectorAll('td')[col];
+
+			if (!cell)
+				return '';
+
+			return cell.textContent.trim();
+
+		}
+
+	})();
+	</script>
+</body>
+</html>

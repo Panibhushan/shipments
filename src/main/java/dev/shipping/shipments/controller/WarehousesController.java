@@ -17,8 +17,10 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import dev.shipping.shipments.model.Address;
+import dev.shipping.shipments.model.Audits;
 import dev.shipping.shipments.model.Warehouses;
 import dev.shipping.shipments.service.AddressService;
+import dev.shipping.shipments.service.AuditsService;
 import dev.shipping.shipments.service.WarehousesService;
 
 /**
@@ -43,11 +45,13 @@ public class WarehousesController {
 
     private final WarehousesService warehousesService;
     private final AddressService addressService;
+	private final AuditsService auditsService;
 
-    public WarehousesController(WarehousesService warehousesService, AddressService addressService) {
+    public WarehousesController(WarehousesService warehousesService, AddressService addressService, AuditsService auditsService) {
         this.warehousesService = warehousesService;
         this.addressService = addressService;
-    }
+		this.auditsService = auditsService;
+}
 
     // ─────────────────────────────────────────────
     // LIST / FILTER
@@ -211,14 +215,14 @@ public class WarehousesController {
         }
 
         // ── 3. Create warehouse header, then link address ─────────────────────
-        String createdId = warehousesService.createWarehouse(warehouse);
-        String result = warehousesService.createWarehouseWithAddress(createdId, address);
+        String createdWarehouseId = warehousesService.createWarehouse(warehouse);
+        String result = warehousesService.createWarehouseWithAddress(createdWarehouseId, address);
 
         if (result.startsWith("WAREHOUSE_CREATED")) {
-            log.info("createWarehouseWithAddress() completed → warehouseId={}", createdId);
+            log.info("createWarehouseWithAddress() completed → warehouseId={}", createdWarehouseId);
         } else {
             log.error("createWarehouseWithAddress() failed after header creation → warehouseId={}: {}",
-                    createdId, result);
+            		createdWarehouseId, result);
         }
 
         return result;
@@ -355,6 +359,8 @@ public class WarehousesController {
                         + warehouseId + "'>View Inventory</a>");
                 redirectAttributes.addFlashAttribute("bgColor", "#d95f6c");
                 redirectAttributes.addFlashAttribute("textColor", "#ffffff");
+                
+                return "redirect:/warehouses/viewOrEditWarehouse/"+warehouseId;
             }
         }
 
@@ -393,4 +399,24 @@ public class WarehousesController {
 
         return result;
     }
+    
+    
+	@GetMapping("/warehouses/viewWarehouseAudit/{warehouseId}")
+	public String viewWarehouseAudit(@PathVariable String warehouseId, Model model) {
+
+		List<Audits> auditDetails = auditsService.getAuditDetailsList(warehouseId); 
+		
+		log.info("/warehouses/viewWarehouseAudit/warehouseId={}  → audit={}", warehouseId, auditDetails);
+
+		if (auditDetails.isEmpty() || auditDetails == null)
+			model.addAttribute("audit", "");
+		else {
+			model.addAttribute("auditDetails", auditDetails);
+			model.addAttribute("auditForEntity", warehouseId);
+		}
+
+		return "show-audit";
+	}
+    
+    
 }

@@ -452,7 +452,6 @@ td {
 						<th class="sortable" data-col="6">Modified At<span
 							class="sort-arrow">⇅</span></th>
 						<th>Details</th>
-						<th>Delete</th>
 					</tr>
 				</thead>
 
@@ -494,16 +493,6 @@ td {
 							class="btn-view" onclick="event.stopPropagation()"> ✏️ View /
 								Edit <span class="cell-tip">View or edit item</span>
 						</a></td>
-
-						<td>
-							<form
-								th:action="@{'/items/deleteItem/' + ${i.itemCustomerUomId}}"
-								method="post" onclick="event.stopPropagation()">
-								<button type="submit" class="btn-delete"
-									onclick="return confirm('Are you sure you want to delete this item?')">
-									🗑 Delete</button>
-							</form>
-						</td>
 
 					</tr>
 				</tbody>
