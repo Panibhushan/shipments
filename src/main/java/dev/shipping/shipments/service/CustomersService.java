@@ -57,10 +57,10 @@ public class CustomersService {
 	private static final Logger log = LoggerFactory.getLogger(CustomersService.class);
 
 	/** Format used when storing/reading customer contract expiry as a string. */
-	private static final DateTimeFormatter STORED_DATE_FMT = DateTimeFormatter.ofPattern("dd-MMM-yyyy HH:mm:ss");
+	private static final DateTimeFormatter STORED_DATE_FORMAT = DateTimeFormatter.ofPattern("dd-MMM-yyyy HH:mm:ss");
 
 	/** Format used by the HTML date-input element (yyyy-MM-dd). */
-	private static final DateTimeFormatter HTML_DATE_FMT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+	private static final DateTimeFormatter HTML_DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
 	/** Time units accepted for the "expiring within N <unit>" filter. */
 	private static final List<String> VALID_EXPIRY_UNITS = Arrays.asList("DAY", "WEEK", "MONTH", "QUARTER", "YEAR");
@@ -136,8 +136,8 @@ public class CustomersService {
 
 		// Convert the stored datetime string (e.g. "01-Jun-2026 00:00:00") to a plain
 		// date string (e.g. "2026-06-01") for the HTML <input type="date"> element
-		LocalDateTime dateTime = LocalDateTime.parse(customer.getValidUpto(), STORED_DATE_FMT);
-		String validUptoJustDate = dateTime.format(HTML_DATE_FMT);
+		LocalDateTime dateTime = LocalDateTime.parse(customer.getValidUpto(), STORED_DATE_FORMAT);
+		String validUptoJustDate = dateTime.format(HTML_DATE_FORMAT);
 		model.addAttribute("validUptoJustDate", validUptoJustDate);
 
 		// Highlight the expiry date field in red if the contract has already expired
@@ -200,7 +200,7 @@ public class CustomersService {
 			try {
 				// Parsing with the stored format validates calendar correctness
 				// (e.g. April 31 or February 30 will throw DateTimeParseException)
-				LocalDate selectedDate = LocalDate.parse(validUpto, STORED_DATE_FMT);
+				LocalDate selectedDate = LocalDate.parse(validUpto, STORED_DATE_FORMAT);
 				LocalDate tomorrow = LocalDate.now().plusDays(1);
 
 				if (selectedDate.isBefore(tomorrow)) {
@@ -250,7 +250,7 @@ public class CustomersService {
 		// The update form sends the date in yyyy-MM-dd format (HTML date input)
 		if (validUpto != null && !validUpto.isEmpty()) {
 			try {
-				LocalDate selectedDate = LocalDate.parse(validUpto, HTML_DATE_FMT);
+				LocalDate selectedDate = LocalDate.parse(validUpto, HTML_DATE_FORMAT);
 				LocalDate tomorrow = LocalDate.now().plusDays(1);
 
 				if (selectedDate.isBefore(tomorrow)) {
